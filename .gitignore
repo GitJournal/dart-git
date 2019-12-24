@@ -1,1 +1,4 @@
 .vscode
+.packages
+.dart_tool
+*.swp

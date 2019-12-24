@@ -6,5 +6,6 @@ homepage: https://gitjournal.io
 
 dependencies:
   path: ^1.6.2
+  pedantic: ^1.9.0
 
 dev_dependencies:

@@ -1,7 +1,7 @@
 import 'package:path/path.dart' as p;
 
 void main() {
-  print("Hello World");
+  print('Hello World');
 }
 
 class GitRepository {
@@ -11,7 +11,9 @@ class GitRepository {
 
   GitRepository(String path) {
     workTree = path;
-    gitDir = p.join(workTree, ".git");
+    gitDir = p.join(workTree, '.git');
+
+    // Is it fine to raise exceptions in the constructor?
   }
 
   static void init(String path) {

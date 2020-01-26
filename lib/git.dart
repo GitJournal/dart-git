@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 import 'dart:convert';
 
@@ -131,4 +132,68 @@ class GitBlob extends GitObject {
 
   @override
   List<int> format() => _fmt;
+}
+
+class GitCommit extends GitObject {
+  static const String fmt = 'commit';
+  static final List<int> _fmt = ascii.encode(fmt);
+
+  Map<String, List<int>> props;
+  String message;
+
+  GitCommit(this.props, this.message);
+
+  @override
+  List<int> serialize() => [];
+
+  @override
+  List<int> format() => _fmt;
+}
+
+Map<String, dynamic> kvlmParse(List<int> raw) {
+  var dict = <String, dynamic>{};
+
+  var start = 0;
+  var spaceRaw = ' '.codeUnitAt(0);
+  var newLineRaw = '\n'.codeUnitAt(0);
+
+  while (true) {
+    var spaceIndex = raw.indexOf(spaceRaw, start);
+    var newLineIndex = raw.indexOf(newLineRaw, start);
+
+    if (newLineIndex < spaceIndex) {
+      assert(newLineIndex == start);
+
+      dict['_'] = utf8.decode(raw.sublist(start + 1));
+      break;
+    }
+
+    var key = raw.sublist(start, spaceIndex);
+    var end = spaceIndex;
+    while (true) {
+      end = raw.indexOf(newLineRaw, end + 1);
+      if (raw[end + 1] != spaceRaw) {
+        break;
+      }
+    }
+
+    var value = raw.sublist(spaceIndex + 1, end);
+    var valueStr = utf8.decode(value).replaceAll('\n ', '\n');
+
+    var keyStr = utf8.decode(key);
+    if (dict.containsKey(keyStr)) {
+      var dictVal = dict[keyStr];
+      if (dictVal is List) {
+        dict[keyStr] = [...dictVal, valueStr];
+      } else {
+        dict[keyStr] = [dictVal, valueStr];
+      }
+    } else {
+      dict[keyStr] = valueStr;
+    }
+
+    start = end + 1;
+  }
+
+  return dict;
 }

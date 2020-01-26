@@ -6,6 +6,7 @@ homepage: https://gitjournal.io
 
 dependencies:
   path: ^1.6.2
+  crypto: ^2.1.4
   ini: ^2.0.1
 
 dev_dependencies:

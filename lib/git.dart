@@ -61,7 +61,7 @@ class GitRepository {
     var fmt = raw.sublist(0, x);
 
     // Read and validate object size
-    var y = raw.indexOf(0, x);
+    var y = raw.indexOf(0x0, x);
     var size = int.parse(ascii.decode(raw.sublist(x, y)));
     if (size != (raw.length - y - 1)) {
       throw Exception('Malformed object $filePath: bad length');
@@ -84,7 +84,7 @@ class GitRepository {
     if (write) {
       var path =
           p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-      await File(path).writeAsBytes(result);
+      await File(path).writeAsBytes(zlib.encode(result));
     }
 
     return sha;
@@ -92,7 +92,13 @@ class GitRepository {
 
   List<int> serializeObject(GitObject obj) {
     var data = obj.serialize();
-    return [...obj.format(), ...ascii.encode(' '), 0, ...data];
+    return [
+      ...obj.format(),
+      ...ascii.encode(' '),
+      ...ascii.encode(data.length.toString()),
+      0x0,
+      ...data,
+    ];
   }
 }
 

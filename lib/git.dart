@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:path/path.dart' as p;
+import 'package:ini/ini.dart';
 
 void main() {
   print('Hello World');
@@ -13,23 +15,42 @@ class GitRepository {
     workTree = path;
     gitDir = p.join(workTree, '.git');
 
-    // Is it fine to raise exceptions in the constructor?
+    if (!FileSystemEntity.isDirectorySync(gitDir)) {
+      throw InvalidRepoException(path);
+    }
   }
 
-  static void init(String path) {
-    // Check if path has stuff and accordingly return
+  static Future<void> init(String path) async {
+    // TODO: Check if path has stuff and accordingly return
+
+    var gitDir = p.join(path, '.git');
+
+    await Directory(p.join(gitDir, 'branches')).create(recursive: true);
+    await Directory(p.join(gitDir, 'objects')).create(recursive: true);
+    await Directory(p.join(gitDir, 'refs', 'tags')).create(recursive: true);
+    await Directory(p.join(gitDir, 'refs', 'heads')).create(recursive: true);
+
+    await File(p.join(gitDir, 'description')).writeAsString(
+        "Unnamed repository; edit this file 'description' to name the repository.\n");
+    await File(p.join(gitDir, 'HEAD'))
+        .writeAsString('ref: refs/heads/master\n');
+
+    var config = Config();
+    config.addSection('core');
+    config.set('core', 'repositoryformatversion', '0');
+    config.set('core', 'filemode', 'false');
+    config.set('core', 'bare', 'false');
+
+    await File(p.join(gitDir, 'config')).writeAsString(config.toString());
   }
 }
 
-// How to do error handling?
-// - I would love to just return an Error obj, but that cannot always be done
-//   I guess exceptions is the way to go
+class GitException implements Exception {}
 
-class GitException {}
+class InvalidRepoException implements GitException {
+  String path;
+  InvalidRepoException(this.path);
 
-// Show an example of how we can detect the exception type
-
-//
-// This is the perfect kind of project where TDD would work so well
-// It would be a good idea to reflect 'go-git's directory structure
-//
+  @override
+  String toString() => 'Not a Git Repository: ' + path;
+}

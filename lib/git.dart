@@ -69,7 +69,7 @@ class GitRepository {
 
     var fmtStr = ascii.decode(fmt);
     if (fmtStr == GitBlob.fmt) {
-      return GitBlob(this, raw.sublist(y + 1));
+      return GitBlob(raw.sublist(y + 1));
     } else {
       throw Exception('Unknown type ${ascii.decode(fmt)} for object $filePath');
     }
@@ -117,14 +117,14 @@ abstract class GitObject {
   List<int> format();
 }
 
+// FIXME: Every object should know its sha1
 class GitBlob extends GitObject {
   static const String fmt = 'blob';
   static final List<int> _fmt = ascii.encode(fmt);
 
-  GitRepository repo;
   List<int> blobData;
 
-  GitBlob(this.repo, this.blobData);
+  GitBlob(this.blobData);
 
   @override
   List<int> serialize() => blobData;

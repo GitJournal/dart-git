@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 import 'package:dart_git/git.dart';
 
 void main() {
-  var raw = '''tree 29ff16c9c14e2652b22f8b78bb08a5a07930c147
+  var rawStr = '''tree 29ff16c9c14e2652b22f8b78bb08a5a07930c147
 parent 206941306e8a8af65b66eaaaea388a7ae24d49a0
 parent 206941306e8a8af65b66eaaaea388a7ae24d49a2
 author Thibault Polge <thibault@thb.lt> 1527025023 +0200
@@ -28,7 +28,8 @@ gpgsig -----BEGIN PGP SIGNATURE-----
 Create first draft''';
 
   test('Parses KVLM Properly', () async {
-    var map = kvlmParse(utf8.encode(raw));
+    var raw = utf8.encode(rawStr);
+    var map = kvlmParse(raw);
 
     expect(map.length, equals(6));
 
@@ -55,5 +56,6 @@ Q52UWybBzpaP9HEd4XnR+HuQ4k2K0ns2KgNImsNvIyFwbpMUyUWLMPimaV1DWUXo
 -----END PGP SIGNATURE-----'''));
 
     expect(map['_'], equals('Create first draft'));
+    expect(utf8.decode(kvlmSerialize(map)), equals(rawStr));
   });
 }

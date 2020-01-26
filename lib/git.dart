@@ -197,3 +197,29 @@ Map<String, dynamic> kvlmParse(List<int> raw) {
 
   return dict;
 }
+
+List<int> kvlmSerialize(Map<String, dynamic> kvlm) {
+  var ret = <int>[];
+
+  kvlm.forEach((key, val) {
+    if (key == '_') {
+      return;
+    }
+
+    if (val is! List) {
+      val = [val];
+    }
+
+    val.forEach((v) {
+      ret.addAll([
+        ...utf8.encode(key),
+        ' '.codeUnitAt(0),
+        ...utf8.encode(v.replaceAll('\n', '\n ')),
+        '\n'.codeUnitAt(0),
+      ]);
+    });
+  });
+
+  ret.addAll(['\n'.codeUnitAt(0), ...utf8.encode(kvlm['_'])]);
+  return ret;
+}

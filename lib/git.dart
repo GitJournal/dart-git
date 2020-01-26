@@ -18,9 +18,9 @@ class GitRepository {
     workTree = path;
     gitDir = p.join(workTree, '.git');
 
-    if (!FileSystemEntity.isDirectorySync(gitDir)) {
+    /*if (!FileSystemEntity.isDirectorySync(gitDir)) {
       throw InvalidRepoException(path);
-    }
+    }*/
   }
 
   static Future<void> init(String path) async {
@@ -47,10 +47,13 @@ class GitRepository {
     await File(p.join(gitDir, 'config')).writeAsString(config.toString());
   }
 
-  Future<GitObject> readObject(String sha) async {
+  Future<GitObject> readObjectFromSha(String sha) async {
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
+    return readObjectFromPath(path);
+  }
 
-    var contents = await File(path).readAsBytes();
+  Future<GitObject> readObjectFromPath(String filePath) async {
+    var contents = await File(filePath).readAsBytes();
     var raw = zlib.decode(contents);
 
     // Read Object Type
@@ -61,21 +64,21 @@ class GitRepository {
     var y = raw.indexOf(0, x);
     var size = int.parse(ascii.decode(raw.sublist(x, y)));
     if (size != (raw.length - y - 1)) {
-      throw Exception('Malformed object $sha: bad length');
+      throw Exception('Malformed object $filePath: bad length');
     }
 
-    if (fmt == GitBlob.fmt) {
+    var fmtStr = ascii.decode(fmt);
+    if (fmtStr == GitBlob.fmt) {
       return GitBlob(this, raw.sublist(y + 1));
     } else {
-      throw Exception('Unknown type ${ascii.decode(fmt)} for object $sha');
+      throw Exception('Unknown type ${ascii.decode(fmt)} for object $filePath');
     }
 
     // Handle commits, tags and trees
   }
 
   Future<String> writeObject(GitObject obj, {bool write = true}) async {
-    var data = obj.serialize();
-    var result = [...obj.format(), ...ascii.encode(' '), 0, ...data];
+    var result = serializeObject(obj);
     var sha = sha1.convert(result).toString();
 
     if (write) {
@@ -85,6 +88,11 @@ class GitRepository {
     }
 
     return sha;
+  }
+
+  List<int> serializeObject(GitObject obj) {
+    var data = obj.serialize();
+    return [...obj.format(), ...ascii.encode(' '), 0, ...data];
   }
 }
 
@@ -104,7 +112,8 @@ abstract class GitObject {
 }
 
 class GitBlob extends GitObject {
-  static List<int> fmt = ascii.encode('blob');
+  static const String fmt = 'blob';
+  static final List<int> _fmt = ascii.encode(fmt);
 
   GitRepository repo;
   List<int> blobData;
@@ -115,5 +124,5 @@ class GitBlob extends GitObject {
   List<int> serialize() => blobData;
 
   @override
-  List<int> format() => fmt;
+  List<int> format() => _fmt;
 }

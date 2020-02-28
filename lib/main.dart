@@ -6,6 +6,7 @@ void main(List<String> args) async {
     ..addCommand(InitCommand())
     ..addCommand(CatFileCommand())
     ..addCommand(HashObjectCommand())
+    ..addCommand(LogCommand())
     ..addCommand(LsTreeCommand());
 
   try {

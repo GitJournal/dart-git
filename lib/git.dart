@@ -1,13 +1,35 @@
-import 'dart:collection';
 import 'dart:io';
 import 'dart:convert';
+
+import 'package:args/args.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:ini/ini.dart';
 import 'package:crypto/crypto.dart';
 
-void main() {
-  print('Hello World');
+void main(List<String> args) async {
+  var parser = ArgParser();
+  var catFileCommand = ArgParser();
+
+  parser.addCommand('cat-file', catFileCommand);
+
+  var results = parser.parse(args);
+  var cmd = results.command;
+  if (cmd == null) {
+    print(parser.usage);
+    exit(0);
+  }
+
+  if (cmd.name == 'cat-file') {
+    var repo = GitRepository(Directory.current.path);
+
+    var objectSha1 = cmd.arguments[1];
+    var obj = await repo.readObjectFromSha(objectSha1);
+    if (obj is GitBlob) {
+      var s = utf8.decode(obj.blobData);
+      print(s);
+    }
+  }
 }
 
 class GitRepository {

@@ -169,11 +169,18 @@ class GitCommit extends GitObject {
   GitCommit(List<int> rawData) {
     var map = kvlmParse(rawData);
     message = map['_'];
-    author = map['author'];
-    committer = map['committer'];
+    author = Author.parse(map['author']);
+    committer = Author.parse(map['committer']);
 
     if (map.containsKey('parent')) {
-      map['parent'].forEach((p) => parents.add(p as String));
+      var parent = map['parent'];
+      if (parent is List) {
+        parent.forEach((p) => parents.add(p as String));
+      } else if (parent is String) {
+        parents.add(parent);
+      } else {
+        throw Exception('Unknow parent type');
+      }
     }
     treeSha = map['tree'];
   }

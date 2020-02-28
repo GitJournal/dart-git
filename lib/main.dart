@@ -1,8 +1,5 @@
-import 'commands/init.dart';
-import 'commands/cat_file.dart';
-import 'commands/hash_object.dart';
-
 import 'package:args/command_runner.dart';
+import 'commands/commands.dart';
 
 void main(List<String> args) async {
   var runner = CommandRunner('git', 'Distributed version control.')

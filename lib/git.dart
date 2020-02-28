@@ -11,7 +11,23 @@ void main(List<String> args) async {
   var parser = ArgParser();
   var catFileCommand = ArgParser();
 
+  var hashObjectCommand = ArgParser();
+  hashObjectCommand.addOption(
+    'type',
+    abbr: 't',
+    defaultsTo: 'blob',
+    allowed: ['blob', 'commit', 'tag', 'tree'],
+    help: 'Specify the type',
+  );
+  hashObjectCommand.addFlag(
+    'write',
+    abbr: 'w',
+    defaultsTo: true,
+    help: 'Actually writes the object into the database',
+  );
+
   parser.addCommand('cat-file', catFileCommand);
+  parser.addCommand('hash-object', hashObjectCommand);
 
   var results = parser.parse(args);
   var cmd = results.command;
@@ -29,6 +45,21 @@ void main(List<String> args) async {
       var s = utf8.decode(obj.blobData);
       print(s);
     }
+  }
+
+  if (cmd.name == 'hash-object') {
+    if (cmd.rest.isEmpty) {
+      print('Must provide file path');
+      return;
+    }
+    var filePath = cmd.rest[0];
+    var rawData = File(filePath).readAsBytesSync();
+
+    var repo = GitRepository(Directory.current.path);
+    var fmt = cmd['type'] as String;
+    var obj = repo.createObject(fmt, rawData);
+    var sha1Hash = await repo.writeObject(obj, write: cmd['write']);
+    print(sha1Hash);
   }
 }
 
@@ -91,15 +122,17 @@ class GitRepository {
     }
 
     var fmtStr = ascii.decode(fmt);
-    if (fmtStr == GitBlob.fmt) {
-      return GitBlob(raw.sublist(y + 1));
-    } else if (fmtStr == GitCommit.fmt) {
-      return GitCommit(raw.sublist(y + 1));
-    } else {
-      throw Exception('Unknown type ${ascii.decode(fmt)} for object $filePath');
-    }
+    return createObject(fmtStr, raw.sublist(y + 1), filePath);
+  }
 
-    // Handle commits, tags and trees
+  GitObject createObject(String fmt, List<int> rawData, [String filePath]) {
+    if (fmt == GitBlob.fmt) {
+      return GitBlob(rawData);
+    } else if (fmt == GitCommit.fmt) {
+      return GitCommit(rawData);
+    } else {
+      throw Exception('Unknown type $fmt for object $filePath');
+    }
   }
 
   Future<String> writeObject(GitObject obj, {bool write = true}) async {
@@ -109,6 +142,7 @@ class GitRepository {
     if (write) {
       var path =
           p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
+      await Directory(p.basename(path)).create(recursive: true);
       await File(path).writeAsBytes(zlib.encode(result));
     }
 

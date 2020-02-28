@@ -5,12 +5,14 @@ void main(List<String> args) async {
   var runner = CommandRunner('git', 'Distributed version control.')
     ..addCommand(InitCommand())
     ..addCommand(CatFileCommand())
-    ..addCommand(HashObjectCommand());
+    ..addCommand(HashObjectCommand())
+    ..addCommand(LsTreeCommand());
 
   try {
     await runner.run(args);
-  } catch (e) {
+  } catch (e, stacktrace) {
     print(e);
+    print(stacktrace);
     return;
   }
 }

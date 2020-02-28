@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:ini/ini.dart';
@@ -72,6 +73,8 @@ class GitRepository {
       return GitBlob(rawData);
     } else if (fmt == GitCommit.fmt) {
       return GitCommit(rawData);
+    } else if (fmt == GitTree.fmt) {
+      return GitTree(rawData);
     } else {
       throw Exception('Unknown type $fmt for object $filePath');
     }
@@ -264,4 +267,60 @@ List<int> kvlmSerialize(Map<String, dynamic> kvlm) {
 
   ret.addAll(['\n'.codeUnitAt(0), ...utf8.encode(kvlm['_'])]);
   return ret;
+}
+
+class GitTreeLeaf {
+  String mode;
+  String path;
+  String sha;
+
+  @override
+  String toString() {
+    return 'GitTreeLeaf{mode: $mode, path: $path, sha: $sha}';
+  }
+}
+
+class GitTree extends GitObject {
+  static const String fmt = 'tree';
+  static final List<int> _fmt = ascii.encode(fmt);
+
+  List<GitTreeLeaf> leaves = [];
+
+  GitTree(List<int> raw) {
+    final spaceRaw = ' '.codeUnitAt(0);
+    final nullRaw = 0;
+
+    var start = 0;
+    while (start < raw.length) {
+      var x = raw.indexOf(spaceRaw, start);
+      assert(x - start == 5 || x - start == 6);
+
+      var mode = raw.sublist(start, x);
+      var y = raw.indexOf(nullRaw, x);
+      var path = raw.sublist(x + 1, y);
+
+      // FIXME: What about the endian-ness?
+      var shaBytesBinaryEncoded = raw.sublist(y + 1, y + 21);
+      var bytes = Uint8List.fromList(shaBytesBinaryEncoded);
+      var sha = bytes
+          .map((b) => '${b.toRadixString(16).padLeft(2, '0')}')
+          .toList()
+          .join();
+
+      var leaf = GitTreeLeaf();
+      leaf.mode = ascii.decode(mode);
+      leaf.path = utf8.decode(path);
+      leaf.sha = sha;
+
+      leaves.add(leaf);
+
+      start = y + 21;
+    }
+  }
+
+  @override
+  List<int> serialize() => [];
+
+  @override
+  List<int> format() => _fmt;
 }

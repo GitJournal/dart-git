@@ -1,10 +1,22 @@
 import 'dart:io';
 import 'dart:convert';
 import 'git.dart';
+import 'commands/init.dart';
 
 import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
 
 void main(List<String> args) async {
+  var runner = CommandRunner('git', 'Distributed version control.')
+    ..addCommand(InitCommand());
+
+  try {
+    await runner.run(args);
+  } catch (e) {
+    print(e);
+    return;
+  }
+
   var parser = ArgParser();
   var catFileCommand = ArgParser();
 

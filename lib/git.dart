@@ -71,6 +71,8 @@ class GitRepository {
     var fmtStr = ascii.decode(fmt);
     if (fmtStr == GitBlob.fmt) {
       return GitBlob(raw.sublist(y + 1));
+    } else if (fmtStr == GitCommit.fmt) {
+      return GitCommit(raw.sublist(y + 1));
     } else {
       throw Exception('Unknown type ${ascii.decode(fmt)} for object $filePath');
     }
@@ -134,14 +136,49 @@ class GitBlob extends GitObject {
   List<int> format() => _fmt;
 }
 
+class Author {
+  String name;
+  String email;
+  int timestamp;
+  DateTime date;
+
+  static Author parse(String input) {
+    // Regex " AuthorName <Email>  timestamp timeOffset"
+    var pattern = RegExp(r'(.*) <(.*)> (\d+) (\+|\-)\d\d\d\d');
+    var match = pattern.allMatches(input).toList();
+
+    var author = Author();
+    author.name = match[0].group(1);
+    author.email = match[0].group(2);
+    author.timestamp = (int.parse(match[0].group(3))) * 1000;
+    author.date =
+        DateTime.fromMillisecondsSinceEpoch(author.timestamp, isUtc: true);
+    return author;
+  }
+}
+
 class GitCommit extends GitObject {
   static const String fmt = 'commit';
   static final List<int> _fmt = ascii.encode(fmt);
 
   Map<String, List<int>> props;
+  Author author;
+  Author committer;
   String message;
+  String treeSha;
+  List<String> parents = [];
 
-  GitCommit(this.props, this.message);
+  GitCommit(List<int> rawData) {
+    var map = kvlmParse(rawData);
+    message = map['_'];
+    author = map['author'];
+    committer = map['committer'];
+
+    if (map.containsKey('parent')) {
+      map['parent'].forEach((p) => parents.add(p as String));
+    }
+    treeSha = map['tree'];
+  }
 
   @override
   List<int> serialize() => [];

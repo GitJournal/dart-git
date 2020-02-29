@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:dart_git/plumbing/utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:ini/ini.dart';
 import 'package:crypto/crypto.dart';
@@ -298,17 +299,12 @@ class GitTree extends GitObject {
       var mode = raw.sublist(start, x);
       var y = raw.indexOf(nullRaw, x);
       var path = raw.sublist(x + 1, y);
-
-      // FIXME: What about the endian-ness?
-      var shaBytesBinaryEncoded = raw.sublist(y + 1, y + 21);
-      var bytes = Uint8List.fromList(shaBytesBinaryEncoded);
-      var sha =
-          bytes.map((b) => '${b.toRadixString(16).padLeft(2, '0')}').join();
+      var shaBytes = raw.sublist(y + 1, y + 21);
 
       var leaf = GitTreeLeaf();
       leaf.mode = ascii.decode(mode);
       leaf.path = utf8.decode(path);
-      leaf.sha = sha;
+      leaf.sha = shaBytesToString(shaBytes);
 
       leaves.add(leaf);
 
@@ -326,16 +322,7 @@ class GitTree extends GitObject {
       data.add(spaceRaw);
       data.addAll(utf8.encode(leaf.path));
       data.add(0x00);
-
-      var bytes = Uint8List(20);
-      var j = 0;
-      for (var i = 0; i < leaf.sha.length; i += 2) {
-        var hexChar = leaf.sha.substring(i, i + 2);
-        var num = int.parse(hexChar, radix: 16);
-        bytes[j] = num;
-        j++;
-      }
-      data.addAll(bytes);
+      data.addAll(shaToBytes(leaf.sha));
     }
 
     return data;

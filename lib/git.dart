@@ -302,10 +302,8 @@ class GitTree extends GitObject {
       // FIXME: What about the endian-ness?
       var shaBytesBinaryEncoded = raw.sublist(y + 1, y + 21);
       var bytes = Uint8List.fromList(shaBytesBinaryEncoded);
-      var sha = bytes
-          .map((b) => '${b.toRadixString(16).padLeft(2, '0')}')
-          .toList()
-          .join();
+      var sha =
+          bytes.map((b) => '${b.toRadixString(16).padLeft(2, '0')}').join();
 
       var leaf = GitTreeLeaf();
       leaf.mode = ascii.decode(mode);
@@ -319,7 +317,29 @@ class GitTree extends GitObject {
   }
 
   @override
-  List<int> serialize() => [];
+  List<int> serialize() {
+    final spaceRaw = ' '.codeUnitAt(0);
+    var data = <int>[];
+
+    for (var leaf in leaves) {
+      data.addAll(ascii.encode(leaf.mode));
+      data.add(spaceRaw);
+      data.addAll(utf8.encode(leaf.path));
+      data.add(0x00);
+
+      var bytes = Uint8List(20);
+      var j = 0;
+      for (var i = 0; i < leaf.sha.length; i += 2) {
+        var hexChar = leaf.sha.substring(i, i + 2);
+        var num = int.parse(hexChar, radix: 16);
+        bytes[j] = num;
+        j++;
+      }
+      data.addAll(bytes);
+    }
+
+    return data;
+  }
 
   @override
   List<int> format() => _fmt;

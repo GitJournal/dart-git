@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:dart_git/plumbing/utils.dart';
+import 'package:dart_git/git_hash.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:ini/ini.dart';
 import 'package:crypto/crypto.dart';
@@ -45,7 +45,8 @@ class GitRepository {
     await File(p.join(gitDir, 'config')).writeAsString(config.toString());
   }
 
-  Future<GitObject> readObjectFromSha(String sha) async {
+  Future<GitObject> readObjectFromHash(GitHash hash) async {
+    var sha = hash.toString();
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
     return readObjectFromPath(path);
   }
@@ -83,7 +84,7 @@ class GitRepository {
 
   Future<String> writeObject(GitObject obj, {bool write = true}) async {
     var result = serializeObject(obj);
-    var sha = sha1.convert(result).toString();
+    var sha = GitHash.compute(result).toString();
 
     if (write) {
       var path =
@@ -167,7 +168,7 @@ class GitCommit extends GitObject {
   Author author;
   Author committer;
   String message;
-  String treeSha;
+  GitHash treeHash;
   List<String> parents = [];
 
   GitCommit(List<int> rawData) {
@@ -186,7 +187,7 @@ class GitCommit extends GitObject {
         throw Exception('Unknow parent type');
       }
     }
-    treeSha = map['tree'];
+    treeHash = GitHash.fromString(map['tree']);
   }
 
   @override
@@ -273,11 +274,11 @@ List<int> kvlmSerialize(Map<String, dynamic> kvlm) {
 class GitTreeLeaf {
   String mode;
   String path;
-  String sha;
+  GitHash hash;
 
   @override
   String toString() {
-    return 'GitTreeLeaf{mode: $mode, path: $path, sha: $sha}';
+    return 'GitTreeLeaf{mode: $mode, path: $path, hash: $hash}';
   }
 }
 
@@ -299,12 +300,12 @@ class GitTree extends GitObject {
       var mode = raw.sublist(start, x);
       var y = raw.indexOf(nullRaw, x);
       var path = raw.sublist(x + 1, y);
-      var shaBytes = raw.sublist(y + 1, y + 21);
+      var hashBytes = raw.sublist(y + 1, y + 21);
 
       var leaf = GitTreeLeaf();
       leaf.mode = ascii.decode(mode);
       leaf.path = utf8.decode(path);
-      leaf.sha = shaBytesToString(shaBytes);
+      leaf.hash = GitHash.fromBytes(hashBytes);
 
       leaves.add(leaf);
 
@@ -322,7 +323,7 @@ class GitTree extends GitObject {
       data.add(spaceRaw);
       data.addAll(utf8.encode(leaf.path));
       data.add(0x00);
-      data.addAll(shaToBytes(leaf.sha));
+      data.addAll(leaf.hash.bytes);
     }
 
     return data;

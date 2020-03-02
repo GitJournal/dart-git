@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
+import 'package:dart_git/git_hash.dart';
 
 class LsTreeCommand extends Command {
   @override
@@ -16,14 +17,14 @@ class LsTreeCommand extends Command {
     var objectSha1 = argResults.rest.first;
 
     var repo = GitRepository(Directory.current.path);
-    var obj = await repo.readObjectFromSha(objectSha1);
+    var obj = await repo.readObjectFromHash(GitHash.fromString(objectSha1));
     assert(obj is GitTree);
 
     var tree = obj as GitTree;
     for (var leaf in tree.leaves) {
-      var leafObj = await repo.readObjectFromSha(leaf.sha);
+      var leafObj = await repo.readObjectFromHash(leaf.hash);
       var type = ascii.decode(leafObj.format());
-      print('${leaf.mode.padLeft(6, '0')} $type ${leaf.sha}    ${leaf.path}');
+      print('${leaf.mode.padLeft(6, '0')} $type ${leaf.hash}    ${leaf.path}');
     }
   }
 }

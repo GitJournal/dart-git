@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
+import 'package:dart_git/git_hash.dart';
 
 class LogCommand extends Command {
   @override
@@ -25,7 +26,7 @@ class LogCommand extends Command {
       parents.removeAt(0);
       seen.add(sha);
 
-      var obj = await repo.readObjectFromSha(sha);
+      var obj = await repo.readObjectFromHash(GitHash.fromString(sha));
       assert(obj is GitCommit);
       var commit = obj as GitCommit;
 

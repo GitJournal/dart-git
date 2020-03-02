@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
+import 'package:dart_git/git_hash.dart';
 
 class CatFileCommand extends Command {
   @override
@@ -17,7 +18,7 @@ class CatFileCommand extends Command {
     var repo = GitRepository(Directory.current.path);
 
     var objectSha1 = argResults.arguments[1];
-    var obj = await repo.readObjectFromSha(objectSha1);
+    var obj = await repo.readObjectFromHash(GitHash.fromString(objectSha1));
     if (obj is GitBlob) {
       var s = utf8.decode(obj.blobData);
       print(s);

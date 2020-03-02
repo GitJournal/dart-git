@@ -5,7 +5,6 @@ import 'package:dart_git/git_hash.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:ini/ini.dart';
-import 'package:crypto/crypto.dart';
 
 class GitRepository {
   String workTree;
@@ -187,7 +186,7 @@ class GitCommit extends GitObject {
         throw Exception('Unknow parent type');
       }
     }
-    treeHash = GitHash.fromString(map['tree']);
+    treeHash = GitHash(map['tree']);
   }
 
   @override

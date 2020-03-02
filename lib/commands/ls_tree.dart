@@ -17,7 +17,7 @@ class LsTreeCommand extends Command {
     var objectSha1 = argResults.rest.first;
 
     var repo = GitRepository(Directory.current.path);
-    var obj = await repo.readObjectFromHash(GitHash.fromString(objectSha1));
+    var obj = await repo.readObjectFromHash(GitHash(objectSha1));
     assert(obj is GitTree);
 
     var tree = obj as GitTree;

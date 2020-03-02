@@ -14,7 +14,7 @@ class GitHash {
     _bytes = Uint8List.fromList(bytes);
   }
 
-  GitHash.fromString(String sha) {
+  GitHash(String sha) {
     if (sha.length != 20) {
       throw Exception('Hash size is not 20');
     }

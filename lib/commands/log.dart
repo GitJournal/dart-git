@@ -26,7 +26,7 @@ class LogCommand extends Command {
       parents.removeAt(0);
       seen.add(sha);
 
-      var obj = await repo.readObjectFromHash(GitHash.fromString(sha));
+      var obj = await repo.readObjectFromHash(GitHash(sha));
       assert(obj is GitCommit);
       var commit = obj as GitCommit;
 

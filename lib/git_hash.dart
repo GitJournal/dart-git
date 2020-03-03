@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:collection/collection.dart';
 
 class GitHash {
   Uint8List _bytes;
@@ -42,4 +43,12 @@ class GitHash {
     }
     return buf.toString();
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! GitHash) return false;
+    return _listEq(_bytes, (other as GitHash)._bytes);
+  }
+
+  static final Function _listEq = const ListEquality().equals;
 }

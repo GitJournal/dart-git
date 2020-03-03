@@ -39,8 +39,43 @@ class GitIndex {
       entries.add(entry);
     }
 
-    //
+    // Read Extensions
+    List<int> extensionHeader;
+    while (true) {
+      extensionHeader = reader.read(4);
+      if (!_parseExtension(extensionHeader, reader)) {
+        break;
+      }
+    }
+
+    var hashBytes = [...extensionHeader, ...reader.read(16)];
+    var expectedHash = GitHash.fromBytes(hashBytes);
+    var actualHash = GitHash.compute(
+        bytes.sublist(0, bytes.length - 20)); // FIXME: Avoid this copy!
+    if (expectedHash != actualHash) {
+      print('ExpctedHash: $expectedHash');
+      print('ActualHash:  $actualHash');
+      throw Exception('Index file seems to be corrupted');
+    }
   }
+
+  bool _parseExtension(List<int> header, ByteDataReader reader) {
+    final treeHeader = ascii.encode('TREE');
+    final reucHeader = ascii.encode('REUC');
+    final eoicHeader = ascii.encode('EOIC');
+
+    if (_listEq(header, treeHeader) ||
+        _listEq(header, reucHeader) ||
+        _listEq(header, eoicHeader)) {
+      var length = reader.readUint32();
+      var data = reader.read(length); // Ignoring the data for now
+      return true;
+    }
+
+    return false;
+  }
+
+  static final Function _listEq = const ListEquality().equals;
 }
 
 class GitIndexEntry {

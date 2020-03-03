@@ -50,5 +50,8 @@ class GitHash {
     return _listEq(_bytes, (other as GitHash)._bytes);
   }
 
+  @override
+  int get hashCode => _bytes.hashCode;
+
   static final Function _listEq = const ListEquality().equals;
 }

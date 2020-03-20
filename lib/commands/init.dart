@@ -12,7 +12,7 @@ class InitCommand extends Command {
   @override
   Future run() async {
     if (argResults.rest.isEmpty) {
-      print('Must provde a path');
+      print('Must provide a path');
       return false;
     }
 

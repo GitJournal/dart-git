@@ -16,16 +16,25 @@ void main() {
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
+
+[branch "foo"]
+	remote = origin
+	merge = refs/heads/master
 [user]
 	name = Mona Lisa
 ''';
 
     var config = Config(contents);
-    expect(config.branches.length, 1);
+    expect(config.branches.length, 2);
 
-    var master = config.branches['master'];
-    expect(master.name, 'master');
-    expect(master.remote, 'origin');
-    expect(master.merge.value, 'refs/heads/master');
+    var branch = config.branches['master'];
+    expect(branch.name, 'master');
+    expect(branch.remote, 'origin');
+    expect(branch.merge.value, 'refs/heads/master');
+
+    branch = config.branches['foo'];
+    expect(branch.name, 'foo');
+    expect(branch.remote, 'origin');
+    expect(branch.merge.value, 'refs/heads/master');
   });
 }

@@ -1,6 +1,67 @@
 // Reference class
 // contains
 
+import 'package:dart_git/git_hash.dart';
+
+enum ReferenceType {
+  Hash,
+  Symbolic,
+}
+
+class Reference {
+  ReferenceType type;
+  String name;
+  GitHash hash;
+  String target;
+
+  Reference(this.name, String target) {
+    if (target.startsWith(symbolicRefPrefix)) {
+      this.target = target.substring(symbolicRefPrefix.length);
+      type = ReferenceType.Symbolic;
+      return;
+    }
+
+    hash = GitHash(target);
+    type = ReferenceType.Hash;
+  }
+
+  // Constructor for Symbolic
+  // Constructor for Hash
+
+  String toDisplayString() {
+    switch (type) {
+      case ReferenceType.Hash:
+        return '$name $hash';
+      case ReferenceType.Symbolic:
+        return '$name $symbolicRefPrefix$target';
+      default:
+        assert(false, 'Reference has an invalid type');
+    }
+    return '';
+  }
+}
+
+const refPrefix = 'refs/';
+const refHeadPrefix = refPrefix + 'heads/';
+const refTagPrefix = refPrefix + 'tags/';
+const refRemotePrefix = refPrefix + 'remotes/';
+const refNotePrefix = refPrefix + 'notes/';
+const symbolicRefPrefix = 'ref: ';
+
+// Implement ==
+class ReferenceName {
+  String value;
+  ReferenceName(this.value);
+
+  // It would be good to know what type of Reference it is
+  // as if it is symbolic then one could know one has to resolve it
+
+  @override
+  String toString() => value;
+}
+
+abstract class ReferenceStorage {}
+
 /*
 
 type Reference struct {

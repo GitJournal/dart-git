@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:dart_git/branch.dart';
+import 'package:dart_git/git_config.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/reference.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:ini/ini.dart';
@@ -9,15 +12,73 @@ import 'package:ini/ini.dart';
 class GitRepository {
   String workTree;
   String gitDir;
-  Map<String, dynamic> config;
+
+  GitConfig config;
 
   GitRepository(String path) {
+    // FIXME: Check if .git exists and if it doesn't go up until it does?
     workTree = path;
     gitDir = p.join(workTree, '.git');
 
     /*if (!FileSystemEntity.isDirectorySync(gitDir)) {
       throw InvalidRepoException(path);
     }*/
+
+    config = GitConfig();
+  }
+
+  static String findRootDir(String path) {
+    while (true) {
+      var gitDir = p.join(path, '.git');
+      if (FileSystemEntity.isDirectorySync(gitDir)) {
+        return path;
+      }
+
+      if (path == p.separator) {
+        break;
+      }
+
+      path = p.dirname(path);
+    }
+    return null;
+  }
+
+  static Future<GitRepository> load(String gitRootDir) async {
+    var repo = GitRepository(gitRootDir);
+
+    var configPath = p.join(repo.gitDir, 'config');
+    var configFileContents = await File(configPath).readAsString();
+    print(configFileContents);
+    var config = Config.fromString(configFileContents);
+    print('${config.sections().toList()}');
+    for (var section in config.sections()) {
+      print('Section $section');
+      if (section.startsWith('branch ')) {
+        var branchName = section.substring('branch '.length).substring(1, -1);
+        var branch = Branch();
+        branch.name = branchName;
+
+        var secValues = config.items(section);
+        for (var secValue in secValues) {
+          assert(secValue.length == 2);
+          var key = secValue.first;
+          var value = secValue.last;
+
+          switch (key) {
+            case 'remote':
+              branch.remote = value;
+              break;
+            case 'merge':
+              branch.merge = ReferenceName(value);
+              break;
+          }
+        }
+
+        repo.config.branches[branchName] = branch;
+      }
+    }
+
+    return repo;
   }
 
   static Future<void> init(String path) async {
@@ -42,6 +103,10 @@ class GitRepository {
     config.set('core', 'bare', 'false');
 
     await File(p.join(gitDir, 'config')).writeAsString(config.toString());
+  }
+
+  Iterable<Branch> branches() {
+    return config.branches.values;
   }
 
   Future<GitObject> readObjectFromHash(GitHash hash) async {

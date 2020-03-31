@@ -2,18 +2,17 @@ import 'dart:io';
 import 'dart:convert';
 
 import 'package:dart_git/branch.dart';
-import 'package:dart_git/git_config.dart';
+import 'package:dart_git/config.dart';
 import 'package:dart_git/git_hash.dart';
-import 'package:dart_git/plumbing/reference.dart';
 
 import 'package:path/path.dart' as p;
-import 'package:ini/ini.dart';
+import 'package:ini/ini.dart' as ini;
 
 class GitRepository {
   String workTree;
   String gitDir;
 
-  GitConfig config;
+  Config config;
 
   GitRepository(String path) {
     // FIXME: Check if .git exists and if it doesn't go up until it does?
@@ -23,8 +22,6 @@ class GitRepository {
     /*if (!FileSystemEntity.isDirectorySync(gitDir)) {
       throw InvalidRepoException(path);
     }*/
-
-    config = GitConfig();
   }
 
   static String findRootDir(String path) {
@@ -48,35 +45,7 @@ class GitRepository {
 
     var configPath = p.join(repo.gitDir, 'config');
     var configFileContents = await File(configPath).readAsString();
-    print(configFileContents);
-    var config = Config.fromString(configFileContents);
-    print('${config.sections().toList()}');
-    for (var section in config.sections()) {
-      print('Section $section');
-      if (section.startsWith('branch ')) {
-        var branchName = section.substring('branch '.length).substring(1, -1);
-        var branch = Branch();
-        branch.name = branchName;
-
-        var secValues = config.items(section);
-        for (var secValue in secValues) {
-          assert(secValue.length == 2);
-          var key = secValue.first;
-          var value = secValue.last;
-
-          switch (key) {
-            case 'remote':
-              branch.remote = value;
-              break;
-            case 'merge':
-              branch.merge = ReferenceName(value);
-              break;
-          }
-        }
-
-        repo.config.branches[branchName] = branch;
-      }
-    }
+    repo.config = Config(configFileContents);
 
     return repo;
   }
@@ -96,7 +65,7 @@ class GitRepository {
     await File(p.join(gitDir, 'HEAD'))
         .writeAsString('ref: refs/heads/master\n');
 
-    var config = Config();
+    var config = ini.Config();
     config.addSection('core');
     config.set('core', 'repositoryformatversion', '0');
     config.set('core', 'filemode', 'false');

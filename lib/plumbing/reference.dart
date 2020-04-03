@@ -10,13 +10,14 @@ enum ReferenceType {
 
 class Reference {
   ReferenceType type;
-  String name;
+  ReferenceName name;
   GitHash hash;
-  String target;
+  ReferenceName target;
 
-  Reference(this.name, String target) {
+  Reference(String source, String target) {
+    name = ReferenceName(source);
     if (target.startsWith(symbolicRefPrefix)) {
-      this.target = target.substring(symbolicRefPrefix.length);
+      this.target = ReferenceName(target.substring(symbolicRefPrefix.length));
       type = ReferenceType.Symbolic;
       return;
     }
@@ -39,6 +40,9 @@ class Reference {
     }
     return '';
   }
+
+  bool get isSymbolic => type == ReferenceType.Symbolic;
+  bool get isHash => type == ReferenceType.Hash;
 }
 
 const refPrefix = 'refs/';
@@ -58,9 +62,19 @@ class ReferenceName {
 
   @override
   String toString() => value;
-}
 
-abstract class ReferenceStorage {}
+  bool isBranch() => value.startsWith(refHeadPrefix);
+  bool isTag() => value.startsWith(refTagPrefix);
+  bool isRemote() => value.startsWith(refRemotePrefix);
+  bool isNote() => value.startsWith(refNotePrefix);
+
+  String branchName() {
+    assert(isBranch());
+    return value.substring(refHeadPrefix.length);
+  }
+  // Is it symbolic?
+  // If it is - then what type is it?
+}
 
 /*
 

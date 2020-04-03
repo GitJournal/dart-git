@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/config.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/storage/reference_storage.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:ini/ini.dart' as ini;
@@ -13,6 +15,8 @@ class GitRepository {
   String gitDir;
 
   Config config;
+
+  ReferenceStorage refStorage;
 
   GitRepository(String path) {
     // FIXME: Check if .git exists and if it doesn't go up until it does?
@@ -46,6 +50,8 @@ class GitRepository {
     var configPath = p.join(repo.gitDir, 'config');
     var configFileContents = await File(configPath).readAsString();
     repo.config = Config(configFileContents);
+
+    repo.refStorage = ReferenceStorage(repo.gitDir);
 
     return repo;
   }
@@ -138,6 +144,19 @@ class GitRepository {
       0x0,
       ...data,
     ];
+  }
+
+  Future<Reference> head() async {
+    return refStorage.reference(ReferenceName('HEAD'));
+  }
+
+  Future<Reference> resolveReference(Reference ref) async {
+    if (ref.type == ReferenceType.Hash) {
+      return ref;
+    }
+
+    var resolvedRef = await refStorage.reference(ref.target);
+    return resolveReference(resolvedRef);
   }
 }
 

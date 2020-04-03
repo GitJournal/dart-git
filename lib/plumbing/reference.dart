@@ -66,8 +66,19 @@ class ReferenceName {
   bool isNote() => value.startsWith(refNotePrefix);
 
   String branchName() {
-    assert(isBranch());
-    return value.substring(refHeadPrefix.length);
+    assert(isBranch() || isRemote());
+    if (isBranch()) {
+      return value.substring(refHeadPrefix.length);
+    } else if (isRemote()) {
+      return value.substring(refRemotePrefix.length).split('/')[1];
+    }
+
+    return null;
+  }
+
+  String remoteName() {
+    assert(isRemote());
+    return value.substring(refRemotePrefix.length).split('/').first;
   }
 
   @override

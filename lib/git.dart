@@ -5,6 +5,7 @@ import 'package:dart_git/branch.dart';
 import 'package:dart_git/config.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/remote.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
 import 'package:path/path.dart' as p;
@@ -87,6 +88,14 @@ class GitRepository {
   Branch branch(String name) {
     assert(config.branches.containsKey(name));
     return config.branches[name];
+  }
+
+  List<Remote> remotes() {
+    return config.remotes;
+  }
+
+  Remote remote(String name) {
+    return config.remotes.firstWhere((r) => r.name == name, orElse: () => null);
   }
 
   Future<GitObject> readObjectFromHash(GitHash hash) async {

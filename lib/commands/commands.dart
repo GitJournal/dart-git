@@ -4,4 +4,5 @@ export 'hash_object.dart';
 export 'init.dart';
 export 'log.dart';
 export 'ls_tree.dart';
+export 'remote.dart';
 export 'status.dart';

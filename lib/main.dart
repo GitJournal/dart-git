@@ -26,6 +26,7 @@ void main(List<String> args) async {
     ..addCommand(CatFileCommand())
     ..addCommand(HashObjectCommand())
     ..addCommand(LogCommand())
+    ..addCommand(RemoteCommand())
     ..addCommand(StatusCommand())
     ..addCommand(LsTreeCommand());
 

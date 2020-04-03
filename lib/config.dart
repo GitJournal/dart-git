@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dart_git/branch.dart';
+import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/remote.dart';
 
@@ -9,16 +10,21 @@ class Config {
   Map<String, Branch> branches = {};
   List<Remote> remotes = [];
 
+  Author user;
+
   Config(String raw) {
     var configFile = ConfigFile.parse(raw);
     for (var section in configFile.sections) {
-      if (section.name == 'branch') {
-        section.sections.forEach(_parseBranch);
-        continue;
-      }
-      if (section.name == 'remote') {
-        section.sections.forEach(_parseRemote);
-        continue;
+      switch (section.name) {
+        case 'branch':
+          section.sections.forEach(_parseBranch);
+          break;
+        case 'remote':
+          section.sections.forEach(_parseRemote);
+          break;
+        case 'user':
+          _parseUser(section);
+          break;
       }
     }
   }
@@ -57,6 +63,20 @@ class Config {
     }
 
     remotes.add(remote);
+  }
+
+  void _parseUser(Section section) {
+    user = Author();
+    for (var entry in section.options.entries) {
+      switch (entry.key) {
+        case 'name':
+          user.name = entry.value;
+          break;
+        case 'email':
+          user.email = entry.value;
+          break;
+      }
+    }
   }
 }
 

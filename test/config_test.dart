@@ -22,6 +22,7 @@ void main() {
 	merge = refs/heads/master
 [user]
 	name = Mona Lisa
+	email = mona@lisa.com
 ''';
 
     var config = Config(contents);
@@ -42,5 +43,8 @@ void main() {
     expect(remote.name, 'origin');
     expect(remote.url, 'https://github.com/src-d/go-git.git');
     expect(remote.fetch, '+refs/heads/*:refs/remotes/origin/*');
+
+    expect(config.user.name, 'Mona Lisa');
+    expect(config.user.email, 'mona@lisa.com');
   });
 }

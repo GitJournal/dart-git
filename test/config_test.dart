@@ -36,5 +36,11 @@ void main() {
     expect(branch.name, 'foo');
     expect(branch.remote, 'origin');
     expect(branch.merge.value, 'refs/heads/master');
+
+    expect(config.remotes.length, 1);
+    var remote = config.remotes[0];
+    expect(remote.name, 'origin');
+    expect(remote.url, 'https://github.com/src-d/go-git.git');
+    expect(remote.fetch, '+refs/heads/*:refs/remotes/origin/*');
   });
 }

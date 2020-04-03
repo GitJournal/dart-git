@@ -2,16 +2,22 @@ import 'dart:convert';
 
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/remote.dart';
 
 class Config {
   bool bare;
   Map<String, Branch> branches = {};
+  List<Remote> remotes = [];
 
   Config(String raw) {
     var configFile = ConfigFile.parse(raw);
     for (var section in configFile.sections) {
       if (section.name == 'branch') {
         section.sections.forEach(_parseBranch);
+        continue;
+      }
+      if (section.name == 'remote') {
+        section.sections.forEach(_parseRemote);
         continue;
       }
     }
@@ -33,6 +39,24 @@ class Config {
     }
 
     branches[branch.name] = branch;
+  }
+
+  void _parseRemote(Section section) {
+    var remote = Remote();
+    remote.name = section.name;
+
+    for (var entry in section.options.entries) {
+      switch (entry.key) {
+        case 'url':
+          remote.url = entry.value;
+          break;
+        case 'fetch':
+          remote.fetch = entry.value;
+          break;
+      }
+    }
+
+    remotes.add(remote);
   }
 }
 

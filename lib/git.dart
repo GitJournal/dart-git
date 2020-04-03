@@ -84,6 +84,11 @@ class GitRepository {
     return config.branches.values;
   }
 
+  Branch branch(String name) {
+    assert(config.branches.containsKey(name));
+    return config.branches[name];
+  }
+
   Future<GitObject> readObjectFromHash(GitHash hash) async {
     var sha = hash.toString();
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
@@ -156,6 +161,15 @@ class GitRepository {
     }
 
     var resolvedRef = await refStorage.reference(ref.target);
+    return resolveReference(resolvedRef);
+  }
+
+  Future<Reference> resolveReferenceName(ReferenceName refName) async {
+    var resolvedRef = await refStorage.reference(refName);
+    if (resolvedRef == null) {
+      print('resolveReferenceName($refName) failed');
+      return null;
+    }
     return resolveReference(resolvedRef);
   }
 }

@@ -43,6 +43,9 @@ class Reference {
 
   bool get isSymbolic => type == ReferenceType.Symbolic;
   bool get isHash => type == ReferenceType.Hash;
+
+  @override
+  String toString() => isSymbolic ? '$name -> $target' : '$name -> sha1($hash)';
 }
 
 const refPrefix = 'refs/';
@@ -57,8 +60,9 @@ class ReferenceName {
   String value;
   ReferenceName(this.value);
 
-  // It would be good to know what type of Reference it is
-  // as if it is symbolic then one could know one has to resolve it
+  ReferenceName.remote(String remote, String branch) {
+    value = '$refRemotePrefix$remote/$branch';
+  }
 
   @override
   String toString() => value;
@@ -72,8 +76,13 @@ class ReferenceName {
     assert(isBranch());
     return value.substring(refHeadPrefix.length);
   }
-  // Is it symbolic?
-  // If it is - then what type is it?
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is ReferenceName && other.value == value;
+
+  @override
+  int get hashCode => value.hashCode;
 }
 
 /*

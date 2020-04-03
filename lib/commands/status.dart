@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
+import 'package:dart_git/plumbing/reference.dart';
 
 class StatusCommand extends Command {
   @override
@@ -21,5 +22,25 @@ class StatusCommand extends Command {
     } else {
       print('On branch ${head.target.branchName()}');
     }
+
+    if (head.isHash) {
+      return;
+    }
+
+    var branch = repo.branch(head.target.branchName());
+
+    // Construct remote's branch
+    var remoteBranchName = branch.merge.branchName();
+    var remoteRef = ReferenceName.remote(branch.remote, remoteBranchName);
+
+    var headHash = (await repo.resolveReference(head)).hash;
+    var remoteHash = (await repo.resolveReferenceName(remoteRef)).hash;
+
+    if (headHash != remoteHash) {
+      print('Your branch is not equal to $remoteRef');
+    }
+
+    //"Changes not staged for commit:"
+    //"Untracked files:"
   }
 }

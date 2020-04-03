@@ -14,7 +14,7 @@ class ReferenceStorage {
     var file = File(p.join(dotGitDir, refName.value));
     if (file.existsSync()) {
       var contents = await file.readAsString();
-      return Reference(refName.value, contents);
+      return Reference(refName.value, contents.trimRight());
     }
 
     var packedRefsFile = File(p.join(dotGitDir, 'packed-refs'));

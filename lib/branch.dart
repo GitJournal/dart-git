@@ -4,5 +4,8 @@ class Branch {
   String name;
   String remote;
 
-  ReferenceName merge; // This is a ReferenceName
+  ReferenceName merge;
+
+  @override
+  String toString() => 'Branch{name: $name, remote: $remote, merge: $merge}';
 }

@@ -181,6 +181,23 @@ class GitRepository {
     }
     return resolveReference(resolvedRef);
   }
+
+  Future<bool> canPush() async {
+    var head = await this.head();
+    if (head.isHash) {
+      return false;
+    }
+
+    var branch = this.branch(head.target.branchName());
+
+    // Construct remote's branch
+    var remoteBranchName = branch.merge.branchName();
+    var remoteRef = ReferenceName.remote(branch.remote, remoteBranchName);
+
+    var headHash = (await resolveReference(head)).hash;
+    var remoteHash = (await resolveReferenceName(remoteRef)).hash;
+    return headHash != remoteHash;
+  }
 }
 
 class GitException implements Exception {}

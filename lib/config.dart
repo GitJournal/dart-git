@@ -236,6 +236,9 @@ class ConfigFile {
     for (var section in sections) {
       var name = section.name;
       if (section.sections.isEmpty) {
+        if (section.options.isEmpty) {
+          continue;
+        }
         buffer.write('[$name]\n');
         _writeSectionProps(buffer, section);
         buffer.write('\n');

@@ -80,6 +80,10 @@ class GitRepository {
     await File(p.join(gitDir, 'config')).writeAsString(config.serialize());
   }
 
+  Future<void> saveConfig() {
+    return File(p.join(gitDir, 'config')).writeAsString(config.serialize());
+  }
+
   Iterable<Branch> branches() {
     return config.branches.values;
   }

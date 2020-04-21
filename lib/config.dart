@@ -160,6 +160,35 @@ class ConfigFile {
   }
 
   String serialize() {
-    return '';
+    var buffer = StringBuffer();
+    for (var section in sections) {
+      var name = section.name;
+      if (section.sections.isEmpty) {
+        buffer.write('[$name]\n');
+        _writeSectionProps(buffer, section);
+        buffer.write('\n');
+        continue;
+      }
+
+      if (name != 'branch' && name != 'remote') {
+        throw Exception('Unknown field $name');
+      }
+
+      for (var subSec in section.sections) {
+        assert(subSec.sections.isEmpty);
+        buffer.write('[$name "${subSec.name}"]\n');
+        _writeSectionProps(buffer, subSec);
+        buffer.write('\n');
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  void _writeSectionProps(StringBuffer buffer, Section section) {
+    section.options.forEach((key, val) {
+      buffer.write('\t');
+      buffer.write('$key = $val\n');
+    });
   }
 }

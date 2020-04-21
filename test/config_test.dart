@@ -2,17 +2,18 @@ import 'package:dart_git/config.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('Config Branches Test', () async {
-    var contents = '''[core]
+  var contents = '''[core]
 	repositoryformatversion = 0
 	filemode = true
 	bare = false
 	logallrefupdates = true
 	ignorecase = true
 	precomposeunicode = true
+
 [remote "origin"]
 	url = https://github.com/src-d/go-git.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
+
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
@@ -20,11 +21,14 @@ void main() {
 [branch "foo"]
 	remote = origin
 	merge = refs/heads/master
+
 [user]
 	name = Mona Lisa
 	email = mona@lisa.com
+
 ''';
 
+  test('Config Branches Test', () async {
     var config = Config(contents);
     expect(config.branches.length, 2);
 
@@ -46,5 +50,10 @@ void main() {
 
     expect(config.user.name, 'Mona Lisa');
     expect(config.user.email, 'mona@lisa.com');
+  });
+
+  test('ConfigFile Serialization', () async {
+    var cf = ConfigFile.parse(contents);
+    expect(cf.serialize(), contents);
   });
 }

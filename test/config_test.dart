@@ -52,6 +52,11 @@ void main() {
     expect(config.user.email, 'mona@lisa.com');
   });
 
+  test('Config Serialization', () async {
+    var config = Config(contents);
+    expect(config.serialize(), contents);
+  });
+
   test('ConfigFile Serialization', () async {
     var cf = ConfigFile.parse(contents);
     expect(cf.serialize(), contents);

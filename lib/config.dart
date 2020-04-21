@@ -12,8 +12,10 @@ class Config {
 
   Author user;
 
+  ConfigFile configFile;
+
   Config(String raw) {
-    var configFile = ConfigFile.parse(raw);
+    configFile = ConfigFile.parse(raw);
     for (var section in configFile.sections) {
       switch (section.name) {
         case 'branch':
@@ -24,6 +26,9 @@ class Config {
           break;
         case 'user':
           _parseUser(section);
+          break;
+        case 'core':
+          _parseCore(section);
           break;
       }
     }
@@ -78,6 +83,62 @@ class Config {
       }
     }
   }
+
+  void _parseCore(Section section) {
+    for (var entry in section.options.entries) {
+      switch (entry.key) {
+        case 'bare':
+          bare = entry.value == 'true';
+          break;
+      }
+    }
+  }
+
+  String serialize() {
+    // Remotes
+    var remoteSection = section('remote');
+    for (var remote in remotes) {
+      var rs = remoteSection.getOrCreateSection(remote.name);
+      rs.options['url'] = remote.url;
+      rs.options['fetch'] = remote.fetch;
+    }
+
+    // Branches
+    var branchSection = section('branch');
+    for (var branch in branches.values) {
+      var bs = branchSection.getOrCreateSection(branch.name);
+      bs.options['remote'] = branch.remote;
+      bs.options['merge'] = branch.merge.toString();
+
+      assert(branch.merge.isBranch());
+    }
+
+    // Core
+    if (bare != null) {
+      var coreSection = section('core');
+      coreSection.options['bare'] = bare.toString();
+    }
+
+    // User
+    if (user != null) {
+      var sec = section('user');
+      sec.options['name'] = user.name;
+      sec.options['email'] = user.email;
+    }
+
+    return configFile.serialize();
+  }
+
+  Section section(String name) {
+    var i = configFile.sections.indexWhere((s) => s.name == name);
+    if (i == -1) {
+      var s = Section(name);
+      configFile.sections.add(s);
+      return s;
+    }
+
+    return configFile.sections[i];
+  }
 }
 
 class Section {
@@ -86,6 +147,17 @@ class Section {
   List<Section> sections = [];
 
   Section(this.name);
+
+  Section getOrCreateSection(String name) {
+    var i = sections.indexWhere((s) => s.name == name);
+    if (i == -1) {
+      var s = Section(name);
+      sections.add(s);
+      return s;
+    }
+
+    return sections[i];
+  }
 }
 
 class ConfigFile {

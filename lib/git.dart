@@ -9,7 +9,6 @@ import 'package:dart_git/remote.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
 import 'package:path/path.dart' as p;
-import 'package:ini/ini.dart' as ini;
 
 class GitRepository {
   String workTree;
@@ -72,13 +71,13 @@ class GitRepository {
     await File(p.join(gitDir, 'HEAD'))
         .writeAsString('ref: refs/heads/master\n');
 
-    var config = ini.Config();
-    config.addSection('core');
-    config.set('core', 'repositoryformatversion', '0');
-    config.set('core', 'filemode', 'false');
-    config.set('core', 'bare', 'false');
+    var config = Config('');
+    var core = config.section('core');
+    core.options['repositoryformatversion'] = '0';
+    core.options['filemode'] = 'false';
+    core.options['bare'] = 'false';
 
-    await File(p.join(gitDir, 'config')).writeAsString(config.toString());
+    await File(p.join(gitDir, 'config')).writeAsString(config.serialize());
   }
 
   Iterable<Branch> branches() {

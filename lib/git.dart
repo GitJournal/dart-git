@@ -270,7 +270,7 @@ class GitCommit extends GitObject {
   Author committer;
   String message;
   GitHash treeHash;
-  List<String> parents = [];
+  List<GitHash> parents = [];
 
   final GitHash _hash;
 
@@ -283,9 +283,9 @@ class GitCommit extends GitObject {
     if (map.containsKey('parent')) {
       var parent = map['parent'];
       if (parent is List) {
-        parent.forEach((p) => parents.add(p as String));
+        parent.forEach((p) => parents.add(GitHash(p as String)));
       } else if (parent is String) {
-        parents.add(parent);
+        parents.add(GitHash(parent));
       } else {
         throw Exception('Unknow parent type');
       }

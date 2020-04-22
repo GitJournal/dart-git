@@ -17,16 +17,16 @@ class LogCommand extends Command {
 
     var repo = GitRepository(Directory.current.path);
 
-    var seen = <String>{};
-    var parents = <String>[];
-    parents.add(sha);
+    var seen = <GitHash>{};
+    var parents = <GitHash>[];
+    parents.add(GitHash(sha));
 
     while (parents.isNotEmpty) {
       var sha = parents[0];
       parents.removeAt(0);
       seen.add(sha);
 
-      var obj = await repo.readObjectFromHash(GitHash(sha));
+      var obj = await repo.readObjectFromHash(sha);
       assert(obj is GitCommit);
       var commit = obj as GitCommit;
 
@@ -38,7 +38,7 @@ class LogCommand extends Command {
     }
   }
 
-  void printCommit(GitRepository repo, GitCommit commit, String sha) {
+  void printCommit(GitRepository repo, GitCommit commit, GitHash sha) {
     var author = commit.author;
 
     print('commit $sha');

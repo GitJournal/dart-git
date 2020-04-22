@@ -10,12 +10,10 @@ void main() {
     var obj = await gitRepo.readObjectFromPath('test/data/blob');
 
     expect(obj is GitBlob, equals(true));
-    expect(obj.serialize(), equals(ascii.encode('FOO\n')));
-
-    var output = await gitRepo.serializeObject(obj);
+    expect(obj.serializeData(), equals(ascii.encode('FOO\n')));
 
     var fileRawBytes = await File('test/data/blob').readAsBytes();
     var fileBytesDefalted = zlib.decode(fileRawBytes);
-    expect(output, equals(fileBytesDefalted));
+    expect(obj.serialize(), equals(fileBytesDefalted));
   });
 }

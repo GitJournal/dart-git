@@ -139,7 +139,7 @@ class GitRepository {
   }
 
   Future<String> writeObject(GitObject obj, {bool write = true}) async {
-    var result = serializeObject(obj);
+    var result = obj.serialize();
     var sha = GitHash.compute(result).toString();
 
     if (write) {
@@ -150,17 +150,6 @@ class GitRepository {
     }
 
     return sha;
-  }
-
-  List<int> serializeObject(GitObject obj) {
-    var data = obj.serialize();
-    return [
-      ...obj.format(),
-      ...ascii.encode(' '),
-      ...ascii.encode(data.length.toString()),
-      0x0,
-      ...data,
-    ];
   }
 
   Future<Reference> head() async {
@@ -214,24 +203,40 @@ class InvalidRepoException implements GitException {
 }
 
 abstract class GitObject {
-  List<int> serialize();
+  List<int> serialize() {
+    var data = serializeData();
+    return [
+      ...format(),
+      ...ascii.encode(' '),
+      ...ascii.encode(data.length.toString()),
+      0x0,
+      ...data,
+    ];
+  }
+
+  List<int> serializeData();
   List<int> format();
+
+  //GitHash hash();
 }
 
-// FIXME: Every object should know its sha1
 class GitBlob extends GitObject {
   static const String fmt = 'blob';
   static final List<int> _fmt = ascii.encode(fmt);
 
   List<int> blobData;
+  //GitHash _hash;
 
   GitBlob(this.blobData);
 
   @override
-  List<int> serialize() => blobData;
+  List<int> serializeData() => blobData;
 
   @override
   List<int> format() => _fmt;
+
+  //@override
+  //GitHash hash() => _hash;
 }
 
 class Author {
@@ -286,7 +291,7 @@ class GitCommit extends GitObject {
   }
 
   @override
-  List<int> serialize() => [];
+  List<int> serializeData() => [];
 
   @override
   List<int> format() => _fmt;
@@ -409,7 +414,7 @@ class GitTree extends GitObject {
   }
 
   @override
-  List<int> serialize() {
+  List<int> serializeData() {
     final spaceRaw = ' '.codeUnitAt(0);
     var data = <int>[];
 

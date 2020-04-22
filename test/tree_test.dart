@@ -23,10 +23,8 @@ void main() {
     expect(leaf1.hash.toString(), '61f69766977e3d234e15bd1a58c01aa697039439');
     expect(leaf1.path, 'd.md');
 
-    var output = await gitRepo.serializeObject(tree);
-
     var fileRawBytes = await File('test/data/tree').readAsBytes();
     var fileBytesDefalted = zlib.decode(fileRawBytes);
-    expect(output, equals(fileBytesDefalted));
+    expect(tree.serialize(), equals(fileBytesDefalted));
   });
 }

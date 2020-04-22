@@ -138,18 +138,16 @@ class GitRepository {
     }
   }
 
-  Future<String> writeObject(GitObject obj, {bool write = true}) async {
+  Future<GitHash> writeObject(GitObject obj) async {
     var result = obj.serialize();
-    var sha = GitHash.compute(result).toString();
+    var hash = GitHash.compute(result);
+    var sha = hash.toString();
 
-    if (write) {
-      var path =
-          p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-      await Directory(p.basename(path)).create(recursive: true);
-      await File(path).writeAsBytes(zlib.encode(result));
-    }
+    var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
+    await Directory(p.basename(path)).create(recursive: true);
+    await File(path).writeAsBytes(zlib.encode(result));
 
-    return sha;
+    return hash;
   }
 
   Future<Reference> head() async {

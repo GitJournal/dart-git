@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
+import 'package:dart_git/git_hash.dart';
 
 class HashObjectCommand extends Command {
   @override
@@ -39,7 +40,12 @@ class HashObjectCommand extends Command {
     var repo = GitRepository(Directory.current.path);
     var fmt = argResults['type'] as String;
     var obj = repo.createObject(fmt, rawData);
-    var sha1Hash = await repo.writeObject(obj, write: argResults['write']);
-    print(sha1Hash);
+    GitHash hash;
+    if (argResults['write']) {
+      hash = await repo.writeObject(obj);
+    } else {
+      hash = obj.hash();
+    }
+    print(hash);
   }
 }

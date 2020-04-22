@@ -128,11 +128,11 @@ class GitRepository {
 
   GitObject createObject(String fmt, List<int> rawData, [String filePath]) {
     if (fmt == GitBlob.fmt) {
-      return GitBlob(rawData);
+      return GitBlob(rawData, null);
     } else if (fmt == GitCommit.fmt) {
-      return GitCommit(rawData);
+      return GitCommit(rawData, null);
     } else if (fmt == GitTree.fmt) {
-      return GitTree(rawData);
+      return GitTree(rawData, null);
     } else {
       throw Exception('Unknown type $fmt for object $filePath');
     }
@@ -205,29 +205,32 @@ class InvalidRepoException implements GitException {
 abstract class GitObject {
   List<int> serialize() {
     var data = serializeData();
-    return [
+    var result = [
       ...format(),
       ...ascii.encode(' '),
       ...ascii.encode(data.length.toString()),
       0x0,
       ...data,
     ];
+
+    //assert(GitHash.compute(result) == hash());
+    return result;
   }
 
   List<int> serializeData();
   List<int> format();
 
-  //GitHash hash();
+  GitHash hash();
 }
 
 class GitBlob extends GitObject {
   static const String fmt = 'blob';
   static final List<int> _fmt = ascii.encode(fmt);
 
-  List<int> blobData;
-  //GitHash _hash;
+  final List<int> blobData;
+  final GitHash _hash;
 
-  GitBlob(this.blobData);
+  GitBlob(this.blobData, this._hash);
 
   @override
   List<int> serializeData() => blobData;
@@ -235,8 +238,8 @@ class GitBlob extends GitObject {
   @override
   List<int> format() => _fmt;
 
-  //@override
-  //GitHash hash() => _hash;
+  @override
+  GitHash hash() => _hash ?? GitHash.compute(serialize());
 }
 
 class Author {
@@ -271,7 +274,9 @@ class GitCommit extends GitObject {
   GitHash treeHash;
   List<String> parents = [];
 
-  GitCommit(List<int> rawData) {
+  final GitHash _hash;
+
+  GitCommit(List<int> rawData, this._hash) {
     var map = kvlmParse(rawData);
     message = map['_'];
     author = Author.parse(map['author']);
@@ -295,6 +300,9 @@ class GitCommit extends GitObject {
 
   @override
   List<int> format() => _fmt;
+
+  @override
+  GitHash hash() => _hash ?? GitHash.compute(serialize());
 }
 
 Map<String, dynamic> kvlmParse(List<int> raw) {
@@ -386,9 +394,10 @@ class GitTree extends GitObject {
   static const String fmt = 'tree';
   static final List<int> _fmt = ascii.encode(fmt);
 
+  final GitHash _hash;
   List<GitTreeLeaf> leaves = [];
 
-  GitTree(List<int> raw) {
+  GitTree(List<int> raw, this._hash) {
     final spaceRaw = ' '.codeUnitAt(0);
     final nullRaw = 0;
 
@@ -431,4 +440,7 @@ class GitTree extends GitObject {
 
   @override
   List<int> format() => _fmt;
+
+  @override
+  GitHash hash() => _hash ?? GitHash.compute(serialize());
 }

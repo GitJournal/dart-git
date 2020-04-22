@@ -36,8 +36,19 @@ class StatusCommand extends Command {
     var headHash = (await repo.resolveReference(head)).hash;
     var remoteHash = (await repo.resolveReferenceName(remoteRef)).hash;
 
+    var remoteStr = '${branch.remote}/$remoteBranchName';
     if (headHash != remoteHash) {
-      print('Your branch is not equal to $remoteRef');
+      var aheadBy = await repo.countTillAncestor(headHash, remoteHash);
+      if (aheadBy != -1) {
+        print('Your branch is ahead of $remoteStr by $aheadBy commits');
+      } else {
+        var behindBy = await repo.countTillAncestor(remoteHash, headHash);
+        if (behindBy != -1) {
+          print('Your branch is behind $remoteStr by $behindBy commits');
+        } else {
+          print('Your branch is not equal to $remoteRef');
+        }
+      }
     }
 
     //"Changes not staged for commit:"

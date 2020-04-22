@@ -188,6 +188,37 @@ class GitRepository {
     var remoteHash = (await resolveReferenceName(remoteRef)).hash;
     return headHash != remoteHash;
   }
+
+  Future<int> countTillAncestor(GitHash from, GitHash ancestor) async {
+    var seen = <GitHash>{};
+    var parents = <GitHash>[];
+    parents.add(from);
+    while (parents.isNotEmpty) {
+      var sha = parents[0];
+      if (sha == ancestor) {
+        break;
+      }
+      parents.removeAt(0);
+      seen.add(sha);
+
+      GitObject obj;
+      try {
+        obj = await readObjectFromHash(sha);
+      } catch (e) {
+        print(e);
+        return -1;
+      }
+      assert(obj is GitCommit);
+      var commit = obj as GitCommit;
+
+      for (var p in commit.parents) {
+        if (seen.contains(p)) continue;
+        parents.add(p);
+      }
+    }
+
+    return parents.isEmpty ? -1 : seen.length;
+  }
 }
 
 class GitException implements Exception {}

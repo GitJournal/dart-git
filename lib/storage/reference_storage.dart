@@ -23,7 +23,7 @@ class ReferenceStorage {
     }
 
     var contents = await packedRefsFile.readAsString();
-    for (var ref in loadPackedRefs(contents)) {
+    for (var ref in _loadPackedRefs(contents)) {
       if (ref.name == refName) {
         return ref;
       }
@@ -33,7 +33,7 @@ class ReferenceStorage {
   }
 }
 
-Iterable<Reference> loadPackedRefs(String raw) sync* {
+Iterable<Reference> _loadPackedRefs(String raw) sync* {
   for (var line in LineSplitter.split(raw)) {
     if (line.startsWith('#')) {
       continue;

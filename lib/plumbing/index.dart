@@ -3,12 +3,16 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:buffer/buffer.dart';
+import 'package:equatable/equatable.dart';
+
 import 'package:dart_git/git_hash.dart';
 
 class GitIndex {
   int versionNo;
   int fileSize;
   var entries = <GitIndexEntry>[];
+
+  List<TreeEntry> cache = []; // cached tree extension
 
   GitIndex.decode(List<int> bytes) {
     var reader = ByteDataReader(endian: Endian.big, copy: false);
@@ -64,15 +68,72 @@ class GitIndex {
     final reucHeader = ascii.encode('REUC');
     final eoicHeader = ascii.encode('EOIC');
 
-    if (_listEq(header, treeHeader) ||
-        _listEq(header, reucHeader) ||
-        _listEq(header, eoicHeader)) {
+    if (_listEq(header, treeHeader)) {
+      var length = reader.readUint32();
+      var data = reader.read(length);
+      _parseCacheTreeExtension(data);
+      return true;
+    }
+
+    if (_listEq(header, reucHeader) || _listEq(header, eoicHeader)) {
       var length = reader.readUint32();
       var data = reader.read(length); // Ignoring the data for now
       return true;
     }
 
     return false;
+  }
+
+  void _parseCacheTreeExtension(Uint8List data) {
+    final space = ' '.codeUnitAt(0);
+    final newLine = '\n'.codeUnitAt(0);
+
+    var pos = 0;
+    while (pos < data.length) {
+      var pathEndPos = data.indexOf(0, pos);
+      if (pathEndPos == -1) {
+        throw Exception('Git Cache Index corrupted');
+      }
+      var path = data.sublist(pos, pathEndPos);
+      pos = pathEndPos + 1;
+
+      var entryCountEndPos = data.indexOf(space, pos);
+      if (entryCountEndPos == -1) {
+        throw Exception('Git Cache Index corrupted');
+      }
+      var entryCount = data.sublist(pos, entryCountEndPos);
+      pos = entryCountEndPos + 1;
+      assert(data[pos - 1] == space);
+
+      var numEntries = int.parse(ascii.decode(entryCount));
+      if (numEntries == -1) {
+        // Invalid entry
+        continue;
+      }
+
+      var numSubtreeEndPos = data.indexOf(newLine, pos);
+      if (numSubtreeEndPos == -1) {
+        throw Exception('Git Cache Index corrupted');
+      }
+      var numSubTree = data.sublist(pos, numSubtreeEndPos);
+      pos = numSubtreeEndPos + 1;
+      assert(data[pos - 1] == newLine);
+
+      var hashBytes = data.sublist(pos, pos + 20);
+      pos += 20;
+
+      var treeEntry = TreeEntry(
+        path: utf8.decode(path),
+        numEntries: numEntries,
+        numSubTrees: int.parse(ascii.decode(numSubTree)),
+        hash: GitHash.fromBytes(hashBytes),
+      );
+      cache.add(treeEntry);
+    }
+  }
+
+  List<int> serialize() {
+    return [];
   }
 
   static final Function _listEq = const ListEquality().equals;
@@ -165,4 +226,49 @@ class GitIndexEntry {
     var padLength = 8 - (entrySize % 8);
     reader.read(padLength);
   }
+
+  List<int> serialize() {
+    var writer = ByteDataWriter(endian: Endian.big);
+
+    writer.writeUint32(ctimeSeconds);
+    writer.writeUint32(ctimeNanoSeconds);
+
+    writer.writeUint32(mtimeSeconds);
+    writer.writeUint32(mtimeNanoSeconds);
+
+    writer.writeUint32(dev);
+    writer.writeUint32(ino);
+
+    writer.writeUint32(mode);
+
+    writer.writeUint32(uid);
+    writer.writeUint32(gid);
+    writer.writeUint32(size);
+
+    writer.write(hash.bytes);
+
+    // Flags
+    // FIXME: Flags need to be generated based on name length
+    writer.writeUint16(flags);
+
+    // FIXME: Write the name
+    // FIXME: Add padding depending on the version
+
+    return writer.toBytes();
+  }
+}
+
+class TreeEntry extends Equatable {
+  final String path;
+  final int numEntries;
+  final int numSubTrees;
+  final GitHash hash;
+
+  const TreeEntry({this.path, this.numEntries, this.numSubTrees, this.hash});
+
+  @override
+  List<Object> get props => [path, numEntries, numSubTrees, hash];
+
+  @override
+  bool get stringify => true;
 }

@@ -20,9 +20,9 @@ void main() {
     var e = index.entries[0];
 
     expect(e.cTime.millisecondsSinceEpoch ~/ 1000, 1480626693);
-    //expect(e.ctimeNanoSeconds, 498593596);
+    expect(e.cTime.millisecond * 1000 + e.cTime.microsecond, 498593596 ~/ 1000);
     expect(e.mTime.millisecondsSinceEpoch ~/ 1000, 1480626693);
-    //expect(e.mtimeNanoSeconds, 498593596);
+    expect(e.mTime.millisecond * 1000 + e.mTime.microsecond, 498593596 ~/ 1000);
 
     expect(e.dev, 39);
     expect(e.ino, 140626);
@@ -80,6 +80,7 @@ void main() {
       mTime: DateTime.now(),
       dev: 4242,
       ino: 424242,
+      mode: GitFileMode.Regular,
       uid: 84,
       gid: 8484,
       fileSize: 42,

@@ -1,23 +1,25 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:buffer/buffer.dart';
 import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
 
 import 'package:dart_git/git_hash.dart';
 
 class GitIndex {
   int versionNo;
-  int fileSize;
   var entries = <GitIndexEntry>[];
 
   List<TreeEntry> cache = []; // cached tree extension
 
+  GitIndex({@required this.versionNo});
+
   GitIndex.decode(List<int> bytes) {
     var reader = ByteDataReader(endian: Endian.big, copy: false);
     reader.add(bytes);
-    fileSize = bytes.length;
 
     // Read 12 byte header
     var sig = reader.read(4);
@@ -39,7 +41,7 @@ class GitIndex {
     // Read Index Entries
     var numEntries = reader.readUint32();
     for (var i = 0; i < numEntries; i++) {
-      var entry = GitIndexEntry(this, reader);
+      var entry = GitIndexEntry.fromBytes(versionNo, bytes.length, reader);
       entries.add(entry);
     }
 
@@ -133,54 +135,123 @@ class GitIndex {
   }
 
   List<int> serialize() {
-    return [];
+    // Do we support this version of the index?
+    if (versionNo != 2) {
+      throw Exception('Git Index version $versionNo cannot be serialized');
+    }
+
+    var writer = ByteDataWriter();
+
+    // Header
+    writer.write(ascii.encode('DIRC'));
+    writer.writeUint32(versionNo);
+    writer.writeUint32(entries.length);
+
+    // Entries
+    entries.sort((a, b) => a.path.compareTo(b.path));
+    entries.forEach((e) => writer.write(e.serialize()));
+
+    // Footer
+    var hash = GitHash.compute(writer.toBytes());
+    writer.write(hash.bytes);
+
+    return writer.toBytes();
   }
 
   static final Function _listEq = const ListEquality().equals;
+
+  void addPath(String path) async {
+    var stat = await FileStat.stat(path);
+
+    var bytes = await File(path).readAsBytes();
+    var hash = GitHash.compute(bytes);
+    var entry = GitIndexEntry.fromFS(path, stat, hash);
+    entries.add(entry);
+  }
 }
 
 class GitIndexEntry {
-  GitIndex index;
-
-  //static int _objectTypeFile = int.parse('1000', radix: 2);
-  //static int _objectTypeSymbolicLink = int.parse('1010', radix: 2);
-  //static int _objectTypeGitLink = int.parse('1110', radix: 2);
-
-  int ctimeSeconds;
-  int ctimeNanoSeconds;
-
-  int mtimeSeconds;
-  int mtimeNanoSeconds;
+  DateTime cTime;
+  DateTime mTime;
 
   int dev;
   int ino;
 
-  // mode
   GitFileMode mode;
-  //int objectType;
-
-  GitHash hash;
-  String relativeFilePath;
 
   int uid;
   int gid;
 
-  int size;
-  List<int> sha;
+  int fileSize;
+  GitHash hash;
 
-  int flags;
-  int extraFlags;
+  GitFileStage stage;
 
   String path;
 
-  GitIndexEntry(this.index, ByteDataReader reader) {
-    var startingBytes = index.fileSize - reader.remainingLength;
+  GitIndexEntry({
+    this.cTime,
+    this.mTime,
+    this.dev,
+    this.ino,
+    this.mode = GitFileMode.Regular,
+    this.uid,
+    this.gid,
+    this.fileSize,
+    this.hash,
+    this.stage = GitFileStage.Merged,
+    this.path,
+  });
 
-    ctimeSeconds = reader.readUint32();
-    ctimeNanoSeconds = reader.readUint32();
+  GitIndexEntry.fromFS(String path, FileStat stat, GitHash hash) {
+    cTime = stat.changed;
+    mTime = stat.modified;
+    mode = GitFileMode(stat.mode);
 
-    mtimeSeconds = reader.readUint32();
-    mtimeNanoSeconds = reader.readUint32();
+    // These don't seem to be exposed in Dart
+    ino = 0;
+    dev = 0;
+
+    switch (stat.type) {
+      case FileSystemEntityType.file:
+        mode = GitFileMode.Regular;
+        break;
+      case FileSystemEntityType.directory:
+        mode = GitFileMode.Dir;
+        break;
+      case FileSystemEntityType.link:
+        mode = GitFileMode.Symlink;
+        break;
+    }
+
+    // Don't seem accessible in Dart
+    uid = 0;
+    gid = 0;
+
+    fileSize = stat.size;
+    this.hash = hash;
+    this.path = path;
+
+    assert(!path.startsWith('/'));
+  }
+
+  GitIndexEntry.fromBytes(
+      int versionNo, int indexFileSize, ByteDataReader reader) {
+    var startingBytes = indexFileSize - reader.remainingLength;
+
+    var ctimeSeconds = reader.readUint32();
+    var ctimeNanoSeconds = reader.readUint32();
+
+    cTime = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
+    cTime = cTime.add(Duration(seconds: ctimeSeconds));
+    cTime = cTime.add(Duration(microseconds: ctimeNanoSeconds ~/ 1000));
+
+    var mtimeSeconds = reader.readUint32();
+    var mtimeNanoSeconds = reader.readUint32();
+
+    mTime = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    mTime = mTime.add(Duration(seconds: mtimeSeconds));
+    mTime = mTime.add(Duration(microseconds: mtimeNanoSeconds ~/ 1000));
 
     dev = reader.readUint32();
     ino = reader.readUint32();
@@ -191,20 +262,23 @@ class GitIndexEntry {
     uid = reader.readUint32();
     gid = reader.readUint32();
 
-    size = reader.readUint32();
+    fileSize = reader.readUint32();
     hash = GitHash.fromBytes(reader.read(20));
 
-    flags = reader.readUint16();
+    var flags = reader.readUint16();
+    stage = GitFileStage((flags >> 12) & 0x3);
+
     const hasExtendedFlag = 0x4000;
     if (flags & hasExtendedFlag != 0) {
-      if (index.versionNo <= 2) {
+      if (versionNo <= 2) {
         throw Exception('Index version 2 must not have an extended flag');
       }
-      extraFlags = reader.readUint16();
+      reader.readUint16(); // extra Flags
+      // What to do with these extraFlags?
     }
 
     // Read name
-    switch (index.versionNo) {
+    switch (versionNo) {
       case 2:
       case 3:
         const nameMask = 0xfff;
@@ -218,10 +292,10 @@ class GitIndexEntry {
     }
 
     // Discard Padding
-    if (index.versionNo == 4) {
+    if (versionNo == 4) {
       return;
     }
-    var endingBytes = index.fileSize - reader.remainingLength;
+    var endingBytes = indexFileSize - reader.remainingLength;
     var entrySize = endingBytes - startingBytes;
     var padLength = 8 - (entrySize % 8);
     reader.read(padLength);
@@ -230,11 +304,13 @@ class GitIndexEntry {
   List<int> serialize() {
     var writer = ByteDataWriter(endian: Endian.big);
 
-    writer.writeUint32(ctimeSeconds);
-    writer.writeUint32(ctimeNanoSeconds);
+    cTime = cTime.toUtc();
+    writer.writeUint32(cTime.millisecondsSinceEpoch ~/ 1000);
+    writer.writeUint32((cTime.millisecond * 1000 + cTime.microsecond) * 1000);
 
-    writer.writeUint32(mtimeSeconds);
-    writer.writeUint32(mtimeNanoSeconds);
+    mTime = mTime.toUtc();
+    writer.writeUint32(mTime.millisecondsSinceEpoch ~/ 1000);
+    writer.writeUint32((mTime.millisecond * 1000 + mTime.microsecond) * 1000);
 
     writer.writeUint32(dev);
     writer.writeUint32(ino);
@@ -243,18 +319,55 @@ class GitIndexEntry {
 
     writer.writeUint32(uid);
     writer.writeUint32(gid);
-    writer.writeUint32(size);
+    writer.writeUint32(fileSize);
 
     writer.write(hash.bytes);
 
-    // Flags
-    // FIXME: Flags need to be generated based on name length
-    writer.writeUint16(flags);
+    var flags = (stage.val & 0x3) << 12;
+    const nameMask = 0xfff;
 
-    // FIXME: Write the name
-    // FIXME: Add padding depending on the version
+    if (path.length < nameMask) {
+      flags |= path.length;
+    } else {
+      flags |= nameMask;
+    }
+
+    writer.writeUint16(flags);
+    writer.write(ascii.encode(path));
+
+    // Add padding
+    const entryHeaderLength = 62;
+    var wrote = entryHeaderLength + path.length;
+    var padLen = 8 - wrote % 8;
+    for (var i = 0; i < padLen; i++) {
+      writer.write([0]);
+    }
 
     return writer.toBytes();
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GitIndexEntry &&
+          runtimeType == other.runtimeType &&
+          cTime == other.cTime &&
+          mTime == other.mTime &&
+          dev == other.dev &&
+          ino == other.ino &&
+          uid == other.uid &&
+          gid == other.gid &&
+          fileSize == other.fileSize &&
+          hash == other.hash &&
+          stage == other.stage &&
+          path == other.path;
+
+  @override
+  int get hashCode => path.hashCode ^ hash.hashCode;
+
+  @override
+  String toString() {
+    return 'GitIndexEntry{cTime: $cTime, mTime: $mTime, dev: $dev, ino: $ino, uid: $uid, gid: $gid, fileSize: $fileSize, hash: $hash, stage: $stage, path: $path}';
   }
 }
 
@@ -304,4 +417,20 @@ class GitFileMode extends Equatable {
       ..add(codes[permissions & 0x7]);
     return result.join();
   }
+
+  // FIXME: Is this written in little endian in bytes?
+}
+
+class GitFileStage extends Equatable {
+  final int val;
+
+  const GitFileStage(this.val);
+
+  static const Merged = GitFileStage(1);
+  static const AncestorMode = GitFileStage(1);
+  static const OurMode = GitFileStage(2);
+  static const TheirMode = GitFileStage(3);
+
+  @override
+  List<Object> get props => [val];
 }

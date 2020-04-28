@@ -19,16 +19,17 @@ void main() {
 
     var e = index.entries[0];
 
-    expect(e.ctimeSeconds, 1480626693);
-    expect(e.ctimeNanoSeconds, 498593596);
-    expect(e.mtimeSeconds, 1480626693);
-    expect(e.mtimeNanoSeconds, 498593596);
+    expect(e.cTime.millisecondsSinceEpoch ~/ 1000, 1480626693);
+    //expect(e.ctimeNanoSeconds, 498593596);
+    expect(e.mTime.millisecondsSinceEpoch ~/ 1000, 1480626693);
+    //expect(e.mtimeNanoSeconds, 498593596);
+
     expect(e.dev, 39);
     expect(e.ino, 140626);
-    // FIXME: Check the mode!
+    expect(e.mode, GitFileMode.Regular);
     expect(e.uid, 1000);
     expect(e.gid, 100);
-    expect(e.size, 189);
+    expect(e.fileSize, 189);
     expect(e.hash.toString(), '32858aad3c383ed1ff0a0f9bdf231d54a00c9e88');
     expect(e.path, '.gitignore');
 
@@ -73,9 +74,25 @@ void main() {
   });
 
   test('Serialize', () async {
-    var bytes = File('test/data/index').readAsBytesSync();
-    var index = GitIndex.decode(bytes);
+    var index = GitIndex(versionNo: 2);
+    var entry = GitIndexEntry(
+      cTime: DateTime.now(),
+      mTime: DateTime.now(),
+      dev: 4242,
+      ino: 424242,
+      uid: 84,
+      gid: 8484,
+      fileSize: 42,
+      stage: GitFileStage.TheirMode,
+      hash: GitHash('e25b29c8946e0e192fae2edc1dabf7be71e8ecf3'),
+      path: 'foo',
+    );
+    index.entries.add(entry);
 
-    expect(index.serialize(), bytes);
+    var bytes = index.serialize();
+    var rIndex = GitIndex.decode(bytes);
+
+    expect(rIndex.versionNo, index.versionNo);
+    expect(rIndex.entries, index.entries);
   });
 }

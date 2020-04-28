@@ -156,7 +156,7 @@ class GitIndexEntry {
   int ino;
 
   // mode
-  int mode;
+  GitFileMode mode;
   //int objectType;
 
   GitHash hash;
@@ -186,7 +186,7 @@ class GitIndexEntry {
     ino = reader.readUint32();
 
     // Mode
-    mode = reader.readUint32(); // FIXME: We should parse the mode
+    mode = GitFileMode(reader.readUint32());
 
     uid = reader.readUint32();
     gid = reader.readUint32();
@@ -239,7 +239,7 @@ class GitIndexEntry {
     writer.writeUint32(dev);
     writer.writeUint32(ino);
 
-    writer.writeUint32(mode);
+    writer.writeUint32(mode.val);
 
     writer.writeUint32(uid);
     writer.writeUint32(gid);
@@ -271,4 +271,37 @@ class TreeEntry extends Equatable {
 
   @override
   bool get stringify => true;
+}
+
+class GitFileMode extends Equatable {
+  final int val;
+
+  const GitFileMode(this.val);
+
+  static const Empty = GitFileMode(0);
+  static const Dir = GitFileMode(0040000);
+  static const Regular = GitFileMode(0100644);
+  static const Deprecated = GitFileMode(0100664);
+  static const Executable = GitFileMode(0100755);
+  static const Symlink = GitFileMode(0120000);
+  static const Submodule = GitFileMode(0160000);
+
+  @override
+  List<Object> get props => [val];
+
+  @override
+  String toString() {
+    // Copied from FileStat
+    var permissions = val & 0xFFF;
+    var codes = const ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
+    var result = [];
+    if ((permissions & 0x800) != 0) result.add('(suid) ');
+    if ((permissions & 0x400) != 0) result.add('(guid) ');
+    if ((permissions & 0x200) != 0) result.add('(sticky) ');
+    result
+      ..add(codes[(permissions >> 6) & 0x7])
+      ..add(codes[(permissions >> 3) & 0x7])
+      ..add(codes[permissions & 0x7]);
+    return result.join();
+  }
 }

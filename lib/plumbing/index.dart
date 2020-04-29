@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:buffer/buffer.dart';
+import 'package:dart_git/ascii_helper.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
@@ -87,9 +88,6 @@ class GitIndex {
   }
 
   void _parseCacheTreeExtension(Uint8List data) {
-    final space = ' '.codeUnitAt(0);
-    final newLine = '\n'.codeUnitAt(0);
-
     var pos = 0;
     while (pos < data.length) {
       var pathEndPos = data.indexOf(0, pos);
@@ -99,13 +97,13 @@ class GitIndex {
       var path = data.sublist(pos, pathEndPos);
       pos = pathEndPos + 1;
 
-      var entryCountEndPos = data.indexOf(space, pos);
+      var entryCountEndPos = data.indexOf(asciiHelper.space, pos);
       if (entryCountEndPos == -1) {
         throw Exception('Git Cache Index corrupted');
       }
       var entryCount = data.sublist(pos, entryCountEndPos);
       pos = entryCountEndPos + 1;
-      assert(data[pos - 1] == space);
+      assert(data[pos - 1] == asciiHelper.space);
 
       var numEntries = int.parse(ascii.decode(entryCount));
       if (numEntries == -1) {
@@ -113,13 +111,13 @@ class GitIndex {
         continue;
       }
 
-      var numSubtreeEndPos = data.indexOf(newLine, pos);
+      var numSubtreeEndPos = data.indexOf(asciiHelper.newLine, pos);
       if (numSubtreeEndPos == -1) {
         throw Exception('Git Cache Index corrupted');
       }
       var numSubTree = data.sublist(pos, numSubtreeEndPos);
       pos = numSubtreeEndPos + 1;
-      assert(data[pos - 1] == newLine);
+      assert(data[pos - 1] == asciiHelper.newLine);
 
       var hashBytes = data.sublist(pos, pos + 20);
       pos += 20;

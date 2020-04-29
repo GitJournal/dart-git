@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/config.dart';
 import 'package:dart_git/git_hash.dart';
@@ -113,7 +114,7 @@ class GitRepository {
     var raw = zlib.decode(contents);
 
     // Read Object Type
-    var x = raw.indexOf(' '.codeUnitAt(0));
+    var x = raw.indexOf(asciiHelper.space);
     var fmt = raw.sublist(0, x);
 
     // Read and validate object size
@@ -345,12 +346,9 @@ Map<String, dynamic> kvlmParse(List<int> raw) {
   var dict = <String, dynamic>{};
 
   var start = 0;
-  var spaceRaw = ' '.codeUnitAt(0);
-  var newLineRaw = '\n'.codeUnitAt(0);
-
   while (true) {
-    var spaceIndex = raw.indexOf(spaceRaw, start);
-    var newLineIndex = raw.indexOf(newLineRaw, start);
+    var spaceIndex = raw.indexOf(asciiHelper.space, start);
+    var newLineIndex = raw.indexOf(asciiHelper.newLine, start);
 
     if (newLineIndex < spaceIndex) {
       assert(newLineIndex == start);
@@ -362,8 +360,8 @@ Map<String, dynamic> kvlmParse(List<int> raw) {
     var key = raw.sublist(start, spaceIndex);
     var end = spaceIndex;
     while (true) {
-      end = raw.indexOf(newLineRaw, end + 1);
-      if (raw[end + 1] != spaceRaw) {
+      end = raw.indexOf(asciiHelper.newLine, end + 1);
+      if (raw[end + 1] != asciiHelper.space) {
         break;
       }
     }
@@ -404,14 +402,14 @@ List<int> kvlmSerialize(Map<String, dynamic> kvlm) {
     val.forEach((v) {
       ret.addAll([
         ...utf8.encode(key),
-        ' '.codeUnitAt(0),
+        asciiHelper.space,
         ...utf8.encode(v.replaceAll('\n', '\n ')),
-        '\n'.codeUnitAt(0),
+        asciiHelper.newLine,
       ]);
     });
   });
 
-  ret.addAll(['\n'.codeUnitAt(0), ...utf8.encode(kvlm['_'])]);
+  ret.addAll([asciiHelper.newLine, ...utf8.encode(kvlm['_'])]);
   return ret;
 }
 
@@ -434,16 +432,13 @@ class GitTree extends GitObject {
   List<GitTreeLeaf> leaves = [];
 
   GitTree(List<int> raw, this._hash) {
-    final spaceRaw = ' '.codeUnitAt(0);
-    final nullRaw = 0;
-
     var start = 0;
     while (start < raw.length) {
-      var x = raw.indexOf(spaceRaw, start);
+      var x = raw.indexOf(asciiHelper.space, start);
       assert(x - start == 5 || x - start == 6);
 
       var mode = raw.sublist(start, x);
-      var y = raw.indexOf(nullRaw, x);
+      var y = raw.indexOf(0, x);
       var path = raw.sublist(x + 1, y);
       var hashBytes = raw.sublist(y + 1, y + 21);
 
@@ -460,12 +455,11 @@ class GitTree extends GitObject {
 
   @override
   List<int> serializeData() {
-    final spaceRaw = ' '.codeUnitAt(0);
     var data = <int>[];
 
     for (var leaf in leaves) {
       data.addAll(ascii.encode(leaf.mode));
-      data.add(spaceRaw);
+      data.add(asciiHelper.space);
       data.addAll(utf8.encode(leaf.path));
       data.add(0x00);
       data.addAll(leaf.hash.bytes);

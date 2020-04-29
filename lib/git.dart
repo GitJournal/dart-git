@@ -149,7 +149,7 @@ class GitRepository {
     var sha = hash.toString();
 
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    await Directory(p.basename(path)).create(recursive: true);
+    await Directory(p.dirname(path)).create(recursive: true);
     await File(path).writeAsBytes(zlib.encode(result));
 
     return hash;
@@ -229,6 +229,13 @@ class GitRepository {
     var path = p.join(gitDir, 'index');
     var bytes = await File(path).readAsBytes();
     return GitIndex.decode(bytes);
+  }
+
+  Future<void> writeIndex(GitIndex index) async {
+    var path = p.join(gitDir, 'index.new');
+    var file = File(path);
+    await file.writeAsBytes(index.serialize());
+    await file.rename(p.join(gitDir, 'index'));
   }
 }
 

@@ -22,6 +22,7 @@ import 'commands/commands.dart';
 void main(List<String> args) async {
   var runner = CommandRunner('git', 'Distributed version control.')
     ..addCommand(InitCommand())
+    ..addCommand(AddCommand())
     ..addCommand(BranchCommand())
     ..addCommand(CatFileCommand())
     ..addCommand(DumpIndexCommand())

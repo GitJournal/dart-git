@@ -230,6 +230,8 @@ class GitIndexEntry {
     this.hash = hash;
     this.path = path;
 
+    stage = GitFileStage(0);
+
     assert(!path.startsWith('/'));
   }
 

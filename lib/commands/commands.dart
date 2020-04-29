@@ -1,3 +1,4 @@
+export 'add.dart';
 export 'branch.dart';
 export 'cat_file.dart';
 export 'dump_index.dart';

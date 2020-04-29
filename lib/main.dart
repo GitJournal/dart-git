@@ -24,6 +24,7 @@ void main(List<String> args) async {
     ..addCommand(InitCommand())
     ..addCommand(BranchCommand())
     ..addCommand(CatFileCommand())
+    ..addCommand(DumpIndexCommand())
     ..addCommand(HashObjectCommand())
     ..addCommand(LogCommand())
     ..addCommand(RemoteCommand())

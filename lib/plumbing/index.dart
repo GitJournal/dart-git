@@ -422,4 +422,7 @@ class GitFileStage extends Equatable {
 
   @override
   List<Object> get props => [val];
+
+  @override
+  bool get stringify => true;
 }

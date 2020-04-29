@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/config.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/remote.dart';
 import 'package:dart_git/storage/reference_storage.dart';
@@ -218,6 +219,12 @@ class GitRepository {
     }
 
     return parents.isEmpty ? -1 : seen.length;
+  }
+
+  Future<GitIndex> index() async {
+    var path = p.join(gitDir, 'index');
+    var bytes = await File(path).readAsBytes();
+    return GitIndex.decode(bytes);
   }
 }
 

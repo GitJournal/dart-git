@@ -1,5 +1,6 @@
 export 'branch.dart';
 export 'cat_file.dart';
+export 'dump_index.dart';
 export 'hash_object.dart';
 export 'init.dart';
 export 'log.dart';

@@ -337,9 +337,7 @@ class GitIndexEntry {
     const entryHeaderLength = 62;
     var wrote = entryHeaderLength + path.length;
     var padLen = 8 - wrote % 8;
-    for (var i = 0; i < padLen; i++) {
-      writer.write([0]);
-    }
+    writer.write(Uint8List(padLen));
 
     return writer.toBytes();
   }

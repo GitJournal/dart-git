@@ -224,7 +224,7 @@ class GitIndexEntry {
         break;
     }
 
-    // Don't seem accessible in Dart
+    // Don't seem accessible in Dart -https://github.com/dart-lang/sdk/issues/15078
     uid = 0;
     gid = 0;
 

@@ -10,6 +10,9 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/remote.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
+import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
+
 import 'package:path/path.dart' as p;
 
 class GitRepository {
@@ -413,15 +416,18 @@ List<int> kvlmSerialize(Map<String, dynamic> kvlm) {
   return ret;
 }
 
-class GitTreeLeaf {
-  String mode;
-  String path;
-  GitHash hash;
+class GitTreeLeaf extends Equatable {
+  final String mode;
+  final String path;
+  final GitHash hash;
+
+  GitTreeLeaf({@required this.mode, @required this.path, @required this.hash});
 
   @override
-  String toString() {
-    return 'GitTreeLeaf{mode: $mode, path: $path, hash: $hash}';
-  }
+  List<Object> get props => [mode, path, hash];
+
+  @override
+  bool get stringify => true;
 }
 
 class GitTree extends GitObject {
@@ -442,10 +448,11 @@ class GitTree extends GitObject {
       var path = raw.sublist(x + 1, y);
       var hashBytes = raw.sublist(y + 1, y + 21);
 
-      var leaf = GitTreeLeaf();
-      leaf.mode = ascii.decode(mode);
-      leaf.path = utf8.decode(path);
-      leaf.hash = GitHash.fromBytes(hashBytes);
+      var leaf = GitTreeLeaf(
+        mode: ascii.decode(mode),
+        path: utf8.decode(path),
+        hash: GitHash.fromBytes(hashBytes),
+      );
 
       leaves.add(leaf);
 

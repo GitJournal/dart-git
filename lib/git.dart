@@ -237,6 +237,29 @@ class GitRepository {
     await file.writeAsBytes(index.serialize());
     await file.rename(p.join(gitDir, 'index'));
   }
+
+  Future<int> numChangesToPush() async {
+    var head = await this.head();
+    if (head.isHash) {
+      return 0;
+    }
+
+    var branch = this.branch(head.target.branchName());
+
+    // Construct remote's branch
+    var remoteBranchName = branch.merge.branchName();
+    var remoteRef = ReferenceName.remote(branch.remote, remoteBranchName);
+
+    var headHash = (await resolveReference(head)).hash;
+    var remoteHash = (await resolveReferenceName(remoteRef)).hash;
+
+    if (headHash == remoteHash) {
+      return 0;
+    }
+
+    var aheadBy = await countTillAncestor(headHash, remoteHash);
+    return aheadBy != -1 ? aheadBy : 0;
+  }
 }
 
 class GitException implements Exception {}

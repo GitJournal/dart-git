@@ -245,6 +245,9 @@ class GitRepository {
     }
 
     var branch = this.branch(head.target.branchName());
+    if (branch == null) {
+      return 0;
+    }
 
     // Construct remote's branch
     var remoteBranchName = branch.merge.branchName();
@@ -253,6 +256,9 @@ class GitRepository {
     var headHash = (await resolveReference(head)).hash;
     var remoteHash = (await resolveReferenceName(remoteRef)).hash;
 
+    if (headHash == null || remoteHash == null) {
+      return 0;
+    }
     if (headHash == remoteHash) {
       return 0;
     }

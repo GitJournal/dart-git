@@ -54,6 +54,8 @@ class AddCommand extends Command {
 
       entry.cTime = stat.changed;
       entry.mTime = stat.modified;
+
+      await repo.writeIndex(index);
       return;
     }
 

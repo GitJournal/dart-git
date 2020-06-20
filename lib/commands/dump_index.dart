@@ -15,7 +15,7 @@ class DumpIndexCommand extends Command {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path);
     var repo = await GitRepository.load(gitRootDir);
 
-    var index = await repo.index();
+    var index = await repo.readIndex();
     print('Index Version: ${index.versionNo}');
     for (var entry in index.entries) {
       var str = entry.toString();

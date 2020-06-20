@@ -213,7 +213,7 @@ class GitRepository {
     return parents.isEmpty ? -1 : seen.length;
   }
 
-  Future<GitIndex> index() async {
+  Future<GitIndex> readIndex() async {
     var path = p.join(gitDir, 'index');
     var bytes = await File(path).readAsBytes();
     return GitIndex.decode(bytes);
@@ -253,6 +253,45 @@ class GitRepository {
 
     var aheadBy = await countTillAncestor(headHash, remoteHash);
     return aheadBy != -1 ? aheadBy : 0;
+  }
+
+  Future<void> addFileToIndex(GitIndex index, String filePath) async {
+    var file = File(filePath);
+    if (!file.existsSync()) {
+      throw Exception("fatal: pathspec '$filePath' did not match any files");
+    }
+
+    // Save that file as a blob
+    var data = await file.readAsBytes();
+    var blob = GitBlob(data, null);
+    var hash = await writeObject(blob);
+
+    var pathSpec = filePath;
+
+    // Add it to the index
+    GitIndexEntry entry;
+    for (var e in index.entries) {
+      if (e.path == pathSpec) {
+        entry = e;
+        break;
+      }
+    }
+
+    var stat = await FileStat.stat(filePath);
+
+    // Existing file
+    if (entry != null) {
+      entry.hash = hash;
+      entry.fileSize = data.length;
+
+      entry.cTime = stat.changed;
+      entry.mTime = stat.modified;
+      return;
+    }
+
+    // New file
+    entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
+    index.entries.add(entry);
   }
 }
 

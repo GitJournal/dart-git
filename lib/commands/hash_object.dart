@@ -39,7 +39,7 @@ class HashObjectCommand extends Command {
 
     var repo = GitRepository(Directory.current.path);
     var fmt = argResults['type'] as String;
-    var obj = repo.createObject(fmt, rawData);
+    var obj = createObject(fmt, rawData);
     GitHash hash;
     if (argResults['write']) {
       hash = await repo.writeObject(obj);

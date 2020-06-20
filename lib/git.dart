@@ -131,18 +131,6 @@ class GitRepository {
     return createObject(fmtStr, raw.sublist(y + 1), filePath);
   }
 
-  GitObject createObject(String fmt, List<int> rawData, [String filePath]) {
-    if (fmt == GitBlob.fmt) {
-      return GitBlob(rawData, null);
-    } else if (fmt == GitCommit.fmt) {
-      return GitCommit(rawData, null);
-    } else if (fmt == GitTree.fmt) {
-      return GitTree(rawData, null);
-    } else {
-      throw Exception('Unknown type $fmt for object $filePath');
-    }
-  }
-
   Future<GitHash> writeObject(GitObject obj) async {
     var result = obj.serialize();
     var hash = GitHash.compute(result);
@@ -524,4 +512,16 @@ class GitTree extends GitObject {
 
   @override
   GitHash hash() => _hash ?? GitHash.compute(serialize());
+}
+
+GitObject createObject(String fmt, List<int> rawData, [String filePath]) {
+  if (fmt == GitBlob.fmt) {
+    return GitBlob(rawData, null);
+  } else if (fmt == GitCommit.fmt) {
+    return GitCommit(rawData, null);
+  } else if (fmt == GitTree.fmt) {
+    return GitTree(rawData, null);
+  } else {
+    throw Exception('Unknown type $fmt for object $filePath');
+  }
 }

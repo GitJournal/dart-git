@@ -337,6 +337,14 @@ class Author {
         DateTime.fromMillisecondsSinceEpoch(author.timestamp, isUtc: true);
     return author;
   }
+
+  @override
+  String toString() {
+    if (timestamp != 0) {
+      return 'Author(name: $name, email: $email, date: $date)';
+    }
+    return 'Author(name: $name, email: $email)';
+  }
 }
 
 class GitCommit extends GitObject {

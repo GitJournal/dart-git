@@ -99,4 +99,23 @@ void main() {
     var idxFile = IdxFile.decode(File(filePath).readAsBytesSync());
     expect(idxFile.entries, expectedData);
   });
+
+  test('Idx file serialize', () async {
+    var filePath =
+        'test/data/pack-6b2f047eb88137b05be66724152f9924a838e4f9.idx';
+
+    var inputBytes = File(filePath).readAsBytesSync();
+    var idxFile = IdxFile.decode(inputBytes);
+
+    expect(idxFile.encode(), inputBytes);
+  });
+
+  test('Idx file 64 bit serialize', () async {
+    var filePath = 'test/data/pack-64bit.idx';
+
+    var inputBytes = File(filePath).readAsBytesSync();
+    var idxFile = IdxFile.decode(inputBytes);
+
+    expect(idxFile.encode(), inputBytes);
+  });
 }

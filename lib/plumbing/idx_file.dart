@@ -95,9 +95,50 @@ class IdxFile {
     }
   }
 
-  Iterable<int> encode() {
-    assert(false);
-    return [];
+  Uint8List encode() {
+    var writer = ByteDataWriter();
+
+    writer.writeUint32(_PACK_IDX_SIGNATURE);
+    writer.writeUint32(_PACK_VERSION);
+
+    // Fanout Table
+    for (var i = 0; i < _FAN_TABLE_LENGTH; i++) {
+      writer.writeUint32(fanTable[i]);
+    }
+
+    // Write Hashes
+    for (var entry in entries) {
+      writer.write(entry.hash.bytes);
+    }
+
+    // Write crc32
+    for (var entry in entries) {
+      writer.writeUint32(entry.crc32);
+    }
+
+    // Write offsets
+    var offset64BitPos = <int>[];
+    for (var i = 0; i < entries.length; i++) {
+      var o = entries[i].offset;
+
+      if (o > 0x7FFFFFFF) {
+        writer.writeUint32(0x80000000 + offset64BitPos.length);
+        offset64BitPos.add(o);
+      } else {
+        writer.writeUint32(o);
+      }
+    }
+
+    for (var o in offset64BitPos) {
+      writer.writeUint64(o);
+    }
+
+    writer.write(packFileHash.bytes);
+
+    var idxFileHash = GitHash.compute(writer.toBytes());
+    writer.write(idxFileHash.bytes);
+
+    return writer.toBytes();
   }
 }
 

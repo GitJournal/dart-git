@@ -45,4 +45,58 @@ void main() {
 
     expect(idxFile.entries, expectedData);
   });
+
+  test('IdxFile Parser 64bit', () async {
+    var expectedData = [
+      IdxFileEntry(
+        hash: GitHash('03fc8d58d44267274edef4585eaeeb445879d33f'),
+        offset: 1601322837,
+        crc32: 2459826858,
+      ),
+      IdxFileEntry(
+        hash: GitHash('1b8995f51987d8a449ca5ea4356595102dc2fbd4'),
+        offset: 5894072943,
+        crc32: 562544726,
+      ),
+      IdxFileEntry(
+        hash: GitHash('303953e5aa461c203a324821bc1717f9b4fff895'),
+        offset: 12,
+        crc32: 3157556300,
+      ),
+      IdxFileEntry(
+        hash: GitHash('35858be9c6f5914cbe6768489c41eb6809a2bceb'),
+        offset: 5924278919,
+        crc32: 2626279890,
+      ),
+      IdxFileEntry(
+        hash: GitHash('5296768e3d9f661387ccbff18c4dea6c997fd78c'),
+        offset: 142,
+        crc32: 3452053570,
+      ),
+      IdxFileEntry(
+        hash: GitHash('8f3ceb4ea4cb9e4a0f751795eb41c9a4f07be772'),
+        offset: 2646996529,
+        crc32: 2786979722,
+      ),
+      IdxFileEntry(
+        hash: GitHash('90eba326cdc4d1d61c5ad25224ccbf08731dd041'),
+        offset: 3707047470,
+        crc32: 1905521594,
+      ),
+      IdxFileEntry(
+        hash: GitHash('bab53055add7bc35882758a922c54a874d6b1272'),
+        offset: 5323223332,
+        crc32: 2888211342,
+      ),
+      IdxFileEntry(
+        hash: GitHash('e0d1d625010087f79c9e01ad9d8f95e1628dda02'),
+        offset: 3452385606,
+        crc32: 113156480,
+      ),
+    ];
+
+    var filePath = 'test/data/pack-64bit.idx';
+    var idxFile = IdxFile.decode(File(filePath).readAsBytesSync());
+    expect(idxFile.entries, expectedData);
+  });
 }

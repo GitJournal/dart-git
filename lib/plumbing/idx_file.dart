@@ -7,11 +7,12 @@ import 'package:dart_git/git_hash.dart';
 
 class IdxFile {
   var entries = <IdxFileEntry>[];
+  var fanTable = Uint32List(_FAN_TABLE_LENGTH);
   GitHash packFileHash;
 
-  static final int _PACK_IDX_SIGNATURE = 0xff744f63;
-  static final int _PACK_VERSION = 2;
-  //static final int _FAN_TABLE_LENGTH = 256 * 4;
+  static const _PACK_IDX_SIGNATURE = 0xff744f63;
+  static const _PACK_VERSION = 2;
+  static const _FAN_TABLE_LENGTH = 256;
 
   IdxFile.decode(Iterable<int> bytes) {
     var allBytes = bytes.toList();
@@ -30,10 +31,11 @@ class IdxFile {
       throw Exception('GitIdxFileCorrupted: Unsupported version: $version');
     }
 
-    // Skip Fanout Table
-    reader.read(255 * 4);
-
-    var numObjects = reader.readUint32();
+    // Fanout Table
+    for (var i = 0; i < _FAN_TABLE_LENGTH; i++) {
+      fanTable[i] = reader.readUint32();
+    }
+    var numObjects = fanTable.last;
 
     // Read Hashes
     var hashes = List<GitHash>(numObjects);
@@ -50,10 +52,24 @@ class IdxFile {
     }
 
     // Read offsets
-    // FIXME: This is not correct
     var offsets = List<int>(numObjects);
+    var offset64BitPos = <int>[];
     for (var i = 0; i < numObjects; i++) {
       offsets[i] = reader.readUint32();
+
+      // MSB is 1
+      var msbSet = offsets[i] & 0x80000000;
+      if (msbSet > 0) {
+        offset64BitPos.add(i);
+      }
+    }
+
+    // 64-bit offsets
+    for (var i = 0; i < offset64BitPos.length; i++) {
+      var pos = offset64BitPos[i];
+      var offset = reader.readUint64();
+
+      offsets[pos] = offset;
     }
 
     packFileHash = GitHash.fromBytes(reader.read(20));

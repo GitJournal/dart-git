@@ -301,7 +301,7 @@ class GitIndexEntry {
     reader.read(padLength);
   }
 
-  List<int> serialize() {
+  Uint8List serialize() {
     var writer = ByteDataWriter(endian: Endian.big);
 
     cTime = cTime.toUtc();

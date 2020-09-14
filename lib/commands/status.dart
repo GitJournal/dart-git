@@ -53,5 +53,18 @@ class StatusCommand extends Command {
 
     //"Changes not staged for commit:"
     //"Untracked files:"
+
+    print('Changes to be committed:');
+    print('  (use "git reset HEAD <file>..." to unstage))\n');
+
+    // Print one of the following -
+    // new file: path
+    // deleted: path
+    // modified: path
+
+    // Get the head commit
+    // Get the tree
+    // iterate over all objects in the tree and check if present in the index
+    // make sure that for each path, the hash in the index is the same
   }
 }

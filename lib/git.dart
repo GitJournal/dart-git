@@ -310,7 +310,7 @@ abstract class GitObject {
     var data = serializeData();
     var result = [
       ...format(),
-      ...ascii.encode(' '),
+      asciiHelper.space,
       ...ascii.encode(data.length.toString()),
       0x0,
       ...data,

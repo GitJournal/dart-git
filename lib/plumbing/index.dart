@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:collection/collection.dart';
 import 'package:buffer/buffer.dart';
-import 'package:dart_git/ascii_helper.dart';
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
+import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
 
 class GitIndex {

@@ -1,4 +1,5 @@
 import 'package:args/command_runner.dart';
+
 import 'package:dart_git/git.dart';
 
 class InitCommand extends Command {

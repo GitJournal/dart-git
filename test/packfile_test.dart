@@ -1,8 +1,9 @@
 import 'dart:io';
 
+import 'package:test/test.dart';
+
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
-import 'package:test/test.dart';
 
 void main() {
   test('Packfile', () async {

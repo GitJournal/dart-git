@@ -1,7 +1,8 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:test/test.dart';
+
 import 'package:dart_git/git.dart';
 
 void main() {

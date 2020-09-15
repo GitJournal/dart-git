@@ -1,5 +1,6 @@
-import 'package:dart_git/config.dart';
 import 'package:test/test.dart';
+
+import 'package:dart_git/config.dart';
 
 void main() {
   var contents = '''[core]

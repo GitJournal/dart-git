@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
 import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
 
 class GitHash {
   Uint8List _bytes;

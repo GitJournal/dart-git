@@ -1,5 +1,9 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/branch.dart';
@@ -9,11 +13,6 @@ import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/remote.dart';
 import 'package:dart_git/storage/reference_storage.dart';
-
-import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
-
-import 'package:path/path.dart' as p;
 
 class GitRepository {
   String workTree;

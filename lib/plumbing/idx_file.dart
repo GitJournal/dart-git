@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:buffer/buffer.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
+
 import 'package:dart_git/git_hash.dart';
 
 class IdxFile {

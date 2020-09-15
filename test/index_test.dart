@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:dart_git/git_hash.dart';
 import 'package:test/test.dart';
+
+import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 
 void main() {

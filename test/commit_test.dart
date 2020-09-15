@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:test/test.dart';
+
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/git_hash.dart';
-import 'package:test/test.dart';
 
 void main() {
   var contents = '''tree 272aca6dd8feabd4affc881c6cad18f396189344

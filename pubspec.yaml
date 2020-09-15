@@ -14,6 +14,7 @@ dependencies:
 dev_dependencies:
   pedantic: ^1.9.0
   test: ^1.11.1
+  import_sorter: ^4.2.1
 
 environment:
   sdk: ">=2.3.0 <3.0.0"

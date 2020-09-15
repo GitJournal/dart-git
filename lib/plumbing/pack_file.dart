@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:buffer/buffer.dart';
 
 import 'package:dart_git/git.dart';
-import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/object_types.dart';
 

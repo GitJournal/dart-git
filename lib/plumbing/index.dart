@@ -80,7 +80,7 @@ class GitIndex {
 
     if (_listEq(header, reucHeader) || _listEq(header, eoicHeader)) {
       var length = reader.readUint32();
-      var data = reader.read(length); // Ignoring the data for now
+      reader.read(length); // Ignoring the data for now
       return true;
     }
 

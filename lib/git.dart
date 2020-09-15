@@ -61,7 +61,7 @@ class GitRepository {
   }
 
   static Future<void> init(String path) async {
-    // TODO: Check if path has stuff and accordingly return
+    // FIXME: Check if path has stuff and accordingly return
 
     var gitDir = p.join(path, '.git');
 

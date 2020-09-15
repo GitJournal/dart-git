@@ -6,17 +6,21 @@ import 'package:buffer/buffer.dart';
 
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/object_types.dart';
 
 class PackFile {
   int numObjects;
-  List<GitObject> objects = [];
+  IdxFile idx;
+  String filePath;
 
-  PackFile.decode(Iterable<int> bytes) {
+  PackFile.decode(this.idx, this.filePath) {
+    // FIXME: This is terrible for performance, it is reading the entire huge
+    //        as PackFile into memory
+    var bytes = File(filePath).readAsBytesSync();
+
     var reader = ByteDataReader(endian: Endian.big, copy: false);
     reader.add(bytes);
-
-    var totalNumBytes = bytes.length;
 
     // Read the signature
     var sigBytes = reader.read(4);
@@ -35,64 +39,70 @@ class PackFile {
       throw Exception('GitPackFileCorrupted: Unsupported version: $version');
     }
 
-    // Number of Objects
-    var numObjects = reader.readUint32();
-    this.numObjects = numObjects;
+    numObjects = reader.readUint32();
+  }
 
-    // Read all the objects
-    for (var i = 0; i < numObjects; i++) {
-      var objectStartoffset = reader.remainingLength - totalNumBytes;
-      var headByte = reader.readUint8();
-      var type = (0x70 & headByte) >> 4;
-      var needMore = (0x80 & headByte) > 0;
+  Future<GitObject> _getObject(int offset) async {
+    var file = await File(filePath).open();
+    await file.setPosition(offset);
 
-      var size = (headByte & 0xf);
-      var bitsToShift = 4;
+    var headByte = (await file.read(1))[0];
+    var type = (0x70 & headByte) >> 4;
 
-      while (needMore) {
-        var headByte = reader.readUint8();
-        needMore = (0x80 & headByte) > 0;
-        size |= ((headByte & 0x7f) << bitsToShift);
-        bitsToShift += 7;
-      }
+    var needMore = (0x80 & headByte) > 0;
 
-      var objHeader = PackObjectHeader(size, type, objectStartoffset);
+    // the length is codified in the last 4 bits of the first byte and in
+    // the last 7 bits of subsequent bytes.  Last byte has a 0 MSB.
+    var size = (headByte & 0xf);
+    var bitsToShift = 4;
 
-      // Construct the PackObject
-      switch (objHeader.type) {
-        case ObjectTypes.OFS_DELTA:
-          throw Exception('OFS_DELTA not supported');
-          //object.desiredOffset = findDeltaBaseOffset(header);
-          break;
-        case ObjectTypes.REF_DELTA:
-          throw Exception('OFS_REF_DELTA not supported');
-          break;
-        default:
-          break;
-      }
-      print('Object size $size');
+    while (needMore) {
+      var headByte = (await file.read(1))[0];
 
-      var typeStr = ObjectTypes.getTypeString(objHeader.type);
-      print('Trying to read object of type $typeStr');
-
-      var compressedData = reader.read(objHeader.size);
-      var rawObjData = zlib.decode(compressedData);
-      var object = createObject(typeStr, rawObjData);
-
-      print('Read object of type $typeStr');
-      print(object.hash());
-      if (object is GitCommit) {
-        print(object.author);
-      }
-      objects.add(object);
+      needMore = (0x80 & headByte) > 0;
+      size += ((headByte & 0x7f) << bitsToShift);
+      bitsToShift += 7;
     }
+
+    var objectStartoffset = offset;
+    var objHeader = PackObjectHeader(size, type, objectStartoffset);
+
+    // Construct the PackObject
+    switch (objHeader.type) {
+      case ObjectTypes.OFS_DELTA:
+        throw Exception('OFS_DELTA not supported');
+        //object.desiredOffset = findDeltaBaseOffset(header);
+        break;
+      case ObjectTypes.REF_DELTA:
+        throw Exception('OFS_REF_DELTA not supported');
+        break;
+      default:
+        break;
+    }
+
+    var typeStr = ObjectTypes.getTypeString(objHeader.type);
+
+    // The objHeader.size is the size of the data once expanded
+    // FIXME: Do not hardcode this 100
+    var compressedData = await file.read(objHeader.size + 100);
+    await file.close();
+
+    var rawObjData = zlib.decode(compressedData).sublist(0, objHeader.size);
+    return createObject(typeStr, rawObjData);
   }
 
-  GitObject getObject(GitHash hash) {
-    return GitCommit([], null);
-  }
+  Future<Iterable<GitObject>> getAll() async {
+    var objects = <GitObject>[];
 
-  Iterable<GitObject> getAll() {
+    for (var i = 0; i < idx.entries.length; i++) {
+      var entry = idx.entries[i];
+
+      var obj = await _getObject(entry.offset);
+
+      assert(obj.hash() == entry.hash);
+      objects.add(obj);
+    }
+
     return objects;
   }
 

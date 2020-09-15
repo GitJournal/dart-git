@@ -349,11 +349,12 @@ class Author {
   String name;
   String email;
   int timestamp;
+  int timezoneOffset;
   DateTime date;
 
   static Author parse(String input) {
     // Regex " AuthorName <Email>  timestamp timeOffset"
-    var pattern = RegExp(r'(.*) <(.*)> (\d+) (\+|\-)\d\d\d\d');
+    var pattern = RegExp(r'(.*) <(.*)> (\d+) ([+\-]\d\d\d\d)');
     var match = pattern.allMatches(input).toList();
 
     var author = Author();
@@ -362,7 +363,17 @@ class Author {
     author.timestamp = (int.parse(match[0].group(3))) * 1000;
     author.date =
         DateTime.fromMillisecondsSinceEpoch(author.timestamp, isUtc: true);
+    author.timezoneOffset = int.parse(match[0].group(4));
     return author;
+  }
+
+  String serialize() {
+    var timestamp = date.toUtc().millisecondsSinceEpoch / 1000;
+    var offset = timezoneOffset > 0
+        ? '+${timezoneOffset.toString().padLeft(4, "0")}'
+        : '-${timezoneOffset.abs().toString().padLeft(4, "0")}';
+
+    return '$name <$email> ${timestamp.toInt()} $offset';
   }
 
   @override
@@ -378,12 +389,12 @@ class GitCommit extends GitObject {
   static const String fmt = 'commit';
   static final List<int> _fmt = ascii.encode(fmt);
 
-  Map<String, List<int>> props;
   Author author;
   Author committer;
   String message;
   GitHash treeHash;
   List<GitHash> parents = [];
+  String gpgSig;
 
   final GitHash _hash;
 
@@ -404,10 +415,30 @@ class GitCommit extends GitObject {
       }
     }
     treeHash = GitHash(map['tree']);
+    gpgSig = map['gpgsig'] ?? '';
   }
 
   @override
-  List<int> serializeData() => [];
+  List<int> serializeData() {
+    var map = <String, dynamic>{
+      'tree': treeHash.toString(),
+    };
+
+    if (parents.length == 1) {
+      map['parent'] = parents[0].toString();
+    } else {
+      map['parent'] = parents.map((e) => e.toString()).toList();
+    }
+    map['author'] = author.serialize();
+    map['committer'] = committer.serialize();
+    if (gpgSig.isNotEmpty) {
+      map['gpgsig'] = gpgSig;
+    }
+
+    map['_'] = message;
+
+    return kvlmSerialize(map);
+  }
 
   @override
   List<int> format() => _fmt;

@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/git.dart';
-import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/git_remote.dart';
+import 'package:dart_git/plumbing/reference.dart';
 
 class Config {
   bool bare;

@@ -11,7 +11,7 @@ import 'package:dart_git/config.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/remote.dart';
+import 'package:dart_git/git_remote.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
 class GitRepository {
@@ -97,11 +97,11 @@ class GitRepository {
     return config.branches[name];
   }
 
-  List<Remote> remotes() {
+  List<GitRemote> remotes() {
     return config.remotes;
   }
 
-  Remote remote(String name) {
+  GitRemote remote(String name) {
     return config.remotes.firstWhere((r) => r.name == name, orElse: () => null);
   }
 

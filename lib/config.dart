@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/remote.dart';
+import 'package:dart_git/git_remote.dart';
 
 class Config {
   bool bare;
   Map<String, Branch> branches = {};
-  List<Remote> remotes = [];
+  List<GitRemote> remotes = [];
 
   Author user;
 
@@ -53,7 +53,7 @@ class Config {
   }
 
   void _parseRemote(Section section) {
-    var remote = Remote();
+    var remote = GitRemote();
     remote.name = section.name;
 
     for (var entry in section.options.entries) {

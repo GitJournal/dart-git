@@ -8,4 +8,6 @@ class Branch {
 
   @override
   String toString() => 'Branch{name: $name, remote: $remote, merge: $merge}';
+
+  String trackingBranch() => merge.branchName();
 }

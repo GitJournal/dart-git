@@ -97,6 +97,15 @@ class GitRepository {
     return config.branches[name];
   }
 
+  Future<Branch> currentBranch() async {
+    var _head = await head();
+    if (_head.isHash) {
+      return null;
+    }
+
+    return branch(_head.target.branchName());
+  }
+
   List<GitRemote> remotes() {
     return config.remotes;
   }

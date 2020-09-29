@@ -26,7 +26,8 @@ class RemoteCommand extends Command {
       if (!verbose) {
         print(remote.name);
       } else {
-        print('${remote.name}  ${remote.url}');
+        print('${remote.name}\t${remote.url} (fetch)');
+        print('${remote.name}\t${remote.url} (push)');
       }
     }
   }

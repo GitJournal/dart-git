@@ -5,9 +5,17 @@ import 'package:test/test.dart';
 import 'package:dart_git/main.dart' as git;
 
 void main() {
-  test('Lists all the Remotes correctly', () async {
+  test('remote', () async {
     var printLog = await run('remote');
     expect(printLog, ['origin']);
+  });
+
+  test('remote -v', () async {
+    var printLog = await run('remote -v');
+    expect(printLog, [
+      'origin	git@github.com:GitJournal/dart_git.git (fetch)',
+      'origin	git@github.com:GitJournal/dart_git.git (push)',
+    ]);
   });
 }
 

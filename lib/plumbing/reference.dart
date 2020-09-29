@@ -56,6 +56,9 @@ class ReferenceName {
   ReferenceName.remote(String remote, String branch) {
     value = '$refRemotePrefix$remote/$branch';
   }
+  ReferenceName.head(String branch) {
+    value = '$refHeadPrefix$branch';
+  }
 
   @override
   String toString() => value;

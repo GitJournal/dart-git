@@ -106,6 +106,16 @@ class GitRepository {
     return branch(_head.target.branchName());
   }
 
+  Future<Branch> setUpstreamTo(
+      GitRemote remote, String remoteBranchName) async {
+    var br = await currentBranch();
+    br.remote = remote.name;
+    br.merge = ReferenceName.head(remoteBranchName);
+
+    await saveConfig();
+    return br;
+  }
+
   List<GitRemote> remotes() {
     return config.remotes;
   }

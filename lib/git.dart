@@ -120,6 +120,26 @@ class GitRepository {
     return config.remotes;
   }
 
+  Future<GitRemote> addRemote(String name, String url) async {
+    var existingRemote = config.remotes.firstWhere(
+      (r) => r.name == name,
+      orElse: () => null,
+    );
+    if (existingRemote != null) {
+      throw Exception('fatal: remote "$name" already exists.');
+    }
+
+    var remote = GitRemote();
+    remote.name = name;
+    remote.url = url;
+    remote.fetch = '+refs/heads/*:refs/remotes/$name/*';
+
+    config.remotes.add(remote);
+    await saveConfig();
+
+    return remote;
+  }
+
   GitRemote remote(String name) {
     return config.remotes.firstWhere((r) => r.name == name, orElse: () => null);
   }

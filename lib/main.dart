@@ -26,6 +26,7 @@ Future<void> main(List<String> args) async {
     ..addCommand(AddCommand())
     ..addCommand(BranchCommand())
     ..addCommand(CatFileCommand())
+    ..addCommand(CheckoutCommand())
     ..addCommand(DumpIndexCommand())
     ..addCommand(HashObjectCommand())
     ..addCommand(LogCommand())

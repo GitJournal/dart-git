@@ -493,7 +493,7 @@ Map<String, dynamic> kvlmParse(List<int> raw) {
     var spaceIndex = raw.indexOf(asciiHelper.space, start);
     var newLineIndex = raw.indexOf(asciiHelper.newLine, start);
 
-    if (newLineIndex < spaceIndex) {
+    if (newLineIndex < spaceIndex || spaceIndex == -1) {
       assert(newLineIndex == start);
 
       dict['_'] = utf8.decode(raw.sublist(start + 1));

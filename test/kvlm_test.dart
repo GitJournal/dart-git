@@ -59,4 +59,20 @@ Q52UWybBzpaP9HEd4XnR+HuQ4k2K0ns2KgNImsNvIyFwbpMUyUWLMPimaV1DWUXo
     expect(map['_'], equals('Create first draft'));
     expect(utf8.decode(kvlmSerialize(map)), equals(rawStr));
   });
+
+  test('Parse test commit', () {
+    var raw = utf8.encode('''tree bd11e76b46ad288c6e80e4db357dadf676906897
+author Vishesh Handa <me@vhanda.in> 1601767396 +0200
+committer Vishesh Handa <me@vhanda.in> 1601767396 +0200
+
+SDf
+''');
+
+    var map = kvlmParse(raw);
+    expect(map.length, equals(4));
+    expect(map['tree'], equals('bd11e76b46ad288c6e80e4db357dadf676906897'));
+    expect(map['author'], 'Vishesh Handa <me@vhanda.in> 1601767396 +0200');
+    expect(map['committer'], 'Vishesh Handa <me@vhanda.in> 1601767396 +0200');
+    expect(map['_'], 'SDf\n');
+  });
 }

@@ -97,11 +97,18 @@ class PackFile {
   }
 
   Future<List<int>> _decodeObject(RandomAccessFile file, int objSize) async {
-    // FIXME: Do not hardcode this 1000
-    var compressedData = await file.read(objSize + 1000);
+    var compressedData = <int>[];
 
-    var rawObjData = zlib.decode(compressedData).sublist(0, objSize);
-    return rawObjData;
+    while (true) {
+      // The number 512 is chosen since the block size is generally 512
+      // The dart zlib parser doesn't have a way to greedily keep reading
+      // till it reaches a certain size
+      compressedData.addAll(await file.read(objSize + 512));
+      var decodedData = zlib.decode(compressedData);
+      if (decodedData.length >= objSize) {
+        return decodedData.sublist(0, objSize);
+      }
+    }
   }
 
   Future<GitObject> _fillOFSDeltaObject(

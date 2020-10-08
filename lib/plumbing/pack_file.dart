@@ -7,6 +7,7 @@ import 'package:buffer/buffer.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/object_types.dart';
+import 'package:dart_git/plumbing/pack_file_delta.dart';
 
 class PackFile {
   int numObjects;
@@ -45,7 +46,7 @@ class PackFile {
     var file = await File(filePath).open();
     await file.setPosition(offset);
 
-    var headByte = (await file.read(1))[0];
+    var headByte = await file.readByte();
     var type = (0x70 & headByte) >> 4;
 
     var needMore = (0x80 & headByte) > 0;
@@ -56,39 +57,69 @@ class PackFile {
     var bitsToShift = 4;
 
     while (needMore) {
-      var headByte = (await file.read(1))[0];
+      var headByte = await file.readByte();
 
       needMore = (0x80 & headByte) > 0;
       size += ((headByte & 0x7f) << bitsToShift);
       bitsToShift += 7;
     }
 
-    var objectStartoffset = offset;
-    var objHeader = PackObjectHeader(size, type, objectStartoffset);
+    var objHeader = PackObjectHeader(size, type, offset);
 
     // Construct the PackObject
     switch (objHeader.type) {
       case ObjectTypes.OFS_DELTA:
-        throw Exception('OFS_DELTA not supported');
-        //object.desiredOffset = findDeltaBaseOffset(header);
-        break;
+        var n = await _readVariableWidthInt(file);
+        var baseOffset = offset - n;
+        var deltaData = await _decodeObject(file, objHeader.size);
+
+        return _fillOFSDeltaObject(baseOffset, deltaData);
+
       case ObjectTypes.REF_DELTA:
         throw Exception('OFS_REF_DELTA not supported');
-        break;
+
+      /*
+        var hashBytes = await file.read(20);
+        var hash = GitHash.fromBytes(hashBytes);
+
+        return _fillRefDeltaObject(hash, objHeader, rawObjData);
+        */
       default:
         break;
     }
 
-    var typeStr = ObjectTypes.getTypeString(objHeader.type);
-
     // The objHeader.size is the size of the data once expanded
-    // FIXME: Do not hardcode this 100
-    var compressedData = await file.read(objHeader.size + 100);
+    var rawObjData = await _decodeObject(file, objHeader.size);
     await file.close();
 
-    var rawObjData = zlib.decode(compressedData).sublist(0, objHeader.size);
+    var typeStr = ObjectTypes.getTypeString(objHeader.type);
     return createObject(typeStr, rawObjData);
   }
+
+  Future<List<int>> _decodeObject(RandomAccessFile file, int objSize) async {
+    // FIXME: Do not hardcode this 1000
+    var compressedData = await file.read(objSize + 1000);
+
+    var rawObjData = zlib.decode(compressedData).sublist(0, objSize);
+    return rawObjData;
+  }
+
+  Future<GitObject> _fillOFSDeltaObject(
+      int baseOffset, List<int> deltaData) async {
+    var baseObject = await _getObject(baseOffset);
+    var deltaObj = patchDelta(baseObject.serializeData(), deltaData);
+
+    return createObject(ascii.decode(baseObject.format()), deltaObj);
+  }
+
+  /*
+  Future<GitObject> _fillRefDeltaObject(
+      GitHash hash, PackObjectHeader objHeader, List<int> deltaData) async {
+    var typeStr = ObjectTypes.getTypeString(objHeader.type);
+
+    return createObject(typeStr, rawData);
+  }
+  */
 
   Future<Iterable<GitObject>> getAll() async {
     var objects = <GitObject>[];
@@ -119,4 +150,53 @@ class PackObjectHeader {
   final int offset;
 
   PackObjectHeader(this.size, this.type, this.offset);
+
+  @override
+  String toString() =>
+      'PackObjectHeader{size: $size, type: $type, offset: $offset}';
+}
+
+// ReadVariableWidthInt reads and returns an int in Git VLQ special format:
+//
+// Ordinary VLQ has some redundancies, example:  the number 358 can be
+// encoded as the 2-octet VLQ 0x8166 or the 3-octet VLQ 0x808166 or the
+// 4-octet VLQ 0x80808166 and so forth.
+//
+// To avoid these redundancies, the VLQ format used in Git removes this
+// prepending redundancy and extends the representable range of shorter
+// VLQs by adding an offset to VLQs of 2 or more octets in such a way
+// that the lowest possible value for such an (N+1)-octet VLQ becomes
+// exactly one more than the maximum possible value for an N-octet VLQ.
+// In particular, since a 1-octet VLQ can store a maximum value of 127,
+// the minimum 2-octet VLQ (0x8000) is assigned the value 128 instead of
+// 0. Conversely, the maximum value of such a 2-octet VLQ (0xff7f) is
+// 16511 instead of just 16383. Similarly, the minimum 3-octet VLQ
+// (0x808000) has a value of 16512 instead of zero, which means
+// that the maximum 3-octet VLQ (0xffff7f) is 2113663 instead of
+// just 2097151.  And so forth.
+//
+// This is how the offset is saved in C:
+//
+//     dheader[pos] = ofs & 127;
+//     while (ofs >>= 7)
+//         dheader[--pos] = 128 | (--ofs & 127);
+//
+
+final _maskContinue = 128; // 1000 000
+final _maskLength = 127; // 0111 1111
+final _lengthBits = 7; // subsequent bytes has 7 bits to store the length
+
+Future<int> _readVariableWidthInt(RandomAccessFile file) async {
+  var c = await file.readByte();
+
+  var v = (c & _maskLength);
+  while (c & _maskContinue > 0) {
+    v++;
+
+    c = await file.readByte();
+
+    v = (v << _lengthBits) + (c & _maskLength);
+  }
+
+  return v;
 }

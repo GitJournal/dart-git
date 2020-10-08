@@ -31,4 +31,39 @@ void main() {
     }
     expect(i, expectedHashes.length);
   });
+
+  test('Packfile with deltas', () async {
+    var basePath = 'test/data';
+    var packFileName = 'pack-c1b214c203c64e8021e30390b2d8cf35e8f165c1';
+
+    var idxFileBytes = await File('$basePath/$packFileName.idx').readAsBytes();
+    var idxFile = IdxFile.decode(idxFileBytes);
+
+    var packfile = PackFile.decode(idxFile, '$basePath/$packFileName.pack');
+
+    var expectedHashes = [
+      'eb853bd24cb29c1be6d4210200122e27b19fa7ce',
+      'dd72824be0fd14bee06c4bca25e8068f8fb467cc',
+      '9105258190f8021c3742a0371d7d740f6322903d',
+      'e965047ad7c57865823c7d992b1d046ea66edf78',
+      '93c56b0e12c12bb5fb9ca719f7bd0f47b28482e5',
+      '028b714854358079cbab43163541b04602cd635a',
+      '1d68379bf577e4197f152b2bf81f12d825333bdc',
+      'b882c7f54f2b2b2c811eeae1c2e9998d2ce31890',
+      'ff541a69fb90597fc0e4ad83904f9f8c4a41533f',
+      '30f4be7940c11385ab785b057843a45513ca0eb1',
+    ];
+
+    var objects = await packfile.getAll();
+
+    var actualHashes = <String>[];
+    for (var obj in objects) {
+      actualHashes.add(obj.hash().toString());
+    }
+
+    expectedHashes.sort();
+    actualHashes.sort();
+
+    expect(expectedHashes, actualHashes);
+  });
 }

@@ -98,12 +98,22 @@ done''';
   var repo2Objects =
       repo2Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
 
-  //repo1Objects.sort();
-  //repo2Objects.sort();
-
   expect(repo1Objects, repo2Objects);
 
   // Test if the index is the same
 
   // Test if all the references are the same
+  var listRefScript = 'git show-ref --head';
+  script = p.join(Directory.systemTemp.path, 'list-refs');
+  await File(script).writeAsString(listRefScript);
+
+  repo1Result = await run('bash', [script], workingDirectory: repo1);
+  repo2Result = await run('bash', [script], workingDirectory: repo2);
+
+  var repo1Refs =
+      repo1Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
+  var repo2Refs =
+      repo2Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
+
+  expect(repo1Refs, repo2Refs);
 }

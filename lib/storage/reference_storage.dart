@@ -31,6 +31,26 @@ class ReferenceStorage {
 
     return null;
   }
+
+  Future<List<ReferenceName>> listReferences(String prefix) async {
+    var refs = <ReferenceName>[];
+    var stream = Directory(refHeadPrefix).list();
+    await for (var fsEntity in stream) {
+      assert(fsEntity.statSync().type == FileSystemEntityType.file);
+
+      var fileName = p.basename(fsEntity.path);
+      refs.add(ReferenceName.head(fileName));
+    }
+
+    return refs;
+  }
+
+  Future<void> saveRef(Reference ref) async {
+    // FIXME: Make this operation atomic
+    //        Never overwrite a file, just move the file
+    var file = File(p.join(dotGitDir, ref.name.value));
+    await file.writeAsString(ref.hash.toString(), flush: true);
+  }
 }
 
 Iterable<Reference> _loadPackedRefs(String raw) sync* {

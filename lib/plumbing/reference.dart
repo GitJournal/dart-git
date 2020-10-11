@@ -23,6 +23,10 @@ class Reference {
     type = ReferenceType.Hash;
   }
 
+  Reference.hash(this.name, this.hash) {
+    type = ReferenceType.Hash;
+  }
+
   String toDisplayString() {
     switch (type) {
       case ReferenceType.Hash:

@@ -71,17 +71,20 @@ class Config {
   }
 
   void _parseUser(Section section) {
-    user = GitAuthor();
+    String name;
+    String email;
     for (var entry in section.options.entries) {
       switch (entry.key) {
         case 'name':
-          user.name = entry.value;
+          name = entry.value;
           break;
         case 'email':
-          user.email = entry.value;
+          email = entry.value;
           break;
       }
     }
+
+    user = GitAuthor(name: name, email: email);
   }
 
   void _parseCore(Section section) {

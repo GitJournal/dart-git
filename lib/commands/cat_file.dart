@@ -5,6 +5,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/objects/blob.dart';
 
 class CatFileCommand extends Command {
   @override

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 import 'package:dart_git/git.dart';
+import 'package:dart_git/plumbing/objects/tree.dart';
 
 void main() {
   test('Reads the tree file correctly', () async {

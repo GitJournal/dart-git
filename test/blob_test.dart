@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 import 'package:dart_git/git.dart';
+import 'package:dart_git/plumbing/objects/blob.dart';
 
 void main() {
   test('Reads the blob file correctly', () async {

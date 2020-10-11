@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:file/file.dart';
+import 'package:file/local.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
@@ -23,18 +25,21 @@ class GitRepository {
 
   Config config;
 
+  FileSystem fs;
   ReferenceStorage refStorage;
 
-  GitRepository._internal({@required String rootDir}) {
+  GitRepository._internal({@required String rootDir, @required this.fs}) {
     // FIXME: Check if .git exists and if it doesn't go up until it does?
     workTree = rootDir;
     gitDir = p.join(workTree, '.git');
   }
 
-  static String findRootDir(String path) {
+  static String findRootDir(String path, {FileSystem fs}) {
+    fs ??= const LocalFileSystem();
+
     while (true) {
       var gitDir = p.join(path, '.git');
-      if (FileSystemEntity.isDirectorySync(gitDir)) {
+      if (fs.isDirectorySync(gitDir)) {
         return path;
       }
 
@@ -47,21 +52,23 @@ class GitRepository {
     return null;
   }
 
-  static Future<GitRepository> load(String gitRootDir) async {
-    var repo = GitRepository._internal(rootDir: gitRootDir);
+  static Future<GitRepository> load(String gitRootDir, {FileSystem fs}) async {
+    fs ??= const LocalFileSystem();
 
-    var isDir = await FileSystemEntity.isDirectory(gitRootDir);
+    var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
+
+    var isDir = await fs.isDirectory(gitRootDir);
     if (!isDir) {
       throw InvalidRepoException(gitRootDir);
     }
 
-    var dotGitExists = await FileSystemEntity.isDirectory(repo.gitDir);
+    var dotGitExists = await fs.isDirectory(repo.gitDir);
     if (!dotGitExists) {
       throw InvalidRepoException(gitRootDir);
     }
 
     var configPath = p.join(repo.gitDir, 'config');
-    var configFileContents = await File(configPath).readAsString();
+    var configFileContents = await fs.file(configPath).readAsString();
     repo.config = Config(configFileContents);
 
     repo.refStorage = ReferenceStorage(repo.gitDir);
@@ -69,19 +76,22 @@ class GitRepository {
     return repo;
   }
 
-  static Future<void> init(String path) async {
+  static Future<void> init(String path, {FileSystem fs}) async {
+    fs ??= const LocalFileSystem();
+
     // FIXME: Check if path has stuff and accordingly return
 
     var gitDir = p.join(path, '.git');
 
-    await Directory(p.join(gitDir, 'branches')).create(recursive: true);
-    await Directory(p.join(gitDir, 'objects')).create(recursive: true);
-    await Directory(p.join(gitDir, 'refs', 'tags')).create(recursive: true);
-    await Directory(p.join(gitDir, 'refs', 'heads')).create(recursive: true);
+    await fs.directory(p.join(gitDir, 'branches')).create(recursive: true);
+    await fs.directory(p.join(gitDir, 'objects')).create(recursive: true);
+    await fs.directory(p.join(gitDir, 'refs', 'tags')).create(recursive: true);
+    await fs.directory(p.join(gitDir, 'refs', 'heads')).create(recursive: true);
 
-    await File(p.join(gitDir, 'description')).writeAsString(
+    await fs.file(p.join(gitDir, 'description')).writeAsString(
         "Unnamed repository; edit this file 'description' to name the repository.\n");
-    await File(p.join(gitDir, 'HEAD'))
+    await fs
+        .file(p.join(gitDir, 'HEAD'))
         .writeAsString('ref: refs/heads/master\n');
 
     var config = Config('');
@@ -90,11 +100,11 @@ class GitRepository {
     core.options['filemode'] = 'false';
     core.options['bare'] = 'false';
 
-    await File(p.join(gitDir, 'config')).writeAsString(config.serialize());
+    await fs.file(p.join(gitDir, 'config')).writeAsString(config.serialize());
   }
 
   Future<void> saveConfig() {
-    return File(p.join(gitDir, 'config')).writeAsString(config.serialize());
+    return fs.file(p.join(gitDir, 'config')).writeAsString(config.serialize());
   }
 
   Iterable<Branch> branches() {
@@ -160,7 +170,7 @@ class GitRepository {
   }
 
   Future<GitObject> readObjectFromPath(String filePath) async {
-    var contents = await File(filePath).readAsBytes();
+    var contents = await fs.file(filePath).readAsBytes();
     var raw = zlib.decode(contents);
 
     // Read Object Type
@@ -184,8 +194,8 @@ class GitRepository {
     var sha = hash.toString();
 
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    await Directory(p.dirname(path)).create(recursive: true);
-    await File(path).writeAsBytes(zlib.encode(result));
+    await fs.directory(p.dirname(path)).create(recursive: true);
+    await fs.file(path).writeAsBytes(zlib.encode(result));
 
     return hash;
   }
@@ -262,13 +272,13 @@ class GitRepository {
 
   Future<GitIndex> readIndex() async {
     var path = p.join(gitDir, 'index');
-    var bytes = await File(path).readAsBytes();
+    var bytes = await fs.file(path).readAsBytes();
     return GitIndex.decode(bytes);
   }
 
   Future<void> writeIndex(GitIndex index) async {
     var path = p.join(gitDir, 'index.new');
-    var file = File(path);
+    var file = fs.file(path);
     await file.writeAsBytes(index.serialize());
     await file.rename(p.join(gitDir, 'index'));
   }
@@ -303,7 +313,7 @@ class GitRepository {
   }
 
   Future<void> addFileToIndex(GitIndex index, String filePath) async {
-    var file = File(filePath);
+    var file = fs.file(filePath);
     if (!file.existsSync()) {
       throw Exception("fatal: pathspec '$filePath' did not match any files");
     }

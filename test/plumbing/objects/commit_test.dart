@@ -90,4 +90,16 @@ Create first draft''';
 
     expect(author.serialize(), str);
   });
+
+  test('Author Serialize', () {
+    var author = GitAuthor(
+      name: 'Vishesh Handa',
+      email: 'me@vhanda.in',
+      date: DateTime.utc(2020, 9, 14, 20, 19, 56),
+      timezoneOffset: -800,
+    );
+
+    var str = 'Vishesh Handa <me@vhanda.in> 1600114796 -0800';
+    expect(author.serialize(), str);
+  });
 }

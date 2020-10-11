@@ -135,7 +135,8 @@ class GitIndex {
   List<int> serialize() {
     // Do we support this version of the index?
     if (versionNo != 2) {
-      throw Exception('Git Index version $versionNo cannot be serialized');
+      throw Exception(
+          'Git Index version $versionNo cannot be serialized. Only version 2 is supported');
     }
 
     var writer = ByteDataWriter();
@@ -402,7 +403,7 @@ class GitFileMode extends Equatable {
 
   @override
   String toString() {
-    return '$val';
+    return val.toRadixString(8);
   }
 
   // FIXME: Is this written in little endian in bytes?

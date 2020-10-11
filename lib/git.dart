@@ -16,6 +16,7 @@ import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
+import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
@@ -29,7 +30,6 @@ class GitRepository {
   ReferenceStorage refStorage;
 
   GitRepository._internal({@required String rootDir, @required this.fs}) {
-    // FIXME: Check if .git exists and if it doesn't go up until it does?
     workTree = rootDir;
     gitDir = p.join(workTree, '.git');
   }
@@ -210,6 +210,9 @@ class GitRepository {
     }
 
     var resolvedRef = await refStorage.reference(ref.target);
+    if (resolvedRef == null) {
+      return null;
+    }
     return resolveReference(resolvedRef);
   }
 
@@ -271,9 +274,12 @@ class GitRepository {
   }
 
   Future<GitIndex> readIndex() async {
-    var path = p.join(gitDir, 'index');
-    var bytes = await fs.file(path).readAsBytes();
-    return GitIndex.decode(bytes);
+    var file = fs.file(p.join(gitDir, 'index'));
+    if (!file.existsSync()) {
+      return GitIndex(versionNo: 2);
+    }
+
+    return GitIndex.decode(await file.readAsBytes());
   }
 
   Future<void> writeIndex(GitIndex index) async {
@@ -324,6 +330,9 @@ class GitRepository {
     var hash = await writeObject(blob);
 
     var pathSpec = filePath;
+    if (pathSpec.startsWith(workTree)) {
+      pathSpec = filePath.substring(workTree.length + 1);
+    }
 
     // Add it to the index
     GitIndexEntry entry;
@@ -349,5 +358,120 @@ class GitRepository {
     // New file
     entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
     index.entries.add(entry);
+  }
+
+  Future<GitCommit> commit({
+    @required String message,
+    @required GitAuthor author,
+    GitAuthor committer,
+    bool addAll = false,
+  }) async {
+    committer ??= author;
+
+    var index = await readIndex();
+
+    // FIXME: Implement this properly
+    if (addAll) {
+      await addFileToIndex(index, p.join(workTree, 'hi.txt'));
+      await writeIndex(index);
+    }
+
+    //
+    // Construct the Tree Objects
+    //
+    var treeObjects = {'': GitTree.empty()};
+    index.entries.forEach((entry) {
+      var fullPath = entry.path;
+      var fileName = p.basename(fullPath);
+      var dirName = p.dirname(fullPath);
+
+      // Construct all the tree objects
+      var allDirs = <String>[];
+      while (dirName != '.') {
+        allDirs.add(dirName);
+        dirName = p.dirname(dirName);
+      }
+
+      for (var dir in allDirs) {
+        var mode = GitFileMode.Dir.toString();
+        treeObjects.update(dir, (tree) {
+          tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
+          return tree;
+        }, ifAbsent: () {
+          var tree = GitTree.empty();
+          tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
+          return tree;
+        });
+      }
+      // print("AllDirs: $allDirs");
+      // print("TreeObjects: $treeObjects");
+
+      dirName = p.dirname(fullPath);
+      if (dirName == '.') {
+        dirName = '';
+      }
+      treeObjects[dirName].leaves.add(
+            GitTreeLeaf(
+              mode: entry.mode.toString(),
+              path: fileName,
+              hash: entry.hash,
+            ),
+          );
+    });
+    assert(treeObjects.containsKey(''));
+    // print(treeObjects[''].leaves);
+
+    // Write all the tree objects
+    var hashMap = <String, GitHash>{};
+    Future<GitHash> constructTreeHash(GitTree tree) async {
+      // print('Consturct: $tree');
+      for (var i = 0; i < tree.leaves.length; i++) {
+        var leaf = tree.leaves[i];
+        // print("Leaf: " + leaf.path);
+        if (leaf.hash != null) {
+          continue;
+        }
+
+        assert(leaf.mode == GitFileMode.Dir.toString());
+
+        var hash = hashMap[leaf.path] ??
+            await constructTreeHash(treeObjects[leaf.path]);
+
+        tree.leaves[i] = GitTreeLeaf(
+          mode: leaf.mode,
+          path: leaf.path,
+          hash: hash,
+        );
+        hashMap[leaf.path] = hash;
+      }
+
+      return writeObject(tree);
+    }
+
+    var treeHash = await constructTreeHash(treeObjects['']);
+    var parents = <GitHash>[];
+
+    var headRef = await head();
+    if (headRef != null) {
+      var parentRef = await resolveReference(headRef);
+      if (parentRef != null) {
+        parents.add(parentRef.hash);
+      }
+    }
+
+    var commit = GitCommit.create(
+      author: author,
+      committer: committer,
+      parents: parents,
+      message: message,
+      treeHash: treeHash,
+    );
+
+    await writeObject(commit);
+    return commit;
+  }
+
+  Future<GitHash> writeTree() async {
+    return GitHash('sha');
   }
 }

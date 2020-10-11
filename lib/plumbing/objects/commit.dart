@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
+
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
@@ -11,12 +13,29 @@ class GitAuthor {
   int timezoneOffset;
   DateTime date;
 
+  GitAuthor({
+    @required this.name,
+    @required this.email,
+    this.date,
+    this.timezoneOffset,
+  }) {
+    if (date == null) {
+      date = DateTime.now();
+      timestamp = date.millisecondsSinceEpoch;
+    }
+
+    timezoneOffset ??= date.timeZoneOffset.inHours * 100 +
+        (date.timeZoneOffset.inMinutes % 60);
+  }
+
+  GitAuthor._internal();
+
   static GitAuthor parse(String input) {
     // Regex " AuthorName <Email>  timestamp timeOffset"
     var pattern = RegExp(r'(.*) <(.*)> (\d+) ([+\-]\d\d\d\d)');
     var match = pattern.allMatches(input).toList();
 
-    var author = GitAuthor();
+    var author = GitAuthor._internal();
     author.name = match[0].group(1);
     author.email = match[0].group(2);
     author.timestamp = (int.parse(match[0].group(3))) * 1000;
@@ -56,6 +75,15 @@ class GitCommit extends GitObject {
   String gpgSig;
 
   final GitHash _hash;
+
+  GitCommit.create({
+    @required this.author,
+    @required this.committer,
+    @required this.message,
+    @required this.treeHash,
+    @required this.parents,
+    this.gpgSig = '',
+  }) : _hash = null;
 
   GitCommit(List<int> rawData, this._hash) {
     var map = kvlmParse(rawData);

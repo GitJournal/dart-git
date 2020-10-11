@@ -28,6 +28,8 @@ class GitTree extends GitObject {
   final GitHash _hash;
   List<GitTreeLeaf> leaves = [];
 
+  GitTree.empty() : _hash = null;
+
   GitTree(List<int> raw, this._hash) {
     var start = 0;
     while (start < raw.length) {

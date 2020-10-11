@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/config.dart';
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/git_remote.dart';
 import 'package:dart_git/plumbing/index.dart';
@@ -27,9 +28,9 @@ class GitRepository {
     workTree = path;
     gitDir = p.join(workTree, '.git');
 
-    /*if (!FileSystemEntity.isDirectorySync(gitDir)) {
+    if (!FileSystemEntity.isDirectorySync(gitDir)) {
       throw InvalidRepoException(path);
-    }*/
+    }
   }
 
   static String findRootDir(String path) {
@@ -331,16 +332,6 @@ class GitRepository {
     entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
     index.entries.add(entry);
   }
-}
-
-class GitException implements Exception {}
-
-class InvalidRepoException implements GitException {
-  String path;
-  InvalidRepoException(this.path);
-
-  @override
-  String toString() => 'Not a Git Repository: ' + path;
 }
 
 abstract class GitObject {

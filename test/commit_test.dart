@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:test/test.dart';
 
@@ -18,7 +19,11 @@ Also add tons of comments
 ''';
 
   test('Git Commit', () async {
-    var git = GitRepository('test/data');
+    var repoPath = Directory.systemTemp.path;
+
+    await GitRepository.init(repoPath);
+    var git = await GitRepository.load(repoPath);
+
     var obj = await git.readObjectFromPath('test/data/commit-object');
     var hash = GitHash('57bdd0dbc9868e53aead3c91714c282647265254');
 

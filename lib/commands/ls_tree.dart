@@ -18,7 +18,9 @@ class LsTreeCommand extends Command {
   Future run() async {
     var objectSha1 = argResults.rest.first;
 
-    var repo = GitRepository(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var repo = await GitRepository.load(gitRootDir);
+
     var obj = await repo.readObjectFromHash(GitHash(objectSha1));
     assert(obj is GitTree);
 

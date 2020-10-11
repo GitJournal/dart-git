@@ -7,7 +7,10 @@ import 'package:dart_git/plumbing/objects/tree.dart';
 
 void main() {
   test('Reads the tree file correctly', () async {
-    var gitRepo = GitRepository(Directory.systemTemp.path);
+    var repoPath = Directory.systemTemp.path;
+
+    await GitRepository.init(repoPath);
+    var gitRepo = await GitRepository.load(repoPath);
     var obj = await gitRepo.readObjectFromPath('test/data/tree');
 
     expect(obj is GitTree, equals(true));

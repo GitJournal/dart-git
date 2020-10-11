@@ -8,7 +8,11 @@ import 'package:dart_git/plumbing/objects/blob.dart';
 
 void main() {
   test('Reads the blob file correctly', () async {
-    var gitRepo = GitRepository(Directory.systemTemp.path);
+    var repoPath = Directory.systemTemp.path;
+
+    await GitRepository.init(repoPath);
+    var gitRepo = await GitRepository.load(repoPath);
+
     var obj = await gitRepo.readObjectFromPath('test/data/blob');
 
     expect(obj is GitBlob, equals(true));

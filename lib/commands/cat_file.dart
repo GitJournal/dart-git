@@ -17,7 +17,8 @@ class CatFileCommand extends Command {
 
   @override
   Future run() async {
-    var repo = GitRepository(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var repo = await GitRepository.load(gitRootDir);
 
     var objectSha1 = argResults.arguments[1];
     var obj = await repo.readObjectFromHash(GitHash(objectSha1));

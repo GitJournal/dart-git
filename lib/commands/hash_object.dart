@@ -39,7 +39,9 @@ class HashObjectCommand extends Command {
     var filePath = argResults.rest[0];
     var rawData = File(filePath).readAsBytesSync();
 
-    var repo = GitRepository(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var repo = await GitRepository.load(gitRootDir);
+
     var fmt = argResults['type'] as String;
     var obj = createObject(fmt, rawData);
     GitHash hash;

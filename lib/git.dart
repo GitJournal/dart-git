@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/config.dart';
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/git_remote.dart';
 import 'package:dart_git/plumbing/index.dart';
@@ -23,15 +25,10 @@ class GitRepository {
 
   ReferenceStorage refStorage;
 
-  GitRepository(String path) {
+  GitRepository._internal({@required String rootDir}) {
     // FIXME: Check if .git exists and if it doesn't go up until it does?
-    workTree = path;
+    workTree = rootDir;
     gitDir = p.join(workTree, '.git');
-
-    /*
-    if (!FileSystemEntity.isDirectorySync(gitDir)) {
-      throw InvalidRepoException(path);
-    }*/
   }
 
   static String findRootDir(String path) {
@@ -51,7 +48,17 @@ class GitRepository {
   }
 
   static Future<GitRepository> load(String gitRootDir) async {
-    var repo = GitRepository(gitRootDir);
+    var repo = GitRepository._internal(rootDir: gitRootDir);
+
+    var isDir = await FileSystemEntity.isDirectory(gitRootDir);
+    if (!isDir) {
+      throw InvalidRepoException(gitRootDir);
+    }
+
+    var dotGitExists = await FileSystemEntity.isDirectory(repo.gitDir);
+    if (!dotGitExists) {
+      throw InvalidRepoException(gitRootDir);
+    }
 
     var configPath = p.join(repo.gitDir, 'config');
     var configFileContents = await File(configPath).readAsString();

@@ -10,7 +10,7 @@ class Config {
   Map<String, Branch> branches = {};
   List<GitRemote> remotes = [];
 
-  Author user;
+  GitAuthor user;
 
   ConfigFile configFile;
 
@@ -71,7 +71,7 @@ class Config {
   }
 
   void _parseUser(Section section) {
-    user = Author();
+    user = GitAuthor();
     for (var entry in section.options.entries) {
       switch (entry.key) {
         case 'name':

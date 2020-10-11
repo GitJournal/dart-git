@@ -81,7 +81,7 @@ Create first draft''';
 
   test('Author Parse', () {
     var str = 'Vishesh Handa <me@vhanda.in> 1600114796 -0800';
-    var author = Author.parse(str);
+    var author = GitAuthor.parse(str);
 
     expect(author.name, 'Vishesh Handa');
     expect(author.email, 'me@vhanda.in');

@@ -4,19 +4,19 @@ import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 
-class Author {
+class GitAuthor {
   String name;
   String email;
   int timestamp;
   int timezoneOffset;
   DateTime date;
 
-  static Author parse(String input) {
+  static GitAuthor parse(String input) {
     // Regex " AuthorName <Email>  timestamp timeOffset"
     var pattern = RegExp(r'(.*) <(.*)> (\d+) ([+\-]\d\d\d\d)');
     var match = pattern.allMatches(input).toList();
 
-    var author = Author();
+    var author = GitAuthor();
     author.name = match[0].group(1);
     author.email = match[0].group(2);
     author.timestamp = (int.parse(match[0].group(3))) * 1000;
@@ -38,9 +38,9 @@ class Author {
   @override
   String toString() {
     if (timestamp != 0) {
-      return 'Author(name: $name, email: $email, date: $date)';
+      return 'GitAuthor(name: $name, email: $email, date: $date)';
     }
-    return 'Author(name: $name, email: $email)';
+    return 'GitAuthor(name: $name, email: $email)';
   }
 }
 
@@ -48,8 +48,8 @@ class GitCommit extends GitObject {
   static const String fmt = 'commit';
   static final List<int> _fmt = ascii.encode(fmt);
 
-  Author author;
-  Author committer;
+  GitAuthor author;
+  GitAuthor committer;
   String message;
   GitHash treeHash;
   List<GitHash> parents = [];
@@ -60,8 +60,8 @@ class GitCommit extends GitObject {
   GitCommit(List<int> rawData, this._hash) {
     var map = kvlmParse(rawData);
     message = map['_'];
-    author = Author.parse(map['author']);
-    committer = Author.parse(map['committer']);
+    author = GitAuthor.parse(map['author']);
+    committer = GitAuthor.parse(map['committer']);
 
     if (map.containsKey('parent')) {
       var parent = map['parent'];

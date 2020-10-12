@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:file/local.dart';
 import 'package:test/test.dart';
 
-import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
+import 'package:dart_git/storage/object_storage.dart';
 
 void main() {
   var contents = '''tree 272aca6dd8feabd4affc881c6cad18f396189344
@@ -19,11 +19,8 @@ Also add tons of comments
 ''';
 
   test('Git Commit', () async {
-    var repoPath = Directory.systemTemp.path;
-
-    await GitRepository.init(repoPath);
-    var git = await GitRepository.load(repoPath);
-    var objStorage = git.objStorage;
+    const fs = LocalFileSystem();
+    const objStorage = ObjectStorage('', fs);
 
     var obj = await objStorage.readObjectFromPath('test/data/commit-object');
     var hash = GitHash('57bdd0dbc9868e53aead3c91714c282647265254');

@@ -1,18 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:file/local.dart';
 import 'package:test/test.dart';
 
-import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
+import 'package:dart_git/storage/object_storage.dart';
 
 void main() {
   test('Reads the blob file correctly', () async {
-    var repoPath = Directory.systemTemp.path;
-
-    await GitRepository.init(repoPath);
-    var gitRepo = await GitRepository.load(repoPath);
-    var objStorage = gitRepo.objStorage;
+    const fs = LocalFileSystem();
+    const objStorage = ObjectStorage('', fs);
 
     var obj = await objStorage.readObjectFromPath('test/data/blob');
 

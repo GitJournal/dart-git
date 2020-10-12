@@ -1,17 +1,15 @@
 import 'dart:io';
 
+import 'package:file/local.dart';
 import 'package:test/test.dart';
 
-import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
+import 'package:dart_git/storage/object_storage.dart';
 
 void main() {
   test('Reads the tree file correctly', () async {
-    var repoPath = Directory.systemTemp.path;
-
-    await GitRepository.init(repoPath);
-    var gitRepo = await GitRepository.load(repoPath);
-    var objStorage = gitRepo.objStorage;
+    const fs = LocalFileSystem();
+    const objStorage = ObjectStorage('', fs);
 
     var obj = await objStorage.readObjectFromPath('test/data/tree');
 
@@ -30,7 +28,7 @@ void main() {
     expect(leaf1.hash.toString(), '61f69766977e3d234e15bd1a58c01aa697039439');
     expect(leaf1.path, 'd.md');
 
-    var fileRawBytes = await File('test/data/tree').readAsBytes();
+    var fileRawBytes = await fs.file('test/data/tree').readAsBytes();
     var fileBytesDefalted = zlib.decode(fileRawBytes);
     expect(tree.serialize(), equals(fileBytesDefalted));
   });

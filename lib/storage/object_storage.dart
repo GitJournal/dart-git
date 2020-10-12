@@ -9,10 +9,10 @@ import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 
 class ObjectStorage {
-  String gitDir;
-  FileSystem fs;
+  final String gitDir;
+  final FileSystem fs;
 
-  ObjectStorage(this.gitDir, this.fs);
+  const ObjectStorage(this.gitDir, this.fs);
 
   Future<GitObject> readObjectFromHash(GitHash hash) async {
     var sha = hash.toString();

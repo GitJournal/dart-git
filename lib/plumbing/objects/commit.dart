@@ -47,7 +47,7 @@ class GitAuthor {
 
   String serialize() {
     var timestamp = date.toUtc().millisecondsSinceEpoch / 1000;
-    var offset = timezoneOffset > 0
+    var offset = timezoneOffset >= 0
         ? '+${timezoneOffset.toString().padLeft(4, "0")}'
         : '-${timezoneOffset.abs().toString().padLeft(4, "0")}';
 

@@ -372,6 +372,24 @@ class GitRepository {
     index.entries.add(entry);
   }
 
+  Future<void> addDirectoryToIndex(GitIndex index, String dirPath,
+      {bool recursive = false}) async {
+    if (!dirPath.startsWith(workTree)) {
+      return;
+    }
+    var dir = fs.directory(dirPath);
+    await for (var fsEntity
+        in dir.list(recursive: recursive, followLinks: false)) {
+      var stat = await fsEntity.stat();
+      if (stat.type != FileSystemEntityType.file) {
+        continue;
+      }
+
+      print(fsEntity.path);
+      await addFileToIndex(index, fsEntity.path);
+    }
+  }
+
   Future<GitCommit> commit({
     @required String message,
     @required GitAuthor author,
@@ -382,9 +400,8 @@ class GitRepository {
 
     var index = await readIndex();
 
-    // FIXME: Implement this properly
     if (addAll) {
-      await addFileToIndex(index, p.join(workTree, 'hi.txt'));
+      await addDirectoryToIndex(index, workTree, recursive: true);
       await writeIndex(index);
     }
 

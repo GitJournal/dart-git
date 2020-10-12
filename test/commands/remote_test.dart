@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../lib.dart';
@@ -9,10 +12,17 @@ void main() {
   });
 
   test('remote -v', () async {
+    var tmpDir1 = (await Directory.systemTemp.createTemp('_git_real_')).path;
+    await runGitCommand(
+      tmpDir1,
+      'clone https://github.com/GitJournal/dart_git.git',
+    );
+    Directory.current = p.join(tmpDir1, 'dart_git');
+
     var printLog = await runDartGitCommand('remote -v');
     expect(printLog, [
-      'origin	git@github.com:GitJournal/dart_git.git (fetch)',
-      'origin	git@github.com:GitJournal/dart_git.git (push)',
+      'origin	https://github.com/GitJournal/dart_git.git (fetch)',
+      'origin	https://github.com/GitJournal/dart_git.git (push)',
     ]);
   });
 }

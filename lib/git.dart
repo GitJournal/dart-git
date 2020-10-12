@@ -357,6 +357,19 @@ class GitRepository {
     }
   }
 
+  Future<void> rmFileFromIndex(GitIndex index, String filePath) async {
+    var pathSpec = filePath;
+    if (pathSpec.startsWith(workTree)) {
+      pathSpec = pathSpec.substring(workTree.length);
+      if (pathSpec.startsWith('/')) {
+        pathSpec = pathSpec.substring(1);
+      }
+    }
+    index.entries = index.entries.where((e) => e.path != pathSpec).toList();
+
+    // FIXME: What if nothing matches
+  }
+
   Future<GitCommit> commit({
     @required String message,
     @required GitAuthor author,

@@ -344,6 +344,9 @@ class GitRepository {
     var dir = fs.directory(dirPath);
     await for (var fsEntity
         in dir.list(recursive: recursive, followLinks: false)) {
+      if (fsEntity.path.startsWith(gitDir)) {
+        continue;
+      }
       var stat = await fsEntity.stat();
       if (stat.type != FileSystemEntityType.file) {
         continue;

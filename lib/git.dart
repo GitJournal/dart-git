@@ -71,7 +71,7 @@ class GitRepository {
     var configFileContents = await fs.file(configPath).readAsString();
     repo.config = Config(configFileContents);
 
-    repo.refStorage = ReferenceStorage(repo.gitDir);
+    repo.refStorage = ReferenceStorage(repo.gitDir, fs);
 
     return repo;
   }

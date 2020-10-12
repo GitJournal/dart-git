@@ -21,7 +21,7 @@ class CatFileCommand extends Command {
     var repo = await GitRepository.load(gitRootDir);
 
     var objectSha1 = argResults.arguments[1];
-    var obj = await repo.readObjectFromHash(GitHash(objectSha1));
+    var obj = await repo.objStorage.readObjectFromHash(GitHash(objectSha1));
     if (obj is GitBlob) {
       var s = utf8.decode(obj.blobData);
       print(s);

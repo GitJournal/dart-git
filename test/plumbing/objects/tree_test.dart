@@ -11,7 +11,9 @@ void main() {
 
     await GitRepository.init(repoPath);
     var gitRepo = await GitRepository.load(repoPath);
-    var obj = await gitRepo.readObjectFromPath('test/data/tree');
+    var objStorage = gitRepo.objStorage;
+
+    var obj = await objStorage.readObjectFromPath('test/data/tree');
 
     expect(obj is GitTree, equals(true));
 

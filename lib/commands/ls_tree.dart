@@ -21,12 +21,12 @@ class LsTreeCommand extends Command {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path);
     var repo = await GitRepository.load(gitRootDir);
 
-    var obj = await repo.readObjectFromHash(GitHash(objectSha1));
+    var obj = await repo.objStorage.readObjectFromHash(GitHash(objectSha1));
     assert(obj is GitTree);
 
     var tree = obj as GitTree;
     for (var leaf in tree.leaves) {
-      var leafObj = await repo.readObjectFromHash(leaf.hash);
+      var leafObj = await repo.objStorage.readObjectFromHash(leaf.hash);
       var type = ascii.decode(leafObj.format());
       print('${leaf.mode.padLeft(6, '0')} $type ${leaf.hash}    ${leaf.path}');
     }

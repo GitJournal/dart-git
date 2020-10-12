@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:file/file.dart';
@@ -6,7 +5,6 @@ import 'package:file/local.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/config.dart';
 import 'package:dart_git/exceptions.dart';
@@ -18,6 +16,7 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
 class GitRepository {
@@ -28,6 +27,7 @@ class GitRepository {
 
   FileSystem fs;
   ReferenceStorage refStorage;
+  ObjectStorage objStorage;
 
   GitRepository._internal({@required String rootDir, @required this.fs}) {
     workTree = rootDir;
@@ -71,6 +71,7 @@ class GitRepository {
     var configFileContents = await fs.file(configPath).readAsString();
     repo.config = Config(configFileContents);
 
+    repo.objStorage = ObjectStorage(repo.gitDir, fs);
     repo.refStorage = ReferenceStorage(repo.gitDir, fs);
 
     return repo;
@@ -175,43 +176,6 @@ class GitRepository {
     return config.remotes.firstWhere((r) => r.name == name, orElse: () => null);
   }
 
-  Future<GitObject> readObjectFromHash(GitHash hash) async {
-    var sha = hash.toString();
-    var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    return readObjectFromPath(path);
-  }
-
-  Future<GitObject> readObjectFromPath(String filePath) async {
-    var contents = await fs.file(filePath).readAsBytes();
-    var raw = zlib.decode(contents);
-
-    // Read Object Type
-    var x = raw.indexOf(asciiHelper.space);
-    var fmt = raw.sublist(0, x);
-
-    // Read and validate object size
-    var y = raw.indexOf(0x0, x);
-    var size = int.parse(ascii.decode(raw.sublist(x, y)));
-    if (size != (raw.length - y - 1)) {
-      throw Exception('Malformed object $filePath: bad length');
-    }
-
-    var fmtStr = ascii.decode(fmt);
-    return createObject(fmtStr, raw.sublist(y + 1), filePath);
-  }
-
-  Future<GitHash> writeObject(GitObject obj) async {
-    var result = obj.serialize();
-    var hash = GitHash.compute(result);
-    var sha = hash.toString();
-
-    var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    await fs.directory(p.dirname(path)).create(recursive: true);
-    await fs.file(path).writeAsBytes(zlib.encode(result));
-
-    return hash;
-  }
-
   Future<Reference> head() async {
     return refStorage.reference(ReferenceName('HEAD'));
   }
@@ -268,7 +232,7 @@ class GitRepository {
 
       GitObject obj;
       try {
-        obj = await readObjectFromHash(sha);
+        obj = await objStorage.readObjectFromHash(sha);
       } catch (e) {
         print(e);
         return -1;
@@ -339,7 +303,7 @@ class GitRepository {
     // Save that file as a blob
     var data = await file.readAsBytes();
     var blob = GitBlob(data, null);
-    var hash = await writeObject(blob);
+    var hash = await objStorage.writeObject(blob);
 
     var pathSpec = filePath;
     if (pathSpec.startsWith(workTree)) {
@@ -474,7 +438,7 @@ class GitRepository {
         hashMap[leaf.path] = hash;
       }
 
-      return writeObject(tree);
+      return objStorage.writeObject(tree);
     }
 
     var treeHash = await constructTreeHash(treeObjects['']);
@@ -495,7 +459,7 @@ class GitRepository {
       message: message,
       treeHash: treeHash,
     );
-    var hash = await writeObject(commit);
+    var hash = await objStorage.writeObject(commit);
 
     // Update the ref of the current branch
     var br = await currentBranch();

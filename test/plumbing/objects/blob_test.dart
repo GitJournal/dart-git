@@ -12,8 +12,9 @@ void main() {
 
     await GitRepository.init(repoPath);
     var gitRepo = await GitRepository.load(repoPath);
+    var objStorage = gitRepo.objStorage;
 
-    var obj = await gitRepo.readObjectFromPath('test/data/blob');
+    var obj = await objStorage.readObjectFromPath('test/data/blob');
 
     expect(obj is GitBlob, equals(true));
     expect(obj.serializeData(), equals(ascii.encode('FOO\n')));

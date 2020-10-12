@@ -32,11 +32,11 @@ class CheckoutCommand extends Command {
       print('WTF - Why is the head not a hash?');
     }
 
-    var obj = await repo.readObjectFromHash(head.hash);
+    var obj = await repo.objStorage.readObjectFromHash(head.hash);
     var commit = obj as GitCommit;
     print('Got commit $commit');
 
-    obj = await repo.readObjectFromHash(commit.treeHash);
+    obj = await repo.objStorage.readObjectFromHash(commit.treeHash);
     var tree = obj as GitTree;
     var i = tree.leaves.indexWhere((l) => l.path == filePath);
     if (i == -1) {
@@ -45,7 +45,7 @@ class CheckoutCommand extends Command {
     }
     print('Got Tree $tree $i');
 
-    obj = await repo.readObjectFromHash(tree.leaves[i].hash);
+    obj = await repo.objStorage.readObjectFromHash(tree.leaves[i].hash);
     if (obj is GitTree) {
       print('Only supports files for now');
       return;

@@ -7,7 +7,7 @@ import '../lib.dart';
 
 void main() {
   test('remote', () async {
-    var printLog = await runDartGitCommand('remote');
+    var printLog = await runDartGitCommand('remote', Directory.current.path);
     expect(printLog, ['origin']);
   });
 
@@ -17,9 +17,9 @@ void main() {
       tmpDir1,
       'clone https://github.com/GitJournal/dart_git.git',
     );
-    Directory.current = p.join(tmpDir1, 'dart_git');
 
-    var printLog = await runDartGitCommand('remote -v');
+    var printLog =
+        await runDartGitCommand('remote -v', p.join(tmpDir1, 'dart_git'));
     expect(printLog, [
       'origin	https://github.com/GitJournal/dart_git.git (fetch)',
       'origin	https://github.com/GitJournal/dart_git.git (push)',

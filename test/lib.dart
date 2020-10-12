@@ -76,14 +76,19 @@ done''';
   // Test if the config is the same
 }
 
-Future<List<String>> runDartGitCommand(String command) async {
+Future<List<String>> runDartGitCommand(
+    String command, String workingDir) async {
   var printLog = <String>[];
 
   var spec = ZoneSpecification(print: (_, __, ___, String msg) {
     printLog.add(msg);
   });
-  await Zone.current.fork(specification: spec).run(() {
-    return git.main(command.split(' '));
+  await Zone.current.fork(specification: spec).run(() async {
+    var prev = Directory.current;
+
+    Directory.current = workingDir;
+    await git.main(command.split(' '));
+    Directory.current = prev;
   });
   return printLog;
 }

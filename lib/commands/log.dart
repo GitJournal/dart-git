@@ -15,14 +15,20 @@ class LogCommand extends Command {
 
   @override
   Future run() async {
-    var sha = argResults.rest.first;
-
     var gitRootDir = GitRepository.findRootDir(Directory.current.path);
     var repo = await GitRepository.load(gitRootDir);
 
+    GitHash sha;
+    if (argResults.rest.isNotEmpty) {
+      sha = GitHash(argResults.rest.first);
+    } else {
+      var headRef = await repo.resolveReference(await repo.head());
+      sha = headRef.hash;
+    }
+
     var seen = <GitHash>{};
     var parents = <GitHash>[];
-    parents.add(GitHash(sha));
+    parents.add(sha);
 
     while (parents.isNotEmpty) {
       var sha = parents[0];

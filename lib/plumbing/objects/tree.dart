@@ -5,10 +5,11 @@ import 'package:meta/meta.dart';
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 
 class GitTreeLeaf extends Equatable {
-  final String mode;
+  final GitFileMode mode;
   final String path;
   final GitHash hash;
 
@@ -42,7 +43,7 @@ class GitTree extends GitObject {
       var hashBytes = raw.sublist(y + 1, y + 21);
 
       var leaf = GitTreeLeaf(
-        mode: ascii.decode(mode),
+        mode: GitFileMode.parse(ascii.decode(mode)),
         path: utf8.decode(path),
         hash: GitHash.fromBytes(hashBytes),
       );
@@ -58,7 +59,7 @@ class GitTree extends GitObject {
     var data = <int>[];
 
     for (var leaf in leaves) {
-      data.addAll(ascii.encode(leaf.mode));
+      data.addAll(ascii.encode(leaf.mode.toString()));
       data.add(asciiHelper.space);
       data.addAll(utf8.encode(leaf.path));
       data.add(0x00);

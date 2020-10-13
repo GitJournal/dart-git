@@ -390,6 +390,11 @@ class GitFileMode extends Equatable {
 
   const GitFileMode(this.val);
 
+  static GitFileMode parse(String str) {
+    var val = int.parse(str, radix: 8);
+    return GitFileMode(val);
+  }
+
   static final Empty = GitFileMode(0);
   static final Dir = GitFileMode(int.parse('40000', radix: 8));
   static final Regular = GitFileMode(int.parse('100644', radix: 8));
@@ -403,7 +408,7 @@ class GitFileMode extends Equatable {
 
   @override
   String toString() {
-    return val.toRadixString(8);
+    return val.toRadixString(8).padLeft(6, '0');
   }
 
   // FIXME: Is this written in little endian in bytes?

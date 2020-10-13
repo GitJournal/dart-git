@@ -436,7 +436,7 @@ class GitRepository {
       }
 
       for (var dir in allDirs) {
-        var mode = GitFileMode.Dir.toString();
+        var mode = GitFileMode.Dir;
         treeObjects.update(dir, (tree) {
           tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
           return tree;
@@ -453,7 +453,7 @@ class GitRepository {
       }
 
       var leaf = GitTreeLeaf(
-        mode: entry.mode.toString(),
+        mode: entry.mode,
         path: fileName,
         hash: entry.hash,
       );
@@ -470,7 +470,7 @@ class GitRepository {
           continue;
         }
 
-        assert(leaf.mode == GitFileMode.Dir.toString());
+        assert(leaf.mode == GitFileMode.Dir);
 
         var hash = hashMap[leaf.path] ??
             await constructTreeHash(treeObjects[leaf.path]);

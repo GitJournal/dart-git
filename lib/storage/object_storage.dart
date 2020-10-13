@@ -14,9 +14,11 @@ class ObjectStorage {
   final String gitDir;
   final FileSystem fs;
 
-  const ObjectStorage(this.gitDir, this.fs);
+  DateTime _packDirChanged;
+  DateTime _packDirModified;
+  var idxFiles = <String, IdxFile>{};
 
-  // FIXME: Maybe cache all the idx files?
+  ObjectStorage(this.gitDir, this.fs);
 
   Future<GitObject> readObjectFromHash(GitHash hash) async {
     var sha = hash.toString();
@@ -26,8 +28,34 @@ class ObjectStorage {
     }
 
     // Read all the index files
-    var packFilesPath = p.join(gitDir, 'objects', 'pack');
-    var fileStream = fs.directory(packFilesPath).list(followLinks: false);
+    var packDirPath = p.join(gitDir, 'objects', 'pack');
+    var stat = await fs.stat(packDirPath);
+    if (stat.changed != _packDirChanged || stat.modified != _packDirModified) {
+      await _loadIdxFiles(packDirPath);
+
+      _packDirChanged = stat.changed;
+      _packDirModified = stat.modified;
+    }
+
+    for (var e in idxFiles.entries) {
+      var packFilePath = e.key;
+      var idxFile = e.value;
+
+      // FIXME: Avoid reading the packfile header again and again?
+      var packFile = await PackFile.fromFile(idxFile, packFilePath);
+      var obj = packFile.object(hash);
+      if (obj != null) {
+        return obj;
+      }
+    }
+
+    return null;
+  }
+
+  Future<void> _loadIdxFiles(String packDirPath) async {
+    idxFiles = {};
+
+    var fileStream = fs.directory(packDirPath).list(followLinks: false);
     await for (var fsEntity in fileStream) {
       var st = await fsEntity.stat();
       if (st.type != FileSystemEntityType.file) {
@@ -44,14 +72,8 @@ class ObjectStorage {
       packFilePath = packFilePath.substring(0, packFilePath.lastIndexOf('.'));
       packFilePath += '.pack';
 
-      var packFile = await PackFile.fromFile(idxFile, packFilePath);
-      var obj = packFile.object(hash);
-      if (obj != null) {
-        return obj;
-      }
+      idxFiles[packFilePath] = idxFile;
     }
-
-    return null;
   }
 
   Future<GitObject> readObjectFromPath(String filePath) async {

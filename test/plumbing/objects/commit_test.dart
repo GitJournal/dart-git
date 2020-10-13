@@ -20,7 +20,7 @@ Also add tons of comments
 
   test('Git Commit', () async {
     const fs = LocalFileSystem();
-    const objStorage = ObjectStorage('', fs);
+    var objStorage = ObjectStorage('', fs);
 
     var obj = await objStorage.readObjectFromPath('test/data/commit-object');
     var hash = GitHash('57bdd0dbc9868e53aead3c91714c282647265254');

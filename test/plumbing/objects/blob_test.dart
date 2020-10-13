@@ -10,7 +10,7 @@ import 'package:dart_git/storage/object_storage.dart';
 void main() {
   test('Reads the blob file correctly', () async {
     const fs = LocalFileSystem();
-    const objStorage = ObjectStorage('', fs);
+    var objStorage = ObjectStorage('', fs);
 
     var obj = await objStorage.readObjectFromPath('test/data/blob');
 

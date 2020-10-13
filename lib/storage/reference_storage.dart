@@ -48,10 +48,13 @@ class ReferenceStorage {
   }
 
   Future<void> saveRef(Reference ref) async {
-    // FIXME: Make this operation atomic
-    //        Never overwrite a file, just move the file
-    var file = fs.file(p.join(dotGitDir, ref.name.value));
+    var refFileName = p.join(dotGitDir, ref.name.value);
+    var refFileName2 = refFileName + '_';
+
+    var file = fs.file(refFileName2);
     await file.writeAsString(ref.hash.toString(), flush: true);
+
+    await file.rename(refFileName);
   }
 }
 

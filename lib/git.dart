@@ -486,7 +486,6 @@ class GitRepository {
     var allDirs = allTreeDirs.toList();
     allDirs.sort(dirSortFunc);
 
-    print(allDirs.reversed);
     for (var dir in allDirs.reversed) {
       var tree = treeObjects[dir];
       assert(tree != null);

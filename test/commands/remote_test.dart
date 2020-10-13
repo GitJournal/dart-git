@@ -6,23 +6,22 @@ import 'package:test/test.dart';
 import '../lib.dart';
 
 void main() {
-  test('remote', () async {
-    var printLog = await runDartGitCommand('remote', Directory.current.path);
-    expect(printLog, ['origin']);
-  });
+  String gitDir;
 
-  test('remote -v', () async {
-    var tmpDir1 = (await Directory.systemTemp.createTemp('_git_real_')).path;
+  setUp(() async {
+    var tmpDir1 = (await Directory.systemTemp.createTemp('_git_')).path;
     await runGitCommand(
-      tmpDir1,
-      'clone https://github.com/GitJournal/dart_git.git',
-    );
-
-    var printLog =
-        await runDartGitCommand('remote -v', p.join(tmpDir1, 'dart_git'));
-    expect(printLog, [
-      'origin	https://github.com/GitJournal/dart_git.git (fetch)',
-      'origin	https://github.com/GitJournal/dart_git.git (push)',
-    ]);
+        'clone https://github.com/GitJournal/dart_git.git', tmpDir1);
+    gitDir = p.join(tmpDir1, 'dart_git');
   });
+
+  Future<void> _testCommand(String command) async {
+    var output = await runDartGitCommand(command, gitDir);
+    var expectedOutput = await runGitCommand(command, gitDir);
+
+    expect(output.join('\n').trim(), expectedOutput);
+  }
+
+  test('remote', () => _testCommand('remote'));
+  test('remote -v', () => _testCommand('remote -v'));
 }

@@ -14,7 +14,7 @@ void main() {
     print('Real Git: $tmpDir1');
     print('Dart Git: $tmpDir2');
 
-    await runGitCommand(tmpDir1, 'init .');
+    await runGitCommand('init .', tmpDir1);
     await GitRepository.init(tmpDir2);
 
     // Add the same file to both of them
@@ -25,10 +25,10 @@ void main() {
     // Do a git commit on both
     var date = DateTime(2020, 02, 15, 9, 8, 7);
 
-    await runGitCommand(tmpDir1, 'config user.name "Vishesh Handa"');
-    await runGitCommand(tmpDir1, 'config user.email random@gmail.com');
-    await runGitCommand(tmpDir1, 'add .');
-    await runGitCommand(tmpDir1, 'commit -a -m "Message"', env: {
+    await runGitCommand('config user.name "Vishesh Handa"', tmpDir1);
+    await runGitCommand('config user.email random@gmail.com', tmpDir1);
+    await runGitCommand('add .', tmpDir1);
+    await runGitCommand('commit -a -m "Message"', tmpDir1, env: {
       'GIT_AUTHOR_DATE': date.toIso8601String(),
       'GIT_COMMITTER_DATE': date.toIso8601String(),
     });

@@ -99,6 +99,10 @@ class ObjectStorage {
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
     await fs.directory(p.dirname(path)).create(recursive: true);
 
+    var exists = await fs.isFile(path);
+    if (exists) {
+      return hash;
+    }
     var file = await fs.file(path).open(mode: FileMode.writeOnly);
     await file.writeFrom(zlib.encode(result));
     await file.close();

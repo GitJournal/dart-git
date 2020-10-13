@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:buffer/buffer.dart';
 
+import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/object_types.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
@@ -48,6 +49,19 @@ class PackFile {
     await file.close();
 
     return PackFile.decode(idxFile, filePath, bytes);
+  }
+
+  // FIXME: Check the packFile hash from the idx?
+  // FIXME: Verify that the crc32 is correct?
+
+  Future<GitObject> object(GitHash hash) {
+    var i = idx.entries.indexWhere((e) => e.hash == hash);
+    if (i == -1) {
+      return null;
+    }
+
+    var entry = idx.entries[i];
+    return _getObject(entry.offset);
   }
 
   Future<GitObject> _getObject(int offset) async {

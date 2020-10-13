@@ -6,7 +6,9 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
+import 'package:dart_git/plumbing/pack_file.dart';
 
 class ObjectStorage {
   final String gitDir;
@@ -14,10 +16,42 @@ class ObjectStorage {
 
   const ObjectStorage(this.gitDir, this.fs);
 
+  // FIXME: Maybe cache all the idx files?
+
   Future<GitObject> readObjectFromHash(GitHash hash) async {
     var sha = hash.toString();
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    return readObjectFromPath(path);
+    if (await fs.isFile(path)) {
+      return readObjectFromPath(path);
+    }
+
+    // Read all the index files
+    var packFilesPath = p.join(gitDir, 'objects', 'pack');
+    var fileStream = fs.directory(packFilesPath).list(followLinks: false);
+    await for (var fsEntity in fileStream) {
+      var st = await fsEntity.stat();
+      if (st.type != FileSystemEntityType.file) {
+        continue;
+      }
+      if (!fsEntity.path.endsWith('.idx')) {
+        continue;
+      }
+
+      var bytes = await fs.file(fsEntity).readAsBytes();
+      var idxFile = IdxFile.decode(bytes);
+
+      var packFilePath = fsEntity.path;
+      packFilePath = packFilePath.substring(0, packFilePath.lastIndexOf('.'));
+      packFilePath += '.pack';
+
+      var packFile = await PackFile.fromFile(idxFile, packFilePath);
+      var obj = packFile.object(hash);
+      if (obj != null) {
+        return obj;
+      }
+    }
+
+    return null;
   }
 
   Future<GitObject> readObjectFromPath(String filePath) async {
@@ -50,8 +84,4 @@ class ObjectStorage {
 
     return hash;
   }
-
-  // Look for loose objects
-  // Load all pack-files indexes and look into them
-  // Maybe have a refresh() method?
 }

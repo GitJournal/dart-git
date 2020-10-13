@@ -385,79 +385,7 @@ class GitRepository {
       await writeIndex(index);
     }
 
-    //
-    // Construct the Tree Objects
-    //
-    var treeObjects = {'': GitTree.empty()};
-    index.entries.forEach((entry) {
-      var fullPath = entry.path;
-      var fileName = p.basename(fullPath);
-      var dirName = p.dirname(fullPath);
-
-      // Construct all the tree objects
-      var allDirs = <String>[];
-      while (dirName != '.') {
-        allDirs.add(dirName);
-        dirName = p.dirname(dirName);
-      }
-
-      for (var dir in allDirs) {
-        var mode = GitFileMode.Dir.toString();
-        treeObjects.update(dir, (tree) {
-          tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
-          return tree;
-        }, ifAbsent: () {
-          var tree = GitTree.empty();
-          tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
-          return tree;
-        });
-      }
-      // print("AllDirs: $allDirs");
-      // print("TreeObjects: $treeObjects");
-
-      dirName = p.dirname(fullPath);
-      if (dirName == '.') {
-        dirName = '';
-      }
-      treeObjects[dirName].leaves.add(
-            GitTreeLeaf(
-              mode: entry.mode.toString(),
-              path: fileName,
-              hash: entry.hash,
-            ),
-          );
-    });
-    assert(treeObjects.containsKey(''));
-    // print(treeObjects[''].leaves);
-
-    // Write all the tree objects
-    var hashMap = <String, GitHash>{};
-    Future<GitHash> constructTreeHash(GitTree tree) async {
-      // print('Consturct: $tree');
-      for (var i = 0; i < tree.leaves.length; i++) {
-        var leaf = tree.leaves[i];
-        // print("Leaf: " + leaf.path);
-        if (leaf.hash != null) {
-          continue;
-        }
-
-        assert(leaf.mode == GitFileMode.Dir.toString());
-
-        var hash = hashMap[leaf.path] ??
-            await constructTreeHash(treeObjects[leaf.path]);
-
-        tree.leaves[i] = GitTreeLeaf(
-          mode: leaf.mode,
-          path: leaf.path,
-          hash: hash,
-        );
-        hashMap[leaf.path] = hash;
-      }
-
-      return objStorage.writeObject(tree);
-    }
-
-    var treeHash = await constructTreeHash(treeObjects['']);
+    var treeHash = await writeTree(index);
     var parents = <GitHash>[];
 
     var headRef = await head();
@@ -493,7 +421,71 @@ class GitRepository {
     return commit;
   }
 
-  Future<GitHash> writeTree() async {
-    return GitHash('sha');
+  Future<GitHash> writeTree(GitIndex index) async {
+    var treeObjects = {'': GitTree.empty()};
+    index.entries.forEach((entry) {
+      var fullPath = entry.path;
+      var fileName = p.basename(fullPath);
+      var dirName = p.dirname(fullPath);
+
+      // Construct all the tree objects
+      var allDirs = <String>[];
+      while (dirName != '.') {
+        allDirs.add(dirName);
+        dirName = p.dirname(dirName);
+      }
+
+      for (var dir in allDirs) {
+        var mode = GitFileMode.Dir.toString();
+        treeObjects.update(dir, (tree) {
+          tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
+          return tree;
+        }, ifAbsent: () {
+          var tree = GitTree.empty();
+          tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
+          return tree;
+        });
+      }
+
+      dirName = p.dirname(fullPath);
+      if (dirName == '.') {
+        dirName = '';
+      }
+
+      var leaf = GitTreeLeaf(
+        mode: entry.mode.toString(),
+        path: fileName,
+        hash: entry.hash,
+      );
+      treeObjects[dirName].leaves.add(leaf);
+    });
+    assert(treeObjects.containsKey(''));
+
+    // Write all the tree objects
+    var hashMap = <String, GitHash>{};
+    Future<GitHash> constructTreeHash(GitTree tree) async {
+      for (var i = 0; i < tree.leaves.length; i++) {
+        var leaf = tree.leaves[i];
+        if (leaf.hash != null) {
+          continue;
+        }
+
+        assert(leaf.mode == GitFileMode.Dir.toString());
+
+        var hash = hashMap[leaf.path] ??
+            await constructTreeHash(treeObjects[leaf.path]);
+
+        tree.leaves[i] = GitTreeLeaf(
+          mode: leaf.mode,
+          path: leaf.path,
+          hash: hash,
+        );
+        hashMap[leaf.path] = hash;
+      }
+
+      return objStorage.writeObject(tree);
+    }
+
+    return constructTreeHash(treeObjects['']);
   }
 }

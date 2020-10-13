@@ -10,3 +10,4 @@ export 'ls_tree.dart';
 export 'remote.dart';
 export 'status.dart';
 export 'rm.dart';
+export 'write_tree.dart';

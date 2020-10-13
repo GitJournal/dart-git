@@ -33,6 +33,7 @@ Future<void> main(List<String> args) async {
     ..addCommand(RemoteCommand())
     ..addCommand(StatusCommand())
     ..addCommand(RmCommand())
+    ..addCommand(WriteTreeCommand())
     ..addCommand(LsTreeCommand());
 
   try {

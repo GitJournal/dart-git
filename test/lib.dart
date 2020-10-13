@@ -9,15 +9,17 @@ import 'package:test/test.dart';
 import 'package:dart_git/config.dart';
 import 'package:dart_git/main.dart' as git;
 
-Future<void> runGitCommand(String dir, String command,
+Future<String> runGitCommand(String dir, String command,
     {Map<String, String> env = const {}}) async {
-  await shell.run(
+  var results = await shell.run(
     'git $command',
     workingDirectory: dir,
     includeParentEnvironment: false,
     commandVerbose: true,
     environment: env,
   );
+
+  return results.map((e) => e.stdout).join('\n');
 }
 
 Future<void> createFile(String basePath, String path, String contents) async {

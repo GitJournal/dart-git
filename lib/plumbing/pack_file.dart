@@ -55,6 +55,7 @@ class PackFile {
   // FIXME: Verify that the crc32 is correct?
 
   Future<GitObject> object(GitHash hash) {
+    // FIXME: The speed of this can be improved by using the fanout table
     var i = idx.entries.indexWhere((e) => e.hash == hash);
     if (i == -1) {
       return null;

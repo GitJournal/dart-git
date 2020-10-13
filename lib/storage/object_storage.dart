@@ -16,7 +16,7 @@ class ObjectStorage {
 
   DateTime _packDirChanged;
   DateTime _packDirModified;
-  var idxFiles = <String, IdxFile>{};
+  var packFiles = <PackFile>[];
 
   ObjectStorage(this.gitDir, this.fs);
 
@@ -31,18 +31,13 @@ class ObjectStorage {
     var packDirPath = p.join(gitDir, 'objects', 'pack');
     var stat = await fs.stat(packDirPath);
     if (stat.changed != _packDirChanged || stat.modified != _packDirModified) {
-      await _loadIdxFiles(packDirPath);
+      await _loadPackFiles(packDirPath);
 
       _packDirChanged = stat.changed;
       _packDirModified = stat.modified;
     }
 
-    for (var e in idxFiles.entries) {
-      var packFilePath = e.key;
-      var idxFile = e.value;
-
-      // FIXME: Avoid reading the packfile header again and again?
-      var packFile = await PackFile.fromFile(idxFile, packFilePath);
+    for (var packFile in packFiles) {
       var obj = packFile.object(hash);
       if (obj != null) {
         return obj;
@@ -52,8 +47,8 @@ class ObjectStorage {
     return null;
   }
 
-  Future<void> _loadIdxFiles(String packDirPath) async {
-    idxFiles = {};
+  Future<void> _loadPackFiles(String packDirPath) async {
+    packFiles = [];
 
     var fileStream = fs.directory(packDirPath).list(followLinks: false);
     await for (var fsEntity in fileStream) {
@@ -72,7 +67,8 @@ class ObjectStorage {
       packFilePath = packFilePath.substring(0, packFilePath.lastIndexOf('.'));
       packFilePath += '.pack';
 
-      idxFiles[packFilePath] = idxFile;
+      var packFile = await PackFile.fromFile(idxFile, packFilePath);
+      packFiles.add(packFile);
     }
   }
 

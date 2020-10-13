@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -53,6 +54,10 @@ class LogCommand extends Command {
     print('commit $sha');
     print('Author: ${author.name} <${author.email}>');
     print('Date:   ${author.date.toIso8601String()}');
-    print('\n    ${commit.message}');
+    print('');
+    for (var line in LineSplitter.split(commit.message)) {
+      print('    $line');
+    }
+    print('');
   }
 }

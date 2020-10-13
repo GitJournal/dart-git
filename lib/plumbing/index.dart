@@ -408,7 +408,7 @@ class GitFileMode extends Equatable {
 
   @override
   String toString() {
-    return val.toRadixString(8).padLeft(6, '0');
+    return val.toRadixString(8);
   }
 
   // FIXME: Is this written in little endian in bytes?

@@ -47,4 +47,40 @@ void main() {
     // Do a comparison
     await testRepoEquals(tmpDir2, tmpDir1);
   });
+
+  test('Sort directories', () {
+    var allDirs = [
+      'test/plumbing/objects',
+      'test/plumbing',
+      'test/data',
+      'test/commands',
+      'test',
+      'lib/storage',
+      'lib/plumbing/objects',
+      'lib/plumbing',
+      'lib/commands',
+      'lib',
+      '.github/workflows',
+      '.github',
+      '',
+    ];
+
+    allDirs.sort(dirSortFunc);
+
+    expect(allDirs.reversed.toList(), [
+      'test/plumbing/objects',
+      'lib/plumbing/objects',
+      'test/plumbing',
+      'test/data',
+      'test/commands',
+      'lib/storage',
+      'lib/plumbing',
+      'lib/commands',
+      '.github/workflows',
+      'test',
+      'lib',
+      '.github',
+      '',
+    ]);
+  });
 }

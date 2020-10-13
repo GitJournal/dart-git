@@ -422,7 +422,10 @@ class GitRepository {
   }
 
   Future<GitHash> writeTree(GitIndex index) async {
+    var allTreeDirs = {''};
     var treeObjects = {'': GitTree.empty()};
+    var treeObjFullPath = <GitTree, String>{};
+
     index.entries.forEach((entry) {
       var fullPath = entry.path;
       var fileName = p.basename(fullPath);
@@ -431,20 +434,36 @@ class GitRepository {
       // Construct all the tree objects
       var allDirs = <String>[];
       while (dirName != '.') {
+        allTreeDirs.add(dirName);
         allDirs.add(dirName);
+
         dirName = p.dirname(dirName);
       }
 
+      allDirs.sort(dirSortFunc);
+
       for (var dir in allDirs) {
-        var mode = GitFileMode.Dir;
-        treeObjects.update(dir, (tree) {
-          tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
-          return tree;
-        }, ifAbsent: () {
+        if (!treeObjects.containsKey(dir)) {
           var tree = GitTree.empty();
-          tree.leaves.add(GitTreeLeaf(mode: mode, path: dir, hash: null));
-          return tree;
-        });
+          treeObjects[dir] = tree;
+        }
+
+        var parentDir = p.dirname(dir);
+        if (parentDir == '.') parentDir = '';
+
+        var parentTree = treeObjects[parentDir];
+        var folderName = p.basename(dir);
+        treeObjFullPath[parentTree] = parentDir;
+
+        var i = parentTree.leaves.indexWhere((e) => e.path == folderName);
+        if (i != -1) {
+          continue;
+        }
+        parentTree.leaves.add(GitTreeLeaf(
+          mode: GitFileMode.Dir,
+          path: folderName,
+          hash: null,
+        ));
       }
 
       dirName = p.dirname(fullPath);
@@ -463,29 +482,66 @@ class GitRepository {
 
     // Write all the tree objects
     var hashMap = <String, GitHash>{};
-    Future<GitHash> constructTreeHash(GitTree tree) async {
+
+    var allDirs = allTreeDirs.toList();
+    allDirs.sort(dirSortFunc);
+
+    print(allDirs.reversed);
+    for (var dir in allDirs.reversed) {
+      var tree = treeObjects[dir];
+      assert(tree != null);
+
       for (var i = 0; i < tree.leaves.length; i++) {
         var leaf = tree.leaves[i];
+
         if (leaf.hash != null) {
+          /*
+          assert(await () async {
+            var leafObj = await objStorage.readObjectFromHash(leaf.hash);
+            return leafObj.formatStr() == 'blob';
+          }());
+          */
           continue;
         }
 
-        assert(leaf.mode == GitFileMode.Dir);
-
-        var hash = hashMap[leaf.path] ??
-            await constructTreeHash(treeObjects[leaf.path]);
+        var fullPath = p.join(treeObjFullPath[tree], leaf.path);
+        var hash = hashMap[fullPath];
+        assert(hash != null);
 
         tree.leaves[i] = GitTreeLeaf(
           mode: leaf.mode,
           path: leaf.path,
           hash: hash,
         );
-        hashMap[leaf.path] = hash;
       }
 
-      return objStorage.writeObject(tree);
+      for (var leaf in tree.leaves) {
+        assert(leaf.hash != null);
+      }
+
+      var hash = await objStorage.writeObject(tree);
+      hashMap[dir] = hash;
     }
 
-    return constructTreeHash(treeObjects['']);
+    return hashMap[''];
   }
+}
+
+// Sort allDirs on bfs
+@visibleForTesting
+int dirSortFunc(String a, String b) {
+  var aCnt = '/'.allMatches(a).length;
+  var bCnt = '/'.allMatches(b).length;
+  if (aCnt != bCnt) {
+    if (aCnt < bCnt) return -1;
+    if (aCnt > bCnt) return 1;
+  }
+  if (a.isEmpty && b.isEmpty) return 0;
+  if (a.isEmpty) {
+    return -1;
+  }
+  if (b.isEmpty) {
+    return 1;
+  }
+  return a.compareTo(b);
 }

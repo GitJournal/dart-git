@@ -27,7 +27,8 @@ class LsTreeCommand extends Command {
     for (var leaf in tree.leaves) {
       var leafObj = await repo.objStorage.readObjectFromHash(leaf.hash);
       var type = leafObj.formatStr();
-      print('${leaf.mode} $type ${leaf.hash}    ${leaf.path}');
+      var mode = leaf.mode.toString()..padLeft(6, '0');
+      print('$mode $type ${leaf.hash}    ${leaf.path}');
     }
   }
 }

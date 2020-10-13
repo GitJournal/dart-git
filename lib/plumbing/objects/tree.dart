@@ -77,4 +77,10 @@ class GitTree extends GitObject {
 
   @override
   GitHash hash() => _hash ?? GitHash.compute(serialize());
+
+  void debugPrint() {
+    for (var leaf in leaves) {
+      print('${leaf.mode} ${leaf.path} ${leaf.hash}');
+    }
+  }
 }

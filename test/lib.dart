@@ -6,6 +6,7 @@ import 'package:process_run/process_run.dart';
 import 'package:process_run/shell.dart' as shell;
 import 'package:test/test.dart';
 
+import 'package:dart_git/config.dart';
 import 'package:dart_git/main.dart' as git;
 
 Future<void> runGitCommand(String dir, String command,
@@ -72,8 +73,18 @@ done''';
 
   expect(repo1Refs, repo2Refs);
 
-  // Test if the index is the same
   // Test if the config is the same
+  var config1Data = await File(p.join(repo1, '.git', 'config')).readAsString();
+  var config2Data = await File(p.join(repo2, '.git', 'config')).readAsString();
+
+  var config1 = ConfigFile.parse(config1Data);
+  var config2 = ConfigFile.parse(config2Data);
+
+  var c1 = config1.sections.where((s) => s.name != 'core' && s.name != 'user');
+  var c2 = config2.sections.where((s) => s.name != 'core' && s.name != 'user');
+  expect(c1, c2);
+
+  // Test if the index is the same
 }
 
 Future<List<String>> runDartGitCommand(

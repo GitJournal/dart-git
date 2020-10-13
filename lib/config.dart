@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
+
 import 'package:dart_git/branch.dart';
 import 'package:dart_git/git_remote.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
@@ -144,6 +146,9 @@ class Config {
   }
 }
 
+Function _listEq = const ListEquality().equals;
+Function _mapEq = const MapEquality().equals;
+
 class Section {
   String name;
   Map<String, String> options = {};
@@ -160,6 +165,51 @@ class Section {
     }
 
     return sections[i];
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Section &&
+          name == other.name &&
+          _mapEq(options, other.options) &&
+          _listEq(sections, other.sections);
+
+  void _writeSectionProps(StringBuffer buffer) {
+    options.forEach((key, val) {
+      buffer.write('\t');
+      buffer.write('$key = $val\n');
+    });
+  }
+
+  void write(StringBuffer buffer) {
+    if (sections.isEmpty) {
+      if (options.isEmpty) {
+        return;
+      }
+      buffer.write('[$name]\n');
+      _writeSectionProps(buffer);
+      buffer.write('\n');
+      return;
+    }
+
+    if (name != 'branch' && name != 'remote') {
+      throw Exception('Unknown field $name');
+    }
+
+    for (var subSec in sections) {
+      assert(subSec.sections.isEmpty);
+      buffer.write('[$name "${subSec.name}"]\n');
+      subSec._writeSectionProps(buffer);
+      buffer.write('\n');
+    }
+  }
+
+  @override
+  String toString() {
+    var buffer = StringBuffer();
+    write(buffer);
+    return buffer.toString();
   }
 }
 
@@ -236,37 +286,16 @@ class ConfigFile {
 
   String serialize() {
     var buffer = StringBuffer();
-    for (var section in sections) {
-      var name = section.name;
-      if (section.sections.isEmpty) {
-        if (section.options.isEmpty) {
-          continue;
-        }
-        buffer.write('[$name]\n');
-        _writeSectionProps(buffer, section);
-        buffer.write('\n');
-        continue;
-      }
 
-      if (name != 'branch' && name != 'remote') {
-        throw Exception('Unknown field $name');
-      }
-
-      for (var subSec in section.sections) {
-        assert(subSec.sections.isEmpty);
-        buffer.write('[$name "${subSec.name}"]\n');
-        _writeSectionProps(buffer, subSec);
-        buffer.write('\n');
-      }
-    }
-
+    sections.forEach((s) => s.write(buffer));
     return buffer.toString();
   }
 
-  void _writeSectionProps(StringBuffer buffer, Section section) {
-    section.options.forEach((key, val) {
-      buffer.write('\t');
-      buffer.write('$key = $val\n');
-    });
-  }
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ConfigFile && _listEq(sections, other.sections);
+
+  @override
+  String toString() => serialize();
 }

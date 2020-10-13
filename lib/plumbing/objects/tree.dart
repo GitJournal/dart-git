@@ -73,5 +73,8 @@ class GitTree extends GitObject {
   List<int> format() => _fmt;
 
   @override
+  String formatStr() => ascii.decode(_fmt);
+
+  @override
   GitHash hash() => _hash ?? GitHash.compute(serialize());
 }

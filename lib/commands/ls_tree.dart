@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -27,7 +26,7 @@ class LsTreeCommand extends Command {
     var tree = obj as GitTree;
     for (var leaf in tree.leaves) {
       var leafObj = await repo.objStorage.readObjectFromHash(leaf.hash);
-      var type = ascii.decode(leafObj.format());
+      var type = leafObj.formatStr();
       print('${leaf.mode} $type ${leaf.hash}    ${leaf.path}');
     }
   }

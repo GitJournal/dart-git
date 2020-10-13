@@ -23,6 +23,7 @@ abstract class GitObject {
 
   List<int> serializeData();
   List<int> format();
+  String formatStr();
 
   GitHash hash();
 }

@@ -13,7 +13,8 @@ void main() {
     var idxFileBytes = File('$basePath/$packFileName.idx').readAsBytesSync();
     var idxFile = IdxFile.decode(idxFileBytes);
 
-    var packfile = PackFile.decode(idxFile, '$basePath/$packFileName.pack');
+    var packfile =
+        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack');
 
     var expectedHashes = [
       '350bac933de33894c7691a7225886810da7d7ec9',
@@ -39,7 +40,8 @@ void main() {
     var idxFileBytes = await File('$basePath/$packFileName.idx').readAsBytes();
     var idxFile = IdxFile.decode(idxFileBytes);
 
-    var packfile = PackFile.decode(idxFile, '$basePath/$packFileName.pack');
+    var packfile =
+        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack');
 
     var expectedHashes = [
       'eb853bd24cb29c1be6d4210200122e27b19fa7ce',

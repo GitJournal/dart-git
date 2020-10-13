@@ -14,13 +14,13 @@ class PackFile {
   IdxFile idx;
   String filePath;
 
-  PackFile.decode(this.idx, this.filePath) {
-    // FIXME: This is terrible for performance, it is reading the entire huge
-    //        as PackFile into memory
-    var bytes = File(filePath).readAsBytesSync();
+  static final int _headerSize = 16;
+
+  PackFile.decode(this.idx, this.filePath, Uint8List headerBytes) {
+    assert(headerBytes.length == _headerSize);
 
     var reader = ByteDataReader(endian: Endian.big, copy: false);
-    reader.add(bytes);
+    reader.add(headerBytes);
 
     // Read the signature
     var sigBytes = reader.read(4);
@@ -40,6 +40,14 @@ class PackFile {
     }
 
     numObjects = reader.readUint32();
+  }
+
+  static Future<PackFile> fromFile(IdxFile idxFile, String filePath) async {
+    var file = await File(filePath).open(mode: FileMode.read);
+    var bytes = await file.read(_headerSize);
+    await file.close();
+
+    return PackFile.decode(idxFile, filePath, bytes);
   }
 
   Future<GitObject> _getObject(int offset) async {

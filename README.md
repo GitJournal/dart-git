@@ -1,6 +1,6 @@
 <p align="center">
-  <img width="300" height="auto" src="https://raw.githubusercontent.com/GitJournal/dart_git/master/assets/logo.png">
-  <h1>DartGit</h1>
+  <img height="250" width="auto" src="https://raw.githubusercontent.com/GitJournal/dart_git/master/assets/logo.png">
+  <br/>A Git Implementation in pure Dart
 </p>
 
 <p align="center">

@@ -23,7 +23,7 @@ class GitTreeLeaf extends Equatable {
 }
 
 class GitTree extends GitObject {
-  static const String fmt = 'tree';
+  static const String fmt = ObjectTypes.TREE_STR;
   static final List<int> _fmt = ascii.encode(fmt);
 
   final GitHash _hash;
@@ -73,7 +73,7 @@ class GitTree extends GitObject {
   List<int> format() => _fmt;
 
   @override
-  String formatStr() => ascii.decode(_fmt);
+  String formatStr() => fmt;
 
   @override
   GitHash hash() => _hash ?? GitHash.compute(serialize());

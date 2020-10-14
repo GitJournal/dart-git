@@ -64,7 +64,7 @@ class GitAuthor {
 }
 
 class GitCommit extends GitObject {
-  static const String fmt = 'commit';
+  static const String fmt = ObjectTypes.COMMIT_STR;
   static final List<int> _fmt = ascii.encode(fmt);
 
   GitAuthor author;
@@ -131,7 +131,7 @@ class GitCommit extends GitObject {
   List<int> format() => _fmt;
 
   @override
-  String formatStr() => ascii.decode(_fmt);
+  String formatStr() => fmt;
 
   @override
   GitHash hash() => _hash ?? GitHash.compute(serialize());

@@ -4,7 +4,7 @@ import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 
 class GitBlob extends GitObject {
-  static const String fmt = 'blob';
+  static const String fmt = ObjectTypes.BLOB_STR;
   static final List<int> _fmt = ascii.encode(fmt);
 
   final List<int> blobData;
@@ -19,7 +19,7 @@ class GitBlob extends GitObject {
   List<int> format() => _fmt;
 
   @override
-  String formatStr() => ascii.decode(_fmt);
+  String formatStr() => fmt;
 
   @override
   GitHash hash() => _hash ?? GitHash.compute(serialize());

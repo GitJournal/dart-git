@@ -115,7 +115,7 @@ class GitRepository {
     return config.branches.values;
   }
 
-  Future<BranchConfig> branch(String name) async {
+  Future<BranchConfig> branchConfig(String name) async {
     if (config.branches.containsKey(name)) {
       return config.branches[name];
     }
@@ -132,23 +132,30 @@ class GitRepository {
     return br;
   }
 
-  Future<BranchConfig> currentBranch() async {
+  Future<String> currentBranch() async {
     var _head = await head();
     if (_head.isHash) {
       return null;
     }
 
-    return branch(_head.target.branchName());
+    return _head.target.branchName();
   }
 
   Future<BranchConfig> setUpstreamTo(
       GitRemote remote, String remoteBranchName) async {
-    var br = await currentBranch();
-    br.remote = remote.name;
-    br.merge = ReferenceName.head(remoteBranchName);
+    var branchName = await currentBranch();
+    var brConfig = await branchConfig(branchName);
+    if (brConfig == null) {
+      brConfig = BranchConfig();
+      brConfig.name = branchName;
+
+      config.branches[branchName] = brConfig;
+    }
+    brConfig.remote = remote.name;
+    brConfig.merge = ReferenceName.head(remoteBranchName);
 
     await saveConfig();
-    return br;
+    return brConfig;
   }
 
   List<GitRemote> remotes() {
@@ -210,11 +217,15 @@ class GitRepository {
       return false;
     }
 
-    var branch = await this.branch(head.target.branchName());
+    var brConfig = await branchConfig(head.target.branchName());
+    if (brConfig == null) {
+      // FIXME: Maybe we can push other branches!
+      return false;
+    }
 
     // Construct remote's branch
-    var remoteBranchName = branch.merge.branchName();
-    var remoteRef = ReferenceName.remote(branch.remote, remoteBranchName);
+    var remoteBranchName = brConfig.merge.branchName();
+    var remoteRef = ReferenceName.remote(brConfig.remote, remoteBranchName);
 
     var headHash = (await resolveReference(head)).hash;
     var remoteHash = (await resolveReferenceName(remoteRef)).hash;
@@ -274,14 +285,14 @@ class GitRepository {
       return 0;
     }
 
-    var branch = await this.branch(head.target.branchName());
-    if (branch == null) {
+    var brConfig = await branchConfig(head.target.branchName());
+    if (brConfig == null) {
       return 0;
     }
 
     // Construct remote's branch
-    var remoteBranchName = branch.merge.branchName();
-    var remoteRef = ReferenceName.remote(branch.remote, remoteBranchName);
+    var remoteBranchName = brConfig.merge.branchName();
+    var remoteRef = ReferenceName.remote(brConfig.remote, remoteBranchName);
 
     var headHash = (await resolveReference(head)).hash;
     var remoteHash = (await resolveReferenceName(remoteRef)).hash;
@@ -409,9 +420,8 @@ class GitRepository {
     var hash = await objStorage.writeObject(commit);
 
     // Update the ref of the current branch
-    var br = await currentBranch();
-    var branchName = br != null ? br.name : '';
-    if (br == null) {
+    var branchName = await currentBranch();
+    if (branchName == null) {
       var h = await head();
       assert(h.target.isBranch());
       branchName = h.target.branchName();

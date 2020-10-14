@@ -5,7 +5,6 @@ import 'package:file/local.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:dart_git/branch.dart';
 import 'package:dart_git/config.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
@@ -112,11 +111,11 @@ class GitRepository {
     return fs.file(p.join(gitDir, 'config')).writeAsString(config.serialize());
   }
 
-  Iterable<Branch> branches() {
+  Iterable<BranchConfig> branches() {
     return config.branches.values;
   }
 
-  Future<Branch> branch(String name) async {
+  Future<BranchConfig> branch(String name) async {
     if (config.branches.containsKey(name)) {
       return config.branches[name];
     }
@@ -126,14 +125,14 @@ class GitRepository {
       return null;
     }
 
-    var br = Branch();
+    var br = BranchConfig();
     br.name = ref.name.branchName();
 
     // FIXME: This entire thing should be renamed to BranchConfig
     return br;
   }
 
-  Future<Branch> currentBranch() async {
+  Future<BranchConfig> currentBranch() async {
     var _head = await head();
     if (_head.isHash) {
       return null;
@@ -142,7 +141,7 @@ class GitRepository {
     return branch(_head.target.branchName());
   }
 
-  Future<Branch> setUpstreamTo(
+  Future<BranchConfig> setUpstreamTo(
       GitRemote remote, String remoteBranchName) async {
     var br = await currentBranch();
     br.remote = remote.name;

@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:dart_git/config.dart';
 
-import 'package:dart_git/branch.dart';
 import 'package:dart_git/git.dart';
 
 class BranchCommand extends Command {
@@ -43,7 +43,7 @@ class BranchCommand extends Command {
       print("error: the requested upstream branch '$upstream' does not exist");
     }
 
-    Branch localBranch;
+    BranchConfig localBranch;
     try {
       localBranch = await repo.setUpstreamTo(remote, remoteBranchName);
     } catch (e) {

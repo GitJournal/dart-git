@@ -2,14 +2,26 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 
-import 'package:dart_git/branch.dart';
 import 'package:dart_git/git_remote.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
+class BranchConfig {
+  String name;
+  String remote;
+
+  ReferenceName merge;
+
+  @override
+  String toString() => 'Branch{name: $name, remote: $remote, merge: $merge}';
+
+  String trackingBranch() => merge.branchName();
+  String remoteTrackingBranch() => '$remote/${trackingBranch()}';
+}
+
 class Config {
   bool bare;
-  Map<String, Branch> branches = {};
+  Map<String, BranchConfig> branches = {};
   List<GitRemote> remotes = [];
 
   GitAuthor user;
@@ -37,7 +49,7 @@ class Config {
   }
 
   void _parseBranch(Section section) {
-    var branch = Branch();
+    var branch = BranchConfig();
     branch.name = section.name;
 
     for (var entry in section.options.entries) {

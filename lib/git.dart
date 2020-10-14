@@ -116,23 +116,6 @@ class GitRepository {
     return refs.map((r) => r.branchName()).toList();
   }
 
-  Future<BranchConfig> branchConfig(String name) async {
-    if (config.branches.containsKey(name)) {
-      return config.branches[name];
-    }
-
-    var ref = await refStorage.reference(ReferenceName.head(name));
-    if (ref == null) {
-      return null;
-    }
-
-    var br = BranchConfig();
-    br.name = ref.name.branchName();
-
-    // FIXME: This entire thing should be renamed to BranchConfig
-    return br;
-  }
-
   Future<String> currentBranch() async {
     var _head = await head();
     if (_head.isHash) {
@@ -145,7 +128,7 @@ class GitRepository {
   Future<BranchConfig> setUpstreamTo(
       GitRemote remote, String remoteBranchName) async {
     var branchName = await currentBranch();
-    var brConfig = await branchConfig(branchName);
+    var brConfig = await config.branch(branchName);
     if (brConfig == null) {
       brConfig = BranchConfig();
       brConfig.name = branchName;
@@ -226,7 +209,7 @@ class GitRepository {
       return false;
     }
 
-    var brConfig = await branchConfig(head.target.branchName());
+    var brConfig = await config.branch(head.target.branchName());
     if (brConfig == null) {
       // FIXME: Maybe we can push other branches!
       return false;
@@ -294,7 +277,7 @@ class GitRepository {
       return 0;
     }
 
-    var brConfig = await branchConfig(head.target.branchName());
+    var brConfig = await config.branch(head.target.branchName());
     if (brConfig == null) {
       return 0;
     }

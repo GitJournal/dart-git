@@ -33,12 +33,12 @@ void main() {
     var config = Config(contents);
     expect(config.branches.length, 2);
 
-    var branch = config.branches['master'];
+    var branch = config.branch('master');
     expect(branch.name, 'master');
     expect(branch.remote, 'origin');
     expect(branch.merge.value, 'refs/heads/master');
 
-    branch = config.branches['foo'];
+    branch = config.branch('foo');
     expect(branch.name, 'foo');
     expect(branch.remote, 'origin');
     expect(branch.merge.value, 'refs/heads/master');

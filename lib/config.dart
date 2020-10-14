@@ -48,6 +48,8 @@ class Config {
     }
   }
 
+  BranchConfig branch(String name) => branches[name];
+
   void _parseBranch(Section section) {
     var branch = BranchConfig();
     branch.name = section.name;

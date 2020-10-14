@@ -86,6 +86,9 @@ class GitRepository {
 
     await fs.directory(p.join(gitDir, 'branches')).create(recursive: true);
     await fs.directory(p.join(gitDir, 'objects')).create(recursive: true);
+    await fs
+        .directory(p.join(gitDir, 'objects', 'pack'))
+        .create(recursive: true);
     await fs.directory(p.join(gitDir, 'refs', 'tags')).create(recursive: true);
     await fs.directory(p.join(gitDir, 'refs', 'heads')).create(recursive: true);
 

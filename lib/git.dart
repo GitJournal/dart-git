@@ -499,7 +499,6 @@ class GitRepository {
 
         if (leaf.hash != null) {
           assert(await () async {
-            print('Debug readObjectFromHash ${leaf.hash}');
             var leafObj = await objStorage.readObjectFromHash(leaf.hash);
             return leafObj.formatStr() == 'blob';
           }());

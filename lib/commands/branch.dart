@@ -22,8 +22,8 @@ class BranchCommand extends Command {
     var repo = await GitRepository.load(gitRootDir);
 
     if (argResults.arguments.isEmpty) {
-      for (var branch in repo.branches()) {
-        print(branch.name);
+      for (var branch in await repo.branches()) {
+        print(branch);
       }
       return;
     }

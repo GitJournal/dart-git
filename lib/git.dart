@@ -111,8 +111,9 @@ class GitRepository {
     return fs.file(p.join(gitDir, 'config')).writeAsString(config.serialize());
   }
 
-  Iterable<BranchConfig> branches() {
-    return config.branches.values;
+  Future<List<String>> branches() async {
+    var refs = await refStorage.listReferences(refHeadPrefix);
+    return refs.map((r) => r.branchName()).toList();
   }
 
   Future<BranchConfig> branchConfig(String name) async {

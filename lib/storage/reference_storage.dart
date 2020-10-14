@@ -36,7 +36,7 @@ class ReferenceStorage {
 
   Future<List<ReferenceName>> listReferences(String prefix) async {
     var refs = <ReferenceName>[];
-    var stream = fs.directory(refHeadPrefix).list();
+    var stream = fs.directory(p.join(dotGitDir, refHeadPrefix)).list();
     await for (var fsEntity in stream) {
       assert(fsEntity.statSync().type == FileSystemEntityType.file);
 

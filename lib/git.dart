@@ -83,14 +83,15 @@ class GitRepository {
     // FIXME: Check if path has stuff and accordingly return
 
     var gitDir = p.join(path, '.git');
-
-    await fs.directory(p.join(gitDir, 'branches')).create(recursive: true);
-    await fs.directory(p.join(gitDir, 'objects')).create(recursive: true);
-    await fs
-        .directory(p.join(gitDir, 'objects', 'pack'))
-        .create(recursive: true);
-    await fs.directory(p.join(gitDir, 'refs', 'tags')).create(recursive: true);
-    await fs.directory(p.join(gitDir, 'refs', 'heads')).create(recursive: true);
+    var dirsToCreate = [
+      'branches',
+      'objects/pack',
+      'refs/heads',
+      'refs/tags',
+    ];
+    for (var dir in dirsToCreate) {
+      await fs.directory(p.join(gitDir, dir)).create(recursive: true);
+    }
 
     await fs.file(p.join(gitDir, 'description')).writeAsString(
         "Unnamed repository; edit this file 'description' to name the repository.\n");

@@ -50,8 +50,12 @@ List<int> patchDelta(List<int> base, List<int> delta) {
       // amount to copy is specified by the opcode itself
       copyLength = opcode;
 
+      assert(offset + copyLength <= delta.length);
+      assert(rvOffset + copyLength <= rv.length);
+
       var replacement = delta.getRange(offset, offset + copyLength);
       _replaceRange(rv, rvOffset, replacement);
+      offset += copyLength;
     } else {
       throw Exception('Invalid delta opcode');
     }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
+import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
 
@@ -67,5 +68,21 @@ void main() {
     actualHashes.sort();
 
     expect(expectedHashes, actualHashes);
+  });
+
+  test('Packfile with deltas 2', () async {
+    var basePath = 'test/data';
+    var packFileName = 'pack-2f0bd00c4566e8a259b86e261ab7ca9910fffbb8';
+
+    var idxFileBytes = await File('$basePath/$packFileName.idx').readAsBytes();
+    var idxFile = IdxFile.decode(idxFileBytes);
+
+    var packfile =
+        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack');
+
+    var obj = await packfile
+        .object(GitHash('0d2a7502772ce4d1afdec4ed380181acd7ea91f0'));
+
+    expect(obj != null, true);
   });
 }

@@ -44,6 +44,19 @@ class GitHash {
     return buf.toString();
   }
 
+  String toOid() {
+    var buf = StringBuffer();
+    for (var i = 0; i < _bytes.length; i++) {
+      var s = _bytes[i].toRadixString(16).padLeft(2, '0');
+      buf.write(s);
+
+      if (buf.length >= 7) {
+        break;
+      }
+    }
+    return buf.toString().substring(0, 7);
+  }
+
   @override
   bool operator ==(Object other) {
     if (other is! GitHash) return false;

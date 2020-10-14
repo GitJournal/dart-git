@@ -159,6 +159,14 @@ class GitRepository {
     return brConfig;
   }
 
+  Future<GitHash> createBranch(String name) async {
+    var headRef = await resolveReference(await head());
+    var branch = ReferenceName.head(name);
+
+    await refStorage.saveRef(Reference.hash(branch, headRef.hash));
+    return headRef.hash;
+  }
+
   List<GitRemote> remotes() {
     return config.remotes;
   }

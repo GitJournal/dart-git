@@ -21,11 +21,29 @@ class BranchCommand extends Command {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path);
     var repo = await GitRepository.load(gitRootDir);
 
-    if (argResults.arguments.isEmpty) {
-      for (var branch in await repo.branches()) {
-        print(branch);
+    var hasNoArgs = argResults['set-upstream-to'] == null;
+    if (hasNoArgs) {
+      if (argResults.arguments.isEmpty) {
+        var head = await repo.head();
+        if (head.isHash) {
+          print('* (HEAD detached at ${head.hash.toOid()})');
+        } else {}
+
+        var branches = await repo.branches();
+        branches.sort();
+
+        for (var branch in branches) {
+          if (head.isSymbolic && head.target.branchName() == branch) {
+            print('* ${head.target.branchName()}');
+            continue;
+          }
+          print('  $branch');
+        }
+        return;
+      } else {
+        await repo.createBranch(argResults.arguments.first);
+        return;
       }
-      return;
     }
 
     var upstream = argResults['set-upstream-to'] as String;

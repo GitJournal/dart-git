@@ -87,6 +87,7 @@ done''';
   expect(c1, c2);
 
   // Test if the index is the same
+  // Test if the working dir is the same
 }
 
 Future<List<String>> runDartGitCommand(

@@ -1,5 +1,7 @@
 # Dart Git
 
+![DartGit](https://raw.githubusercontent.com/GitJournal/dart_git/master/assets/logo.png)
+
 [![Build Status](https://github.com/GitJournal/dart_git/workflows/Dart%20CI/badge.svg)](https://github.com/GitJournal/dart_git/actions)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 

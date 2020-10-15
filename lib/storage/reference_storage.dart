@@ -108,10 +108,10 @@ class ReferenceStorage {
   }
 
   // FIXME: Maybe this doesn't need to read each time!
-  Future<Iterable<Reference>> _packedRefs() async {
+  Future<List<Reference>> _packedRefs() async {
     var packedRefsFile = fs.file(p.join(dotGitDir, 'packed-refs'));
     if (!packedRefsFile.existsSync()) {
-      return null;
+      return [];
     }
 
     var contents = await packedRefsFile.readAsString();
@@ -119,7 +119,8 @@ class ReferenceStorage {
   }
 }
 
-Iterable<Reference> _loadPackedRefs(String raw) sync* {
+List<Reference> _loadPackedRefs(String raw) {
+  var refs = <Reference>[];
   for (var line in LineSplitter.split(raw)) {
     if (line.startsWith('#')) {
       continue;
@@ -130,6 +131,8 @@ Iterable<Reference> _loadPackedRefs(String raw) sync* {
     if (parts.length != 2) {
       continue;
     }
-    yield Reference(parts[1], parts[0]);
+    refs.add(Reference(parts[1], parts[0]));
   }
+
+  return refs;
 }

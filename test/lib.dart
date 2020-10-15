@@ -25,7 +25,7 @@ Future<String> runGitCommand(String command, String dir,
 Future<void> createFile(String basePath, String path, String contents) async {
   var fullPath = p.join(basePath, path);
 
-  await Directory(p.basename(fullPath)).create(recursive: true);
+  await Directory(p.dirname(fullPath)).create(recursive: true);
   await File(fullPath).writeAsString(contents);
 }
 

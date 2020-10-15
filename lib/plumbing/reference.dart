@@ -55,7 +55,9 @@ const symbolicRefPrefix = 'ref: ';
 
 class ReferenceName {
   String value;
-  ReferenceName(this.value);
+  ReferenceName(this.value) {
+    assert(value.startsWith(refPrefix) || value == 'HEAD', 'prefix: $value');
+  }
 
   ReferenceName.remote(String remote, String branch) {
     value = '$refRemotePrefix$remote/$branch';

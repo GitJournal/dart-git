@@ -111,7 +111,7 @@ class GitRepository {
   }
 
   Future<List<String>> branches() async {
-    var refs = await refStorage.listReferences(refHeadPrefix);
+    var refs = await refStorage.listReferenceNames(refHeadPrefix);
     return refs.map((r) => r.branchName()).toList();
   }
 
@@ -149,14 +149,13 @@ class GitRepository {
     return headRef.hash;
   }
 
-  Future<List<String>> remoteBranches(String remoteName) async {
+  Future<List<Reference>> remoteBranches(String remoteName) async {
     if (config.remote(remoteName) == null) {
       throw Exception('remote $remoteName does not exist');
     }
 
-    var remoteRefsPrefix = p.join(refRemotePrefix, remoteName, '/');
-    var refs = await refStorage.listReferences(remoteRefsPrefix);
-    return refs.map((r) => r.branchName()).toList();
+    var remoteRefsPrefix = '$refRemotePrefix$remoteName/';
+    return refStorage.listReferences(remoteRefsPrefix);
   }
 
   Future<GitRemoteConfig> addRemote(String name, String url) async {

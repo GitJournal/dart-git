@@ -14,6 +14,7 @@ class BranchCommand extends Command {
 
   BranchCommand() {
     argParser.addOption('set-upstream-to');
+    argParser.addFlag('all', abbr: 'a', defaultsTo: false);
   }
 
   @override
@@ -21,9 +22,10 @@ class BranchCommand extends Command {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path);
     var repo = await GitRepository.load(gitRootDir);
 
+    var showAll = argResults['all'] as bool;
     var hasNoArgs = argResults['set-upstream-to'] == null;
     if (hasNoArgs) {
-      if (argResults.arguments.isEmpty) {
+      if (argResults.rest.isEmpty) {
         var head = await repo.head();
         if (head.isHash) {
           print('* (HEAD detached at ${head.hash.toOid()})');
@@ -39,9 +41,31 @@ class BranchCommand extends Command {
           }
           print('  $branch');
         }
+
+        if (showAll) {
+          for (var remote in repo.config.remotes) {
+            var refs = await repo.remoteBranches(remote.name);
+            refs.sort((a, b) {
+              return a.name.branchName().compareTo(b.name.branchName());
+            });
+
+            for (var ref in refs) {
+              var branch = ref.name.branchName();
+              if (ref.isHash) {
+                print('  remotes/${remote.name}/$branch');
+              } else {
+                var tb = ref.target.branchName();
+                if (ref.target.isRemote()) {
+                  tb = '${ref.target.remoteName()}/$tb';
+                }
+                print('  remotes/${remote.name}/$branch -> $tb');
+              }
+            }
+          }
+        }
         return;
       } else {
-        await repo.createBranch(argResults.arguments.first);
+        await repo.createBranch(argResults.rest.first);
         return;
       }
     }

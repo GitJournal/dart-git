@@ -23,4 +23,5 @@ void main() {
   }
 
   test('branch', () => _testCommand('branch'));
+  test('branch -a', () => _testCommand('branch -a'));
 }

@@ -19,13 +19,7 @@ class ReferenceStorage {
       return Reference(refName.value, contents.trimRight());
     }
 
-    var packedRefsFile = fs.file(p.join(dotGitDir, 'packed-refs'));
-    if (!packedRefsFile.existsSync()) {
-      return null;
-    }
-
-    var contents = await packedRefsFile.readAsString();
-    for (var ref in _loadPackedRefs(contents)) {
+    for (var ref in await _packedRefs()) {
       if (ref.name == refName) {
         return ref;
       }
@@ -34,14 +28,70 @@ class ReferenceStorage {
     return null;
   }
 
-  Future<List<ReferenceName>> listReferences(String prefix) async {
-    var refs = <ReferenceName>[];
-    var stream = fs.directory(p.join(dotGitDir, refHeadPrefix)).list();
-    await for (var fsEntity in stream) {
-      assert(fsEntity.statSync().type == FileSystemEntityType.file);
+  Future<List<ReferenceName>> listReferenceNames(String prefix) async {
+    assert(prefix.startsWith(refPrefix));
 
-      var fileName = p.basename(fsEntity.path);
-      refs.add(ReferenceName.head(fileName));
+    var refs = <ReferenceName>[];
+    var refLocation = p.join(dotGitDir, prefix);
+    var processedRefNames = <ReferenceName>{};
+
+    var stream = fs.directory(refLocation).list(recursive: true);
+    await for (var fsEntity in stream) {
+      if (fsEntity.statSync().type != FileSystemEntityType.file) {
+        continue;
+      }
+      if (fsEntity.basename.startsWith('.')) {
+        continue;
+      }
+
+      var refName =
+          ReferenceName(fsEntity.path.substring(dotGitDir.length + 1));
+      refs.add(refName);
+      processedRefNames.add(refName);
+    }
+
+    for (var ref in await _packedRefs()) {
+      if (processedRefNames.contains(ref.name)) {
+        continue;
+      }
+      if (ref.name.value.startsWith(prefix)) {
+        refs.add(ref.name);
+      }
+    }
+
+    return refs;
+  }
+
+  Future<List<Reference>> listReferences(String prefix) async {
+    assert(prefix.startsWith(refPrefix));
+
+    var refs = <Reference>[];
+    var refLocation = p.join(dotGitDir, prefix);
+    var processedRefNames = <ReferenceName>{};
+
+    var stream = fs.directory(refLocation).list(recursive: true);
+    await for (var fsEntity in stream) {
+      if (fsEntity.statSync().type != FileSystemEntityType.file) {
+        continue;
+      }
+      if (fsEntity.basename.startsWith('.')) {
+        continue;
+      }
+
+      var refName =
+          ReferenceName(fsEntity.path.substring(dotGitDir.length + 1));
+      var ref = await reference(refName);
+      refs.add(ref);
+      processedRefNames.add(refName);
+    }
+
+    for (var ref in await _packedRefs()) {
+      if (processedRefNames.contains(ref.name)) {
+        continue;
+      }
+      if (ref.name.value.startsWith(prefix)) {
+        refs.add(ref);
+      }
     }
 
     return refs;
@@ -55,6 +105,17 @@ class ReferenceStorage {
     await file.writeAsString(ref.hash.toString(), flush: true);
 
     await file.rename(refFileName);
+  }
+
+  // FIXME: Maybe this doesn't need to read each time!
+  Future<Iterable<Reference>> _packedRefs() async {
+    var packedRefsFile = fs.file(p.join(dotGitDir, 'packed-refs'));
+    if (!packedRefsFile.existsSync()) {
+      return null;
+    }
+
+    var contents = await packedRefsFile.readAsString();
+    return _loadPackedRefs(contents);
   }
 }
 

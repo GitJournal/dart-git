@@ -8,7 +8,6 @@ import 'package:path/path.dart' as p;
 import 'package:dart_git/config.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
-import 'package:dart_git/git_remote.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
@@ -126,7 +125,7 @@ class GitRepository {
   }
 
   Future<BranchConfig> setUpstreamTo(
-      GitRemote remote, String remoteBranchName) async {
+      GitRemoteConfig remote, String remoteBranchName) async {
     var branchName = await currentBranch();
     var brConfig = await config.branch(branchName);
     if (brConfig == null) {
@@ -150,7 +149,7 @@ class GitRepository {
     return headRef.hash;
   }
 
-  List<GitRemote> remotes() {
+  List<GitRemoteConfig> remotes() {
     return config.remotes;
   }
 
@@ -161,7 +160,7 @@ class GitRepository {
     return refs.map((r) => r.branchName()).toList();
   }
 
-  Future<GitRemote> addRemote(String name, String url) async {
+  Future<GitRemoteConfig> addRemote(String name, String url) async {
     var existingRemote = config.remotes.firstWhere(
       (r) => r.name == name,
       orElse: () => null,
@@ -170,7 +169,7 @@ class GitRepository {
       throw Exception('fatal: remote "$name" already exists.');
     }
 
-    var remote = GitRemote();
+    var remote = GitRemoteConfig();
     remote.name = name;
     remote.url = url;
     remote.fetch = '+refs/heads/*:refs/remotes/$name/*';
@@ -181,7 +180,7 @@ class GitRepository {
     return remote;
   }
 
-  GitRemote remote(String name) {
+  GitRemoteConfig remote(String name) {
     return config.remotes.firstWhere((r) => r.name == name, orElse: () => null);
   }
 

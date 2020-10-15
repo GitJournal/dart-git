@@ -149,10 +149,6 @@ class GitRepository {
     return headRef.hash;
   }
 
-  List<GitRemoteConfig> remotes() {
-    return config.remotes;
-  }
-
   Future<List<String>> remoteBranches(String remoteName) async {
     assert(remote(remoteName) != null);
     var remoteRefsPrefix = p.join(refRemotePrefix, remoteName, '/');
@@ -169,12 +165,9 @@ class GitRepository {
       throw Exception('fatal: remote "$name" already exists.');
     }
 
-    var remote = GitRemoteConfig();
-    remote.name = name;
-    remote.url = url;
-    remote.fetch = '+refs/heads/*:refs/remotes/$name/*';
-
+    var remote = GitRemoteConfig.create(name: name, url: url);
     config.remotes.add(remote);
+
     await saveConfig();
 
     return remote;

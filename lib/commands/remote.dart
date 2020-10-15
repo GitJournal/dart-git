@@ -41,7 +41,7 @@ class RemoteCommand extends Command {
       }
     }
 
-    for (var remote in repo.remotes()) {
+    for (var remote in repo.config.remotes) {
       if (!verbose) {
         print(remote.name);
       } else {

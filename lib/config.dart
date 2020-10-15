@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
@@ -22,6 +23,11 @@ class GitRemoteConfig {
   String name;
   String url;
   String fetch; // This should be a refspec
+
+  GitRemoteConfig();
+  GitRemoteConfig.create({@required this.name, @required this.url}) {
+    fetch = '+refs/heads/*:refs/remotes/$name/*';
+  }
 }
 
 class Config {

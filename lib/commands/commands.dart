@@ -11,3 +11,4 @@ export 'remote.dart';
 export 'status.dart';
 export 'rm.dart';
 export 'write_tree.dart';
+export 'merge_base.dart';

@@ -34,6 +34,7 @@ Future<void> main(List<String> args) async {
     ..addCommand(StatusCommand())
     ..addCommand(RmCommand())
     ..addCommand(WriteTreeCommand())
+    ..addCommand(MergeBaseCommand())
     ..addCommand(LsTreeCommand());
 
   try {

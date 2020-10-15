@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
+
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
@@ -26,7 +28,14 @@ abstract class GitObject {
   String formatStr();
 
   GitHash hash();
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GitObject && _listEq(serialize(), other.serialize());
 }
+
+Function _listEq = const ListEquality().equals;
 
 GitObject createObject(String fmt, List<int> rawData, [String filePath]) {
   if (fmt == GitBlob.fmt) {

@@ -154,6 +154,13 @@ class GitRepository {
     return config.remotes;
   }
 
+  Future<List<String>> remoteBranches(String remoteName) async {
+    assert(remote(remoteName) != null);
+    var remoteRefsPrefix = p.join(refRemotePrefix, remoteName, '/');
+    var refs = await refStorage.listReferences(remoteRefsPrefix);
+    return refs.map((r) => r.branchName()).toList();
+  }
+
   Future<GitRemote> addRemote(String name, String url) async {
     var existingRemote = config.remotes.firstWhere(
       (r) => r.name == name,

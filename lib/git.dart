@@ -150,7 +150,10 @@ class GitRepository {
   }
 
   Future<List<String>> remoteBranches(String remoteName) async {
-    assert(remote(remoteName) != null);
+    if (config.remote(remoteName) == null) {
+      throw Exception('remote $remoteName does not exist');
+    }
+
     var remoteRefsPrefix = p.join(refRemotePrefix, remoteName, '/');
     var refs = await refStorage.listReferences(remoteRefsPrefix);
     return refs.map((r) => r.branchName()).toList();
@@ -171,10 +174,6 @@ class GitRepository {
     await saveConfig();
 
     return remote;
-  }
-
-  GitRemoteConfig remote(String name) {
-    return config.remotes.firstWhere((r) => r.name == name, orElse: () => null);
   }
 
   Future<Reference> head() async {

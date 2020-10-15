@@ -61,6 +61,10 @@ class Config {
 
   BranchConfig branch(String name) => branches[name];
 
+  GitRemoteConfig remote(String name) {
+    return remotes.firstWhere((r) => r.name == name, orElse: () => null);
+  }
+
   void _parseBranch(Section section) {
     var branch = BranchConfig();
     branch.name = section.name;

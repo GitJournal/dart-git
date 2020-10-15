@@ -56,7 +56,7 @@ class BranchCommand extends Command {
     var remoteName = parts[0];
     var remoteBranchName = parts[1];
 
-    var remote = repo.remote(remoteName);
+    var remote = repo.config.remote(remoteName);
     if (remote == null) {
       print("error: the requested upstream branch '$upstream' does not exist");
     }

@@ -337,6 +337,8 @@ class GitRepository {
   }
 
   Future<void> addFileToIndex(GitIndex index, String filePath) async {
+    filePath = _normalizePath(filePath);
+
     var file = fs.file(filePath);
     if (!file.existsSync()) {
       throw Exception("fatal: pathspec '$filePath' did not match any files");
@@ -380,9 +382,8 @@ class GitRepository {
 
   Future<void> addDirectoryToIndex(GitIndex index, String dirPath,
       {bool recursive = false}) async {
-    if (!dirPath.startsWith(workTree)) {
-      return;
-    }
+    dirPath = _normalizePath(dirPath);
+
     var dir = fs.directory(dirPath);
     await for (var fsEntity
         in dir.list(recursive: recursive, followLinks: false)) {
@@ -563,14 +564,7 @@ class GitRepository {
 
   // FIXME: What if path is relative?
   Future<int> checkout(String path) async {
-    if (!path.startsWith('/')) {
-      if (path == '.') {
-        path = workTree;
-      } else {
-        path = p.normalize(p.join(workTree, path));
-      }
-    }
-    assert(path.startsWith(workTree));
+    path = _normalizePath(path);
 
     var headRef = await resolveReference(await head());
 
@@ -624,6 +618,14 @@ class GitRepository {
   Future<void> checkoutBranch(String branchName, GitHash hash) async {}
 
   Future<void> deleteBranch(String branchName) async {}
+
+  String _normalizePath(String path) {
+    if (!path.startsWith('/')) {
+      path = path == '.' ? workTree : p.normalize(p.join(workTree, path));
+    }
+    assert(path.startsWith(workTree));
+    return path;
+  }
 }
 
 // Sort allDirs on bfs

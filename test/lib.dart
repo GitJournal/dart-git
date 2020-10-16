@@ -85,6 +85,21 @@ done''';
 
   expect(repo1Refs, repo2Refs);
 
+  // Test if the index is the same
+  var listIndexScript = 'git ls-files --stage';
+  script = p.join(Directory.systemTemp.path, 'list-index');
+  await File(script).writeAsString(listIndexScript);
+
+  repo1Result = await run('bash', [script], workingDirectory: repo1);
+  repo2Result = await run('bash', [script], workingDirectory: repo2);
+
+  var repo1Index =
+      repo1Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
+  var repo2Index =
+      repo2Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
+
+  expect(repo1Index, repo2Index);
+
   // Test if the config is the same
   var config1Data = await File(p.join(repo1, '.git', 'config')).readAsString();
   var config2Data = await File(p.join(repo2, '.git', 'config')).readAsString();
@@ -136,7 +151,6 @@ done''';
   }
 
   // FIXME:
-  // Test if the index is the same
   // Test if file/folder permissions are the same
 }
 

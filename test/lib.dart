@@ -19,7 +19,10 @@ Future<String> runGitCommand(String command, String dir,
     environment: env,
   );
 
-  return results.map((e) => e.stdout).join('\n').trim();
+  var stdout = results.map((e) => e.stdout).join('\n').trim();
+  var stderr = results.map((e) => e.stderr).join('\n').trim();
+
+  return (stdout + '\n' + stderr).trim();
 }
 
 Future<void> createFile(String basePath, String path, String contents) async {
@@ -30,6 +33,13 @@ Future<void> createFile(String basePath, String path, String contents) async {
 }
 
 Future<void> testRepoEquals(String repo1, String repo2) async {
+  if (!repo1.endsWith(p.separator)) {
+    repo1 += p.separator;
+  }
+  if (!repo2.endsWith(p.separator)) {
+    repo2 += p.separator;
+  }
+
   // Test if all the objects are the same
   var listObjScript = r'''#!/bin/bash
 set -e
@@ -86,8 +96,48 @@ done''';
   var c2 = config2.sections.where((s) => s.name != 'core' && s.name != 'user');
   expect(c1, c2);
 
-  // Test if the index is the same
   // Test if the working dir is the same
+  var repo1FsEntities = await Directory(repo1).list(recursive: true).toList();
+  repo1FsEntities = repo1FsEntities
+      .where((e) => !e.path.startsWith(p.join(repo1, '.git/')))
+      .toList();
+  var repo2FsEntities = await Directory(repo2).list(recursive: true).toList();
+  repo2FsEntities = repo2FsEntities
+      .where((e) => !e.path.startsWith(p.join(repo2, '.git/')))
+      .toList();
+
+  var repo1Files =
+      repo1FsEntities.map((f) => f.path.substring(repo1.length)).toSet();
+  var repo2Files =
+      repo2FsEntities.map((f) => f.path.substring(repo2.length)).toSet();
+
+  expect(repo1Files, repo2Files);
+
+  for (var ent in repo1FsEntities) {
+    var st = ent.statSync();
+    if (st.type != FileSystemEntityType.file) {
+      continue;
+    }
+    var path = ent.path.substring(repo1.length);
+    var repo1FilePath = p.join(repo1, path);
+    var repo2FilePath = p.join(repo2, path);
+
+    try {
+      var repo1File = await File(repo1FilePath).readAsString();
+      var repo2File = await File(repo2FilePath).readAsString();
+
+      expect(repo1File, repo2File, reason: '$path is different');
+    } catch (e) {
+      var repo1File = await File(repo1FilePath).readAsBytes();
+      var repo2File = await File(repo2FilePath).readAsBytes();
+
+      expect(repo1File, repo2File, reason: '$path is different');
+    }
+  }
+
+  // FIXME:
+  // Test if the index is the same
+  // Test if file/folder permissions are the same
 }
 
 Future<List<String>> runDartGitCommand(
@@ -105,4 +155,17 @@ Future<List<String>> runDartGitCommand(
     Directory.current = prev;
   });
   return printLog;
+}
+
+Future<void> copyDirectory(String source, String destination) async {
+  await for (var entity in Directory(source).list(recursive: false)) {
+    if (entity is Directory) {
+      var newDirectory = Directory(p.join(
+          Directory(destination).absolute.path, p.basename(entity.path)));
+      await newDirectory.create();
+      await copyDirectory(entity.absolute.path, newDirectory.path);
+    } else if (entity is File) {
+      await entity.copy(p.join(destination, p.basename(entity.path)));
+    }
+  }
 }

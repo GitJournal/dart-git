@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:path/path.dart' as p;
+import 'package:test/test.dart';
+
 import 'package:dart_git/git.dart';
 import 'lib.dart';
 

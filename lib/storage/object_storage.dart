@@ -8,7 +8,9 @@ import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
+import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
+import 'package:dart_git/utils.dart';
 
 class ObjectStorage {
   final String gitDir;
@@ -108,5 +110,32 @@ class ObjectStorage {
     await file.close();
 
     return hash;
+  }
+
+  Future<GitObject> refSpec(GitTree tree, String spec) async {
+    assert(!spec.startsWith(p.separator));
+    if (spec.isEmpty) {
+      return tree;
+    }
+
+    var parts = splitPath(spec);
+    var name = parts.item1;
+    var remainingName = parts.item2;
+
+    for (var leaf in tree.leaves) {
+      if (leaf.path == name) {
+        var obj = await readObjectFromHash(leaf.hash);
+        if (remainingName.isEmpty) {
+          return obj;
+        }
+
+        if (obj is GitTree) {
+          return refSpec(obj, remainingName);
+        } else {
+          return null;
+        }
+      }
+    }
+    return null;
   }
 }

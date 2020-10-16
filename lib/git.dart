@@ -29,6 +29,9 @@ class GitRepository {
 
   GitRepository._internal({@required String rootDir, @required this.fs}) {
     workTree = rootDir;
+    if (!workTree.endsWith(p.separator)) {
+      workTree += p.separator;
+    }
     gitDir = p.join(workTree, '.git');
   }
 
@@ -212,7 +215,10 @@ class GitRepository {
     return refStorage.reference(ReferenceName('HEAD'));
   }
 
-  Future<Reference> resolveReference(Reference ref) async {
+  Future<Reference> resolveReference(
+    Reference ref, {
+    bool recursive = true,
+  }) async {
     if (ref.type == ReferenceType.Hash) {
       return ref;
     }
@@ -221,7 +227,7 @@ class GitRepository {
     if (resolvedRef == null) {
       return null;
     }
-    return resolveReference(resolvedRef);
+    return recursive ? resolveReference(resolvedRef) : resolvedRef;
   }
 
   Future<Reference> resolveReferenceName(ReferenceName refName) async {
@@ -343,7 +349,7 @@ class GitRepository {
 
     var pathSpec = filePath;
     if (pathSpec.startsWith(workTree)) {
-      pathSpec = filePath.substring(workTree.length + 1);
+      pathSpec = filePath.substring(workTree.length);
     }
 
     // Add it to the index
@@ -397,9 +403,6 @@ class GitRepository {
     var pathSpec = filePath;
     if (pathSpec.startsWith(workTree)) {
       pathSpec = pathSpec.substring(workTree.length);
-      if (pathSpec.startsWith('/')) {
-        pathSpec = pathSpec.substring(1);
-      }
     }
     index.entries = index.entries.where((e) => e.path != pathSpec).toList();
 
@@ -557,6 +560,70 @@ class GitRepository {
 
     return hashMap[''];
   }
+
+  // FIXME: What if path is relative?
+  Future<int> checkout(String path) async {
+    if (!path.startsWith('/')) {
+      if (path == '.') {
+        path = workTree;
+      } else {
+        path = p.normalize(p.join(workTree, path));
+      }
+    }
+    assert(path.startsWith(workTree));
+
+    var headRef = await resolveReference(await head());
+
+    var obj = await objStorage.readObjectFromHash(headRef.hash);
+    var commit = obj as GitCommit;
+
+    obj = await objStorage.readObjectFromHash(commit.treeHash);
+    var tree = obj as GitTree;
+
+    var spec = path.substring(workTree.length);
+    obj = await objStorage.refSpec(tree, spec);
+    if (obj == null) {
+      return null;
+    }
+
+    if (obj is GitBlob) {
+      await fs.file(path).writeAsBytes(obj.blobData);
+      return 1;
+    }
+
+    return _checkoutTree(spec, obj as GitTree);
+  }
+
+  Future<int> _checkoutTree(String relativePath, GitTree tree) async {
+    assert(!relativePath.startsWith(p.separator));
+
+    var updated = 0;
+    for (var leaf in tree.leaves) {
+      var obj = await objStorage.readObjectFromHash(leaf.hash);
+      assert(obj != null);
+
+      var leafRelativePath = p.join(relativePath, leaf.path);
+      if (obj is GitTree) {
+        return _checkoutTree(leafRelativePath, tree);
+      }
+
+      assert(obj is GitBlob);
+
+      var blob = obj as GitBlob;
+      await fs
+          .file(p.join(workTree, leafRelativePath))
+          .writeAsBytes(blob.blobData);
+      updated++;
+    }
+    return updated;
+  }
+
+  /// Create a new branch with `branchName` which points to `hash`
+  /// and changes the workTree to match the hash
+  /// and updates HEAD to point to it
+  Future<void> checkoutBranch(String branchName, GitHash hash) async {}
+
+  Future<void> deleteBranch(String branchName) async {}
 }
 
 // Sort allDirs on bfs

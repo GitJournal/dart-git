@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 class GitException implements Exception {}
 
 class InvalidRepoException implements GitException {
@@ -6,4 +8,15 @@ class InvalidRepoException implements GitException {
 
   @override
   String toString() => 'Not a Git Repository: ' + path;
+}
+
+class GitFatalException implements GitException {}
+
+class PathSpecOutsideRepoException implements GitFatalException {
+  final String pathSpec;
+
+  PathSpecOutsideRepoException({@required this.pathSpec});
+
+  @override
+  String toString() => "fatal: $pathSpec: '$pathSpec' is outside repository";
 }

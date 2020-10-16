@@ -4,7 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:process_run/shell.dart' as shell;
 import 'package:test/test.dart';
 
-import '../lib.dart';
+import 'lib.dart';
 
 void main() {
   String clonedGitDir;
@@ -73,6 +73,11 @@ void main() {
     }
   }
 
+  test('branch', () => _testGitCommand('branch'));
+  test('branch -a', () => _testGitCommand('branch -a'));
+  test('write-tree', () => _testGitCommand('write-tree'));
+  test('remote', () => _testGitCommand('remote'));
+  test('remote -v', () => _testGitCommand('remote -v'));
   test(
     'checkout 1 file',
     () async => _testCommands([

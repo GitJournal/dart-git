@@ -6,6 +6,9 @@
 <p align="center">
   <a href="https://github.com/GitJournal/dart_git/actions"><img alt="Build Status" src="https://github.com/GitJournal/dart_git/workflows/Dart%20CI/badge.svg"/></a>
   <a href="https://www.gnu.org/licenses/agpl-3.0"><img alt="License: AGPL v3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg"></a>
+  </br>
+  <a href="http://paypal.me/visheshhanda"><img alt="Donate Paypal" src="https://img.shields.io/badge/Donate-Paypal-%231999de"></a>
+  <a href="https://github.com/sponsors/vHanda"><img alt="Sponsor via GitHub" src="https://img.shields.io/badge/Sponsor-Github-%235a353"></a>
 </p>
 
 

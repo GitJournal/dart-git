@@ -158,7 +158,7 @@ class GitRepository {
     return refStorage.listReferences(remoteRefsPrefix);
   }
 
-  Future<String> guessRemoteHead(String remoteName) async {
+  Future<Reference> guessRemoteHead(String remoteName) async {
     // See: https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/25430727#25430727
     //      https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/8841024#8841024
     //
@@ -172,24 +172,23 @@ class GitRepository {
       var remoteHead = branches[i];
       assert(remoteHead.isSymbolic);
 
-      return remoteHead.target.branchName();
+      return resolveReference(remoteHead);
     } else {
       branches = branches.where((b) => b.name.branchName() != 'HEAD').toList();
     }
 
-    var branchNames = branches.map((b) => b.name.branchName()).toList();
     if (branches.length == 1) {
-      return branchNames[0];
+      return branches[0];
     }
 
-    var containsMaster = branchNames.indexWhere((e) => e == 'master') != -1;
-    if (containsMaster) {
-      return 'master';
+    var mi = branches.indexWhere((e) => e.name.branchName() == 'master');
+    if (mi != -1) {
+      return branches[mi];
     }
 
     // Return the first alphabetical one
-    branchNames.sort();
-    return branchNames[0];
+    branches.sort((a, b) => a.name.branchName().compareTo(b.name.branchName()));
+    return branches[0];
   }
 
   Future<GitRemoteConfig> addRemote(String name, String url) async {

@@ -15,7 +15,7 @@ void main() {
     var repo = await GitRepository.load(gitDir);
     var remoteBranch = await repo.guessRemoteHead('origin');
 
-    expect(remoteBranch, 'dev');
+    expect(remoteBranch.name.branchName(), 'dev');
   });
 
   test('Fetch - Remote Head', () async {
@@ -29,6 +29,6 @@ void main() {
     var repo = await GitRepository.load(gitDir);
     var remoteBranch = await repo.guessRemoteHead('origin');
 
-    expect(remoteBranch, 'dev');
+    expect(remoteBranch.name.branchName(), 'dev');
   });
 }

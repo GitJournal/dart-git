@@ -158,6 +158,40 @@ class GitRepository {
     return refStorage.listReferences(remoteRefsPrefix);
   }
 
+  Future<String> guessRemoteHead(String remoteName) async {
+    // See: https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/25430727#25430727
+    //      https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/8841024#8841024
+    //
+    // The ideal way is to use https://libgit2.org/libgit2/#HEAD/group/remote/git_remote_default_branch
+    // This would require a lot of code, though
+    //
+    var branches = await remoteBranches(remoteName);
+
+    var i = branches.indexWhere((b) => b.name.branchName() == 'HEAD');
+    if (i != -1) {
+      var remoteHead = branches[i];
+      assert(remoteHead.isSymbolic);
+
+      return remoteHead.target.branchName();
+    } else {
+      branches = branches.where((b) => b.name.branchName() != 'HEAD').toList();
+    }
+
+    var branchNames = branches.map((b) => b.name.branchName()).toList();
+    if (branches.length == 1) {
+      return branchNames[0];
+    }
+
+    var containsMaster = branchNames.indexWhere((e) => e == 'master') != -1;
+    if (containsMaster) {
+      return 'master';
+    }
+
+    // Return the first alphabetical one
+    branchNames.sort();
+    return branchNames[0];
+  }
+
   Future<GitRemoteConfig> addRemote(String name, String url) async {
     var existingRemote = config.remotes.firstWhere(
       (r) => r.name == name,

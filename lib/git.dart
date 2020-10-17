@@ -144,12 +144,20 @@ class GitRepository {
     return brConfig;
   }
 
-  Future<GitHash> createBranch(String name) async {
-    var headRef = await resolveReference(await head());
-    var branch = ReferenceName.head(name);
+  Future<GitHash> createBranch(String name, [GitHash hash]) async {
+    if (hash == null) {
+      var headRef = await resolveReference(await head());
+      hash = headRef.hash;
+    }
 
-    await refStorage.saveRef(Reference.hash(branch, headRef.hash));
-    return headRef.hash;
+    var branch = ReferenceName.head(name);
+    var ref = await refStorage.reference(branch);
+    if (ref != null) {
+      throw BranchAlreadyExistsException(name);
+    }
+
+    await refStorage.saveRef(Reference.hash(branch, hash));
+    return hash;
   }
 
   Future<List<Reference>> remoteBranches(String remoteName) async {
@@ -617,7 +625,10 @@ class GitRepository {
   /// Create a new branch with `branchName` which points to `hash`
   /// and changes the workTree to match the hash
   /// and updates HEAD to point to it
-  Future<void> checkoutBranch(String branchName, GitHash hash) async {}
+  Future<void> checkoutBranch(String branchName, GitHash hash) async {
+    await createBranch(branchName, hash);
+    await _checkoutTree('', await objStorage.readObjectFromHash(hash));
+  }
 
   Future<void> deleteBranch(String branchName) async {}
 

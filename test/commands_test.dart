@@ -74,6 +74,8 @@ void main() {
   }
 
   test('branch', () => _testGitCommand('branch'));
+  test('branch test', () => _testGitCommand('branch test'));
+  test('branch master', () => _testGitCommand('branch master'));
   test('branch -a', () => _testGitCommand('branch -a'));
   test('write-tree', () => _testGitCommand('write-tree'));
   test('remote', () => _testGitCommand('remote'));

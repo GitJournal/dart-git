@@ -29,3 +29,12 @@ class PathSpecInvalidException implements GitFatalException {
   @override
   String toString() => "fatal: '$pathSpec' did not match any files";
 }
+
+class BranchAlreadyExistsException implements GitFatalException {
+  final String branchName;
+
+  BranchAlreadyExistsException(this.branchName);
+
+  @override
+  String toString() => "fatal: A branched '$branchName' already exists";
+}

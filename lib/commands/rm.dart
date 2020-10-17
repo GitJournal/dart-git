@@ -19,14 +19,11 @@ class RmCommand extends Command {
     var filePath = argResults.arguments[0];
     var index = await repo.readIndex();
 
-    try {
-      await File(filePath).delete();
-      await repo.rmFileFromIndex(index, filePath);
-    } catch (e) {
-      print(e);
-    }
-
+    await repo.rmFileFromIndex(index, filePath);
+    await File(filePath).delete(recursive: true);
     await repo.writeIndex(index);
+
+    print("rm '${repo.toPathSpec(filePath)}'");
 
     // FIXME: Get proper pathSpec
     // FIXME: Handle glob patterns

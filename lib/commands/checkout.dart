@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
-import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git.dart';
 
 class CheckoutCommand extends Command {
@@ -24,18 +23,13 @@ class CheckoutCommand extends Command {
 
     var pathSpec = argResults.arguments[0];
 
-    try {
-      var objectsUpdated = await repo.checkout(pathSpec);
+    var objectsUpdated = await repo.checkout(pathSpec);
 
-      if (objectsUpdated == null) {
-        print(
-            "error: pathspec '$pathSpec' did not match any file(s) known to git");
-        exit(1);
-      }
-      print('Updated $objectsUpdated path from the index');
-    } on GitException catch (ex) {
-      print(ex.toString());
+    if (objectsUpdated == null) {
+      print(
+          "error: pathspec '$pathSpec' did not match any file(s) known to git");
       exit(1);
     }
+    print('Updated $objectsUpdated path from the index');
   }
 }

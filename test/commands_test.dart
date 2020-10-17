@@ -85,4 +85,14 @@ void main() {
       'git checkout LICENSE',
     ]),
   );
+  test('git rm LICENSE', () => _testGitCommand('rm LICENSE'));
+  test(
+    'git rm deleted file',
+    () async => _testCommands([
+      'rm LICENSE',
+      'git rm LICENSE',
+    ]),
+  );
+  test('git rm does-not-exist', () => _testGitCommand('rm does-not-exist'));
+  test('git rm /outside-repo', () => _testGitCommand('rm /outside-repo'));
 }

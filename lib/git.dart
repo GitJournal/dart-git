@@ -400,14 +400,16 @@ class GitRepository {
     }
   }
 
-  Future<void> rmFileFromIndex(GitIndex index, String filePath) async {
-    var pathSpec = filePath;
-    if (pathSpec.startsWith(workTree)) {
-      pathSpec = pathSpec.substring(workTree.length);
-    }
-    index.entries = index.entries.where((e) => e.path != pathSpec).toList();
+  Future<GitHash> rmFileFromIndex(GitIndex index, String filePath) async {
+    var pathSpec = toPathSpec(_normalizePath(filePath));
 
-    // FIXME: What if nothing matches
+    var i = index.entries.indexWhere((e) => e.path == pathSpec);
+    if (i == -1) {
+      throw PathSpecInvalidException(pathSpec: filePath);
+    }
+
+    var indexEntry = index.entries.removeAt(i);
+    return indexEntry.hash;
   }
 
   Future<GitCommit> commit({
@@ -623,7 +625,20 @@ class GitRepository {
     if (!path.startsWith('/')) {
       path = path == '.' ? workTree : p.normalize(p.join(workTree, path));
     }
-    assert(path.startsWith(workTree));
+    if (!path.startsWith(workTree)) {
+      throw PathSpecOutsideRepoException(pathSpec: path);
+    }
+    return path;
+  }
+
+  String toPathSpec(String path) {
+    if (path.startsWith(workTree)) {
+      return path.substring(workTree.length);
+    }
+    if (path.startsWith('/')) {
+      throw PathSpecOutsideRepoException(pathSpec: path);
+    }
+
     return path;
   }
 }

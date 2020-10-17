@@ -16,7 +16,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
+import 'package:dart_git/exceptions.dart';
 
 import 'commands/commands.dart';
 
@@ -39,9 +42,12 @@ Future<void> main(List<String> args) async {
 
   try {
     await runner.run(args);
+  } on GitException catch (e) {
+    print(e);
+    exit(1);
   } catch (e, stacktrace) {
     print(e);
     print(stacktrace);
-    return;
+    exit(1);
   }
 }

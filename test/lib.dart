@@ -17,6 +17,7 @@ Future<String> runGitCommand(String command, String dir,
     includeParentEnvironment: false,
     commandVerbose: true,
     environment: env,
+    throwOnError: false,
   );
 
   var stdout = results.map((e) => e.stdout).join('\n').trim();
@@ -158,6 +159,7 @@ Future<List<String>> runDartGitCommand(
     String command, String workingDir) async {
   var printLog = <String>[];
 
+  print('dartgit>\$ git $command');
   var spec = ZoneSpecification(print: (_, __, ___, String msg) {
     printLog.add(msg);
   });
@@ -165,9 +167,17 @@ Future<List<String>> runDartGitCommand(
     var prev = Directory.current;
 
     Directory.current = workingDir;
-    await git.main(command.split(' '));
+    // FIXME: There could be a space inside quotes
+    try {
+      await git.mainWithExitCode(command.split(' '));
+    } catch (e) {
+      printLog = ['$e'];
+    }
     Directory.current = prev;
   });
+  for (var log in printLog) {
+    print('dartgit>  $log');
+  }
   return printLog;
 }
 

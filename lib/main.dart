@@ -24,6 +24,13 @@ import 'package:dart_git/exceptions.dart';
 import 'commands/commands.dart';
 
 Future<void> main(List<String> args) async {
+  var ret = await mainWithExitCode(args);
+  if (ret != 0) {
+    exit(ret);
+  }
+}
+
+Future<int> mainWithExitCode(List<String> args) async {
   var runner = CommandRunner('git', 'Distributed version control.')
     ..addCommand(InitCommand())
     ..addCommand(AddCommand())
@@ -44,10 +51,12 @@ Future<void> main(List<String> args) async {
     await runner.run(args);
   } on GitException catch (e) {
     print(e);
-    exit(1);
+    return 1;
   } catch (e, stacktrace) {
     print(e);
     print(stacktrace);
-    exit(1);
+    return 1;
   }
+
+  return 0;
 }

@@ -73,13 +73,23 @@ void main() {
     }
   }
 
-  test('branch', () => _testGitCommand('branch'));
-  test('branch test', () => _testGitCommand('branch test'));
-  test('branch master', () => _testGitCommand('branch master'));
-  test('branch -a', () => _testGitCommand('branch -a'));
-  test('write-tree', () => _testGitCommand('write-tree'));
-  test('remote', () => _testGitCommand('remote'));
-  test('remote -v', () => _testGitCommand('remote -v'));
+  var singleCommandTests = [
+    'branch',
+    'branch test',
+    'branch master',
+    'branch -a',
+    'write-tree',
+    'remote',
+    'remote -v',
+    'rm LICENSE',
+    'rm does-not-exist',
+    'rm /outside-repo',
+  ];
+
+  for (var command in singleCommandTests) {
+    test(command, () async => _testGitCommand(command));
+  }
+
   test(
     'checkout 1 file',
     () async => _testCommands([
@@ -87,7 +97,7 @@ void main() {
       'git checkout LICENSE',
     ]),
   );
-  test('git rm LICENSE', () => _testGitCommand('rm LICENSE'));
+
   test(
     'git rm deleted file',
     () async => _testCommands([
@@ -95,6 +105,4 @@ void main() {
       'git rm LICENSE',
     ]),
   );
-  test('git rm does-not-exist', () => _testGitCommand('rm does-not-exist'));
-  test('git rm /outside-repo', () => _testGitCommand('rm /outside-repo'));
 }

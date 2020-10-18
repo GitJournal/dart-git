@@ -248,8 +248,12 @@ class GitRepository {
   }
 
   Future<bool> canPush() async {
+    if (config.remotes.isEmpty) {
+      return false;
+    }
+
     var head = await this.head();
-    if (head.isHash) {
+    if (head == null || head.isHash) {
       return false;
     }
 
@@ -259,11 +263,16 @@ class GitRepository {
       return false;
     }
 
+    var resolvedHead = await resolveReference(head);
+    if (resolvedHead == null) {
+      return false;
+    }
+
     // Construct remote's branch
     var remoteBranchName = brConfig.merge.branchName();
     var remoteRef = ReferenceName.remote(brConfig.remote, remoteBranchName);
 
-    var headHash = (await resolveReference(head)).hash;
+    var headHash = resolvedHead.hash;
     var remoteHash = (await resolveReferenceName(remoteRef)).hash;
     return headHash != remoteHash;
   }

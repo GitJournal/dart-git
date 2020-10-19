@@ -15,6 +15,7 @@ class BranchCommand extends Command {
   BranchCommand() {
     argParser.addOption('set-upstream-to');
     argParser.addFlag('all', abbr: 'a', defaultsTo: false);
+    argParser.addFlag('delete', abbr: 'd', defaultsTo: false);
   }
 
   @override
@@ -23,7 +24,9 @@ class BranchCommand extends Command {
     var repo = await GitRepository.load(gitRootDir);
 
     var showAll = argResults['all'] as bool;
-    var hasNoArgs = argResults['set-upstream-to'] == null;
+    var delete = argResults['delete'] as bool;
+
+    var hasNoArgs = argResults['set-upstream-to'] == null && delete == false;
     if (hasNoArgs) {
       if (argResults.rest.isEmpty) {
         var head = await repo.head();
@@ -68,6 +71,21 @@ class BranchCommand extends Command {
         await repo.createBranch(argResults.rest.first);
         return;
       }
+    }
+
+    if (delete) {
+      if (argResults.rest.isEmpty) {
+        print('fatal: branch name required');
+        return;
+      }
+      var branchName = argResults.rest.first;
+      var hash = await repo.deleteBranch(branchName);
+      if (hash == null) {
+        print("error: branch '$branchName' not found.");
+        return;
+      }
+      print('Deleted branch $branchName (was ${hash.toOid()}).');
+      return;
     }
 
     var upstream = argResults['set-upstream-to'] as String;

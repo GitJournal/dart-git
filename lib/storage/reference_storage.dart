@@ -117,6 +117,13 @@ class ReferenceStorage {
     var contents = await packedRefsFile.readAsString();
     return _loadPackedRefs(contents);
   }
+
+  Future<void> deleteReference(ReferenceName refName) async {
+    var refFileName = p.join(dotGitDir, refName.value);
+    await fs.file(refFileName).delete();
+
+    // FIXME: What if it is in the packed-refs?
+  }
 }
 
 List<Reference> _loadPackedRefs(String raw) {

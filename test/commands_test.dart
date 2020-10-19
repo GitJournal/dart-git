@@ -84,6 +84,7 @@ void main() {
     'rm LICENSE',
     'rm does-not-exist',
     'rm /outside-repo',
+    'branch -d not-existing'
   ];
 
   for (var command in singleCommandTests) {
@@ -103,6 +104,14 @@ void main() {
     () async => _testCommands([
       'rm LICENSE',
       'git rm LICENSE',
+    ]),
+  );
+
+  test(
+    'git delete branch',
+    () async => _testCommands([
+      'git branch foo',
+      'git branch -d foo',
     ]),
   );
 }

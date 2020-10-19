@@ -639,7 +639,16 @@ class GitRepository {
     await _checkoutTree('', await objStorage.readObjectFromHash(hash));
   }
 
-  Future<void> deleteBranch(String branchName) async {}
+  Future<GitHash> deleteBranch(String branchName) async {
+    var refName = ReferenceName.head(branchName);
+    var ref = await refStorage.reference(refName);
+    if (ref == null) {
+      return null;
+    }
+
+    await refStorage.deleteReference(refName);
+    return ref.hash;
+  }
 
   String _normalizePath(String path) {
     if (!path.startsWith('/')) {

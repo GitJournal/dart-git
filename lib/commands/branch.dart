@@ -96,7 +96,7 @@ class BranchCommand extends Command {
 
     var parts = upstream.split('/');
     var remoteName = parts[0];
-    var remoteBranchName = parts[1];
+    var remoteBranchName = parts.getRange(1, parts.length).join('/');
 
     var remote = repo.config.remote(remoteName);
     if (remote == null) {

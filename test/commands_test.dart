@@ -114,4 +114,12 @@ void main() {
       'git branch -d foo',
     ]),
   );
+
+  test(
+    'git upstream branch',
+    () async => _testCommands([
+      'git branch foo/fde',
+      'git branch --set-upstream-to=origin/master',
+    ]),
+  );
 }

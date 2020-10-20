@@ -19,8 +19,8 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:dart_git/exceptions.dart';
 
+import 'package:dart_git/exceptions.dart';
 import 'commands/commands.dart';
 
 Future<void> main(List<String> args) async {

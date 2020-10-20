@@ -1,4 +1,5 @@
 import 'package:args/command_runner.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:dart_git/git.dart';
 
@@ -10,6 +11,10 @@ class InitCommand extends Command {
   final description =
       'Create an empty Git repository or reinitialize an existing one';
 
+  InitCommand() {
+    argParser.addFlag('quiet', abbr: 'q', defaultsTo: false);
+  }
+
   @override
   Future run() async {
     if (argResults.rest.isEmpty) {
@@ -20,6 +25,12 @@ class InitCommand extends Command {
     var path = argResults.rest.first;
     await GitRepository.init(path);
 
-    print('Initialized empty Git repository in $path');
+    var quiet = argResults['quiet'] as bool;
+    if (quiet) {
+      return;
+    }
+
+    var dotGitDir = p.join(p.canonicalize(path), '.git') + p.separator;
+    print('Initialized empty Git repository in $dotGitDir');
   }
 }

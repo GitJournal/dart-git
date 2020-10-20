@@ -42,17 +42,37 @@ void main() {
 
     await copyDirectory(clonedGitDir, realGitDir);
     await copyDirectory(clonedGitDir, dartGitDir);
+
+    // print('realGitDir: $realGitDir');
+    // print('dartGitDir: $dartGitDir');
   });
 
   Future<void> _testGitCommand(String command) async {
-    var output = await runDartGitCommand(command, dartGitDir);
+    var output = <String>[];
+    // hack: Untill we implement git fetch
+    if (command.startsWith('fetch')) {
+      output = (await runGitCommand(command, dartGitDir)).split('\n');
+    } else {
+      output = await runDartGitCommand(command, dartGitDir);
+    }
     var expectedOutput = await runGitCommand(command, realGitDir);
 
     expect(output.join('\n').trim(), expectedOutput);
-    await testRepoEquals(realGitDir, dartGitDir);
+    await testRepoEquals(dartGitDir, realGitDir);
   }
 
-  Future<void> _testCommands(List<String> commands) async {
+  Future<void> _testCommands(
+    List<String> commands, {
+    bool emptyDirs = false,
+  }) async {
+    if (emptyDirs) {
+      await Directory(dartGitDir).delete(recursive: true);
+      await Directory(realGitDir).delete(recursive: true);
+
+      await Directory(dartGitDir).create();
+      await Directory(realGitDir).create();
+    }
+
     for (var c in commands) {
       if (c.startsWith('git ')) {
         c = c.substring('git '.length);
@@ -121,5 +141,15 @@ void main() {
       'git branch foo/fde',
       'git branch --set-upstream-to=origin/master',
     ]),
+  );
+
+  test(
+    'git checkout remote branch',
+    () async => _testCommands([
+      'git init -q .',
+      'git remote add origin https://github.com/GitJournal/icloud_documents_path.git',
+      'git fetch origin',
+      'git checkout -b master origin/master',
+    ], emptyDirs: true),
   );
 }

@@ -169,6 +169,15 @@ class GitRepository {
     return refStorage.listReferences(remoteRefsPrefix);
   }
 
+  Future<Reference> remoteBranch(String remoteName, String branchName) async {
+    if (config.remote(remoteName) == null) {
+      throw Exception('remote $remoteName does not exist');
+    }
+
+    var remoteRef = ReferenceName.remote(remoteName, branchName);
+    return refStorage.reference(remoteRef);
+  }
+
   Future<Reference> guessRemoteHead(String remoteName) async {
     // See: https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/25430727#25430727
     //      https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/8841024#8841024
@@ -581,7 +590,6 @@ class GitRepository {
     return hashMap[''];
   }
 
-  // FIXME: What if path is relative?
   Future<int> checkout(String path) async {
     path = _normalizePath(path);
 
@@ -600,14 +608,20 @@ class GitRepository {
     }
 
     if (obj is GitBlob) {
+      await fs.directory(p.dirname(path)).create(recursive: true);
       await fs.file(path).writeAsBytes(obj.blobData);
       return 1;
     }
 
-    return _checkoutTree(spec, obj as GitTree);
+    var index = GitIndex(versionNo: 2);
+    var numFiles = await _checkoutTree(spec, obj as GitTree, index);
+    await writeIndex(index);
+
+    return numFiles;
   }
 
-  Future<int> _checkoutTree(String relativePath, GitTree tree) async {
+  Future<int> _checkoutTree(
+      String relativePath, GitTree tree, GitIndex index) async {
     assert(!relativePath.startsWith(p.separator));
 
     var updated = 0;
@@ -617,17 +631,24 @@ class GitRepository {
 
       var leafRelativePath = p.join(relativePath, leaf.path);
       if (obj is GitTree) {
-        await _checkoutTree(leafRelativePath, tree);
+        await _checkoutTree(leafRelativePath, obj, index);
+        continue;
       }
 
       assert(obj is GitBlob);
 
       var blob = obj as GitBlob;
-      await fs
-          .file(p.join(workTree, leafRelativePath))
-          .writeAsBytes(blob.blobData);
+      var blobPath = p.join(workTree, leafRelativePath);
+
+      await fs.directory(p.dirname(blobPath)).create(recursive: true);
+      await fs.file(blobPath).writeAsBytes(blob.blobData);
+
+      await addFileToIndex(index, blobPath);
       updated++;
     }
+
+    // FIXME: What about removing the files from the prev tree?
+
     return updated;
   }
 
@@ -639,7 +660,10 @@ class GitRepository {
     var obj = await objStorage.readObjectFromHash(hash);
     var commit = obj as GitCommit;
     var treeObj = await objStorage.readObjectFromHash(commit.treeHash);
-    await _checkoutTree('', treeObj);
+
+    var index = GitIndex(versionNo: 2);
+    await _checkoutTree('', treeObj, index);
+    await writeIndex(index);
 
     // Set HEAD to to it
     var refName = ReferenceName.head(branchName);

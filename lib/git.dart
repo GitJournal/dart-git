@@ -637,6 +637,12 @@ class GitRepository {
   Future<void> checkoutBranch(String branchName, GitHash hash) async {
     await createBranch(branchName, hash);
     await _checkoutTree('', await objStorage.readObjectFromHash(hash));
+
+    // Set HEAD to to it
+    var refName = ReferenceName.head(branchName);
+    await fs
+        .file(p.join(gitDir, 'HEAD'))
+        .writeAsString('ref: ${refName.value}\n');
   }
 
   Future<GitHash> deleteBranch(String branchName) async {

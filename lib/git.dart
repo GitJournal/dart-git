@@ -617,7 +617,7 @@ class GitRepository {
 
       var leafRelativePath = p.join(relativePath, leaf.path);
       if (obj is GitTree) {
-        return _checkoutTree(leafRelativePath, tree);
+        await _checkoutTree(leafRelativePath, tree);
       }
 
       assert(obj is GitBlob);
@@ -636,7 +636,10 @@ class GitRepository {
   /// and updates HEAD to point to it
   Future<void> checkoutBranch(String branchName, GitHash hash) async {
     await createBranch(branchName, hash);
-    await _checkoutTree('', await objStorage.readObjectFromHash(hash));
+    var obj = await objStorage.readObjectFromHash(hash);
+    var commit = obj as GitCommit;
+    var treeObj = await objStorage.readObjectFromHash(commit.treeHash);
+    await _checkoutTree('', treeObj);
 
     // Set HEAD to to it
     var refName = ReferenceName.head(branchName);

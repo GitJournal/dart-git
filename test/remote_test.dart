@@ -32,4 +32,17 @@ void main() {
 
     expect(remoteBranch.name.branchName(), 'dev');
   });
+
+  test('Empty Remote', () async {
+    var gitDir = (await Directory.systemTemp.createTemp('_git_fetch_')).path;
+
+    await runGitCommand(
+        'clone https://github.com/vHanda/empty_repo.git', gitDir);
+    gitDir = p.join(gitDir, 'empty_repo');
+
+    var repo = await GitRepository.load(gitDir);
+    var remoteBranch = await repo.guessRemoteHead('origin');
+
+    expect(remoteBranch, null);
+  });
 }

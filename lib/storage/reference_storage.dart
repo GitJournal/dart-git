@@ -69,7 +69,12 @@ class ReferenceStorage {
     var refLocation = p.join(dotGitDir, prefix);
     var processedRefNames = <ReferenceName>{};
 
-    var stream = fs.directory(refLocation).list(recursive: true);
+    var dir = fs.directory(refLocation);
+    if (!dir.existsSync()) {
+      return refs;
+    }
+
+    var stream = dir.list(recursive: true);
     await for (var fsEntity in stream) {
       if (fsEntity.statSync().type != FileSystemEntityType.file) {
         continue;

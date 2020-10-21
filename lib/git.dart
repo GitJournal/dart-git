@@ -186,6 +186,9 @@ class GitRepository {
     // This would require a lot of code, though
     //
     var branches = await remoteBranches(remoteName);
+    if (branches.isEmpty) {
+      return null;
+    }
 
     var i = branches.indexWhere((b) => b.name.branchName() == 'HEAD');
     if (i != -1) {

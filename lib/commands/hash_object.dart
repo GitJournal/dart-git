@@ -45,7 +45,7 @@ class HashObjectCommand extends Command {
     var fmt = argResults['type'] as String;
     var obj = createObject(fmt, rawData);
     GitHash hash;
-    if (argResults['write']) {
+    if (argResults['write'] as bool) {
       hash = await repo.objStorage.writeObject(obj);
     } else {
       hash = obj.hash();

@@ -94,10 +94,14 @@ done''';
   repo1Result = await run('bash', [script], workingDirectory: repo1);
   repo2Result = await run('bash', [script], workingDirectory: repo2);
 
-  var repo1Index =
-      repo1Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
-  var repo2Index =
-      repo2Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
+  var repo1Index = repo1Result.stdout
+      .split('\n')
+      .where((String e) => e.isNotEmpty)
+      .toSet() as Set<String>;
+  var repo2Index = repo2Result.stdout
+      .split('\n')
+      .where((String e) => e.isNotEmpty)
+      .toSet() as Set<String>;
 
   expect(repo1Index, repo2Index);
 

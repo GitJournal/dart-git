@@ -33,6 +33,9 @@ abstract class GitObject {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is GitObject && _listEq(serialize(), other.serialize());
+
+  @override
+  int get hashCode => serialize().hashCode;
 }
 
 Function _listEq = const ListEquality().equals;
@@ -79,7 +82,7 @@ abstract class ObjectTypes {
       case REF_DELTA:
         return REF_DELTA_STR;
       default:
-        throw Exception('unsupported pack type ${type}');
+        throw Exception('unsupported pack type $type');
     }
   }
 
@@ -98,7 +101,7 @@ abstract class ObjectTypes {
       case REF_DELTA_STR:
         return REF_DELTA;
       default:
-        throw Exception('unsupported pack type ${type}');
+        throw Exception('unsupported pack type $type');
     }
   }
 }

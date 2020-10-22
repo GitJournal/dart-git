@@ -1,2 +1,17 @@
 include: package:pedantic/analysis_options.yaml
 
+linter:
+  rules:
+    - avoid_slow_async_io
+    - unnecessary_brace_in_string_interps
+    - hash_and_equals
+
+analyzer:
+  strong-mode:
+    implicit-dynamic: true
+  errors:
+    missing_required_param: error
+    missing_return: error
+    todo: ignore
+  # enable-experiment:
+  # - non-nullable

@@ -204,6 +204,9 @@ class Section {
           _mapEq(options, other.options) &&
           _listEq(sections, other.sections);
 
+  @override
+  int get hashCode => name.hashCode ^ options.hashCode ^ sections.hashCode;
+
   void _writeSectionProps(StringBuffer buffer) {
     options.forEach((key, val) {
       buffer.write('\t');
@@ -324,6 +327,9 @@ class ConfigFile {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ConfigFile && _listEq(sections, other.sections);
+
+  @override
+  int get hashCode => sections.hashCode;
 
   @override
   String toString() => serialize();

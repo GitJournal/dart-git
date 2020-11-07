@@ -50,17 +50,25 @@ void main() {
     // print('dartGitDir: $dartGitDir');
   });
 
-  Future<void> _testGitCommand(String command) async {
-    var output = <String>[];
+  Future<void> _testGitCommand(
+    String command, {
+    bool containsMatch = false,
+  }) async {
+    var outputL = <String>[];
     // hack: Untill we implement git fetch
     if (command.startsWith('fetch')) {
-      output = (await runGitCommand(command, dartGitDir)).split('\n');
+      outputL = (await runGitCommand(command, dartGitDir)).split('\n');
     } else {
-      output = await runDartGitCommand(command, dartGitDir);
+      outputL = await runDartGitCommand(command, dartGitDir);
     }
+    var output = outputL.join('\n').trim();
     var expectedOutput = await runGitCommand(command, realGitDir);
 
-    expect(output.join('\n').trim(), expectedOutput);
+    if (!containsMatch) {
+      expect(output, expectedOutput);
+    } else {
+      expect(expectedOutput.contains(output), true);
+    }
     await testRepoEquals(dartGitDir, realGitDir);
   }
 
@@ -104,13 +112,16 @@ void main() {
     'write-tree',
     'rm LICENSE',
     'rm does-not-exist',
-    'rm /outside-repo',
     'branch -d not-existing'
   ];
 
   for (var command in singleCommandTests) {
     test(command, () async => _testGitCommand(command));
   }
+
+  test('rm /outside-rep', () async {
+    await _testGitCommand('rm /outside-repo', containsMatch: true);
+  });
 
   test(
     'checkout 1 file',

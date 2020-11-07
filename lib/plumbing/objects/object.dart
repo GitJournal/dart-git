@@ -34,8 +34,8 @@ abstract class GitObject {
       identical(this, other) ||
       other is GitObject && _listEq(serialize(), other.serialize());
 
-  @override
-  int get hashCode => serialize().hashCode;
+  // @override
+  // int get hashCode => serialize().hashCode;
 }
 
 Function _listEq = const ListEquality().equals;

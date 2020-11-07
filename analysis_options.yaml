@@ -4,7 +4,7 @@ linter:
   rules:
     - avoid_slow_async_io
     - unnecessary_brace_in_string_interps
-    - hash_and_equals
+    #- hash_and_equals
 
 analyzer:
   strong-mode:

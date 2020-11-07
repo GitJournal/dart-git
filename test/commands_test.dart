@@ -27,6 +27,9 @@ void main() {
     clonedGitDir = p.join(tmpDir, repoName);
     realGitDir = p.join(tmpDir, '${repoName}_git');
     dartGitDir = p.join(tmpDir, '${repoName}_dart');
+
+    print('RealGitDir: $realGitDir');
+    print('DartGitDir: $dartGitDir');
   });
 
   setUp(() async {

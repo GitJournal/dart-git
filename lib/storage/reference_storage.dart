@@ -28,40 +28,6 @@ class ReferenceStorage {
     return null;
   }
 
-  Future<List<ReferenceName>> listReferenceNames(String prefix) async {
-    assert(prefix.startsWith(refPrefix));
-
-    var refs = <ReferenceName>[];
-    var refLocation = p.join(dotGitDir, prefix);
-    var processedRefNames = <ReferenceName>{};
-
-    var stream = fs.directory(refLocation).list(recursive: true);
-    await for (var fsEntity in stream) {
-      if (fsEntity.statSync().type != FileSystemEntityType.file) {
-        continue;
-      }
-      if (fsEntity.basename.startsWith('.')) {
-        continue;
-      }
-
-      var refName =
-          ReferenceName(fsEntity.path.substring(dotGitDir.length + 1));
-      refs.add(refName);
-      processedRefNames.add(refName);
-    }
-
-    for (var ref in await _packedRefs()) {
-      if (processedRefNames.contains(ref.name)) {
-        continue;
-      }
-      if (ref.name.value.startsWith(prefix)) {
-        refs.add(ref.name);
-      }
-    }
-
-    return refs;
-  }
-
   Future<List<Reference>> listReferences(String prefix) async {
     assert(prefix.startsWith(refPrefix));
 

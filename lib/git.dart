@@ -114,8 +114,9 @@ class GitRepository {
   }
 
   Future<List<String>> branches() async {
-    var refs = await refStorage.listReferenceNames(refHeadPrefix);
-    return refs.map((r) => r.branchName()).toList();
+    var refs = await refStorage.listReferences(refHeadPrefix);
+    var refNames = refs.map((r) => r.name);
+    return refNames.map((r) => r.branchName()).toList();
   }
 
   Future<String> currentBranch() async {

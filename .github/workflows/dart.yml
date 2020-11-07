@@ -11,6 +11,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+      - name: Install Latest Git
+        run: |
+          apt-get update
+          apt-get install -y software-properties-common
+          add-apt-repository ppa:git-core/ppa -y
+          apt-key adv --recv-keys --keyserver keyserver.ubuntu.com A1715D88E1DF1F24
+          apt update
+          apt-get install -y git
+      - name: Git Version
+        run: git version
       - name: Install dependencies
         run: pub get
       - name: Dart Analyze

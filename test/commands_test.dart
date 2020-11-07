@@ -161,6 +161,7 @@ void main() {
       'git remote add origin https://github.com/GitJournal/icloud_documents_path.git',
       'git fetch origin',
       'git checkout -b master origin/master',
+      'git remote rm origin',
     ], emptyDirs: true),
   );
 }

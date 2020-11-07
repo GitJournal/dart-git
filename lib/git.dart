@@ -243,8 +243,7 @@ class GitRepository {
     await saveConfig();
 
     await refStorage.removeReferences(refRemotePrefix + name);
-    // TODO: Remove the references from that remote
-    // TODO: Remote the objects from that remote
+    // TODO: Remote the objects from that remote?
 
     return remote;
   }

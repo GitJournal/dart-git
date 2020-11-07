@@ -150,7 +150,9 @@ class Config {
       bs.options['merge'] = branch.merge.toString();
 
       assert(branch.merge.isBranch());
-      serializedBranches.add(branch.name);
+      if (serializedRemotes.contains(branch.remote)) {
+        serializedBranches.add(branch.name);
+      }
     }
     branchSection.keepSections(serializedBranches);
 

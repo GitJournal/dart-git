@@ -232,6 +232,23 @@ class GitRepository {
     return remote;
   }
 
+  Future<GitRemoteConfig> removeRemote(String name) async {
+    var i = config.remotes.indexWhere((r) => r.name == name);
+    if (i == -1) {
+      return null;
+    }
+
+    var remote = config.remotes[i];
+    config.remotes.removeAt(i);
+    await saveConfig();
+
+    await refStorage.removeReferences(refRemotePrefix + name);
+    // TODO: Remove the references from that remote
+    // TODO: Remote the objects from that remote
+
+    return remote;
+  }
+
   Future<Reference> head() async {
     return refStorage.reference(ReferenceName('HEAD'));
   }

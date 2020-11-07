@@ -13,10 +13,12 @@ class RemoteCommand extends Command {
   final description = 'Manage set of tracked repositories';
 
   final ArgParser addArgParser = ArgParser();
+  final ArgParser rmArgParser = ArgParser();
 
   RemoteCommand() {
     argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
     argParser.addCommand('add', addArgParser);
+    argParser.addCommand('rm', rmArgParser);
   }
 
   @override
@@ -39,6 +41,23 @@ class RemoteCommand extends Command {
         await repo.addRemote(name, url);
         return;
       }
+
+      if (result.name == 'rm') {
+        if (result.arguments.length != 1) {
+          print('usage: git remote rm <name>');
+          return;
+        }
+
+        var name = result.arguments[0];
+        var config = await repo.removeRemote(name);
+        if (config == null) {
+          print("fatal: No such remote: '$name'");
+          return;
+        }
+        return;
+      }
+
+      return;
     }
 
     for (var remote in repo.config.remotes) {

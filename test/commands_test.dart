@@ -102,8 +102,6 @@ void main() {
     'branch master',
     'branch -a',
     'write-tree',
-    'remote',
-    'remote -v',
     'rm LICENSE',
     'rm does-not-exist',
     'rm /outside-repo',
@@ -143,6 +141,16 @@ void main() {
     () async => _testCommands([
       'git branch foo/fde',
       'git branch --set-upstream-to=origin/master',
+    ]),
+  );
+
+  test(
+    'git remote',
+    () async => _testCommands([
+      'git remote add origin2 foo',
+      'git remote',
+      'git remote -v',
+      'git remote rm origin2'
     ]),
   );
 

@@ -131,21 +131,28 @@ class Config {
   String serialize() {
     // Remotes
     var remoteSection = section('remote');
+    var serializedRemotes = <String>{};
     for (var remote in remotes) {
       var rs = remoteSection.getOrCreateSection(remote.name);
       rs.options['url'] = remote.url;
       rs.options['fetch'] = remote.fetch;
+
+      serializedRemotes.add(remote.name);
     }
+    remoteSection.keepSections(serializedRemotes);
 
     // Branches
     var branchSection = section('branch');
+    var serializedBranches = <String>{};
     for (var branch in branches.values) {
       var bs = branchSection.getOrCreateSection(branch.name);
       bs.options['remote'] = branch.remote;
       bs.options['merge'] = branch.merge.toString();
 
       assert(branch.merge.isBranch());
+      serializedBranches.add(branch.name);
     }
+    branchSection.keepSections(serializedBranches);
 
     // Core
     if (bare != null) {
@@ -194,6 +201,10 @@ class Section {
     }
 
     return sections[i];
+  }
+
+  void keepSections(Set<String> names) {
+    sections = sections.where((s) => names.contains(s.name)).toList();
   }
 
   @override

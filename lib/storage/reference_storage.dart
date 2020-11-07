@@ -68,6 +68,19 @@ class ReferenceStorage {
     return refs;
   }
 
+  Future<void> removeReferences(String prefix) async {
+    assert(prefix.startsWith(refPrefix));
+
+    var refLocation = p.join(dotGitDir, prefix);
+    var dir = fs.directory(refLocation);
+    if (!dir.existsSync()) {
+      return;
+    }
+
+    await dir.delete(recursive: true);
+    return;
+  }
+
   Future<void> saveRef(Reference ref) async {
     var refFileName = p.join(dotGitDir, ref.name.value);
     var refFileName2 = refFileName + '_';

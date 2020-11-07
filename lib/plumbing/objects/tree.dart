@@ -59,6 +59,10 @@ class GitTree extends GitObject {
     var data = <int>[];
 
     for (var leaf in leaves) {
+      assert(leaf.hash != null);
+      assert(leaf.path != null && leaf.path.isNotEmpty);
+      assert(leaf.mode != null);
+
       data.addAll(ascii.encode(leaf.mode.toString()));
       data.add(asciiHelper.space);
       data.addAll(utf8.encode(leaf.path));

@@ -36,9 +36,9 @@ Create first draft''';
 
     expect(map['tree'], equals('29ff16c9c14e2652b22f8b78bb08a5a07930c147'));
 
-    var p = map['parent'] as List<String>;
-    expect(p[0], equals('206941306e8a8af65b66eaaaea388a7ae24d49a0'));
-    expect(p[1], equals('206941306e8a8af65b66eaaaea388a7ae24d49a2'));
+    var p = map['parent'];
+    expect(p[0] as String, equals('206941306e8a8af65b66eaaaea388a7ae24d49a0'));
+    expect(p[1] as String, equals('206941306e8a8af65b66eaaaea388a7ae24d49a2'));
 
     expect(map['gpgsig'], equals('''-----BEGIN PGP SIGNATURE-----
 iQIzBAABCAAdFiEExwXquOM8bWb4Q2zVGxM2FxoLkGQFAlsEjZQACgkQGxM2FxoL

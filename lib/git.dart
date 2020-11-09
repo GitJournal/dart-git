@@ -232,6 +232,21 @@ class GitRepository {
     return remote;
   }
 
+  Future<GitRemoteConfig> addOrUpdateRemote(String name, String url) async {
+    var remote = config.remotes.firstWhere(
+      (r) => r.name == name,
+      orElse: () => null,
+    );
+    if (remote == null) {
+      return addRemote(name, url);
+    }
+
+    remote.url = url;
+    await saveConfig();
+
+    return remote;
+  }
+
   Future<GitRemoteConfig> removeRemote(String name) async {
     var i = config.remotes.indexWhere((r) => r.name == name);
     if (i == -1) {

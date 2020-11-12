@@ -49,9 +49,9 @@ class DiffTreeCommand extends Command {
       var newMode = r.newMode.toString().padLeft(6, '0');
 
       var state = 'M';
-      if (r.prevMode.val == 0) {
+      if (r.prevMode.isZero) {
         state = 'A';
-      } else if (r.newMode.val == 0) {
+      } else if (r.newMode.isZero) {
         state = 'D';
       }
 

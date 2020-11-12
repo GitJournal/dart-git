@@ -411,6 +411,8 @@ class GitFileMode extends Equatable {
     return val.toRadixString(8);
   }
 
+  bool get isZero => val == 0;
+
   // FIXME: Is this written in little endian in bytes?
 }
 

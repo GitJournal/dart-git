@@ -47,7 +47,15 @@ class DiffTreeCommand extends Command {
     for (var r in results) {
       var prevMode = r.prevMode.toString().padLeft(6, '0');
       var newMode = r.newMode.toString().padLeft(6, '0');
-      print(':$prevMode $newMode ${r.prevHash} ${r.newHash}');
+
+      var state = 'M';
+      if (r.prevMode.val == 0) {
+        state = 'A';
+      } else if (r.newMode.val == 0) {
+        state = 'D';
+      }
+
+      print(':$prevMode $newMode ${r.prevHash} ${r.newHash} $state\t${r.path}');
     }
   }
 }

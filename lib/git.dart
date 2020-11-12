@@ -267,6 +267,11 @@ class GitRepository {
     return refStorage.reference(ReferenceName('HEAD'));
   }
 
+  Future<GitHash> headHash() async {
+    var ref = await refStorage.reference(ReferenceName('HEAD'));
+    return (await resolveReference(ref)).hash;
+  }
+
   Future<Reference> resolveReference(
     Reference ref, {
     bool recursive = true,

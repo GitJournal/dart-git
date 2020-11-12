@@ -34,8 +34,21 @@ class GitHash {
     _bytes = sha1.convert(data).bytes;
   }
 
+  GitHash.zero() {
+    _bytes = Uint8List(0);
+  }
+
+  bool get isEmpty => _bytes.isEmpty;
+  bool get isNotEmpty => _bytes.isNotEmpty;
+
   @override
   String toString() {
+    if (isEmpty) {
+      final _0 = '0'.codeUnitAt(0);
+      var codes = List<int>.filled(40, _0);
+      return String.fromCharCodes(codes);
+    }
+
     var buf = StringBuffer();
     for (var i = 0; i < _bytes.length; i++) {
       var s = _bytes[i].toRadixString(16).padLeft(2, '0');

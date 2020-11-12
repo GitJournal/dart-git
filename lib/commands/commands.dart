@@ -12,3 +12,4 @@ export 'status.dart';
 export 'rm.dart';
 export 'write_tree.dart';
 export 'merge_base.dart';
+export 'diff_tree.dart';

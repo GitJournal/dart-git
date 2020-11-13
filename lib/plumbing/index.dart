@@ -10,6 +10,8 @@ import 'package:meta/meta.dart';
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
 
+final _indexSignature = ascii.encode('DIRC');
+
 class GitIndex {
   int versionNo;
   var entries = <GitIndexEntry>[];
@@ -28,9 +30,7 @@ class GitIndex {
       throw Exception('GitIndexCorrupted: Invalid Signature lenght');
     }
 
-    var expectedSig = ascii.encode('DIRC');
-    Function eq = const ListEquality().equals;
-    if (!eq(sig, expectedSig)) {
+    if (!_listEq(sig, _indexSignature)) {
       throw Exception('GitIndexCorrupted: Invalid signature $sig');
     }
 
@@ -142,7 +142,7 @@ class GitIndex {
     var writer = ByteDataWriter();
 
     // Header
-    writer.write(ascii.encode('DIRC'));
+    writer.write(_indexSignature);
     writer.writeUint32(versionNo);
     writer.writeUint32(entries.length);
 
@@ -157,7 +157,7 @@ class GitIndex {
     return writer.toBytes();
   }
 
-  static final Function _listEq = const ListEquality().equals;
+  static final _listEq = const ListEquality().equals;
 
   void addPath(String path) async {
     var stat = await FileStat.stat(path);

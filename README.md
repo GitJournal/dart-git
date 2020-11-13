@@ -17,6 +17,13 @@ This is an experimental reimplementation of Git in pure Dart. The GitJournal pro
 Therefore, this is an experimental start at reimplementing Git in Dart. Right now the plan is to just implement a subset of features required by GitJournal.
 
 
+## Comparison with git
+
+*dart-git* aims to be fully compatible with [git](https://github.com/git/git), all the *porcelain* operations will be implemented to work exactly as *git* does.
+
+*Git* is a humongous project with years of development by thousands of contributors, *dart-git* does not aim to implement all its features. It's primarily driven by the needs of the GitJournal project. You can find a comparison of *go-git* vs *git* in the [compatibility documentation](COMPATIBILITY.md).
+
+
 ## License
 
 Affero General Public License 3.0, see [LICENSE](LICENSE)

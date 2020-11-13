@@ -98,6 +98,42 @@ void main() {
     expect(rIndex.entries, index.entries);
   });
 
+  test('Decode Merge Conflict', () {
+    // Test adapted from go-git/plumbing/format/index/decoder_test
+    var bytes =
+        File('test/data/indexes/index-4870d54b5b04e43da8cf99ceec179d9675494af8')
+            .readAsBytesSync();
+
+    var index = GitIndex.decode(bytes);
+
+    expect(index.versionNo, 2);
+    expect(index.entries.length, 13);
+
+    for (var i = 4; i < 7; i++) {
+      var e = index.entries[i];
+
+      expect(e.cTime.millisecondsSinceEpoch, 0);
+      expect(e.mTime.millisecondsSinceEpoch, 0);
+      expect(e.dev, 0);
+      expect(e.ino, 0);
+      expect(e.uid, 0);
+      expect(e.gid, 0);
+      expect(e.fileSize, 0);
+      expect(e.path, 'go/example.go');
+    }
+
+    expect(index.entries[4].stage, GitFileStage.AncestorMode);
+    expect(index.entries[5].stage, GitFileStage.OurMode);
+    expect(index.entries[6].stage, GitFileStage.TheirMode);
+
+    expect(index.entries[4].hash,
+        GitHash('880cd14280f4b9b6ed3986d6671f907d7cc2a198'));
+    expect(index.entries[5].hash,
+        GitHash('d499a1a0b79b7d87a35155afd0c1cce78b37a91c'));
+    expect(index.entries[6].hash,
+        GitHash('14f8e368114f561c38e134f6e68ea6fea12d77ed'));
+  });
+
   test('Decode go-git-fixtures indexes', () async {
     var dir = Directory('test/data/indexes');
     await for (var file in dir.list()) {

@@ -97,4 +97,15 @@ void main() {
     expect(rIndex.versionNo, index.versionNo);
     expect(rIndex.entries, index.entries);
   });
+
+  test('Decode go-git-fixtures indexes', () async {
+    var dir = Directory('test/data/indexes');
+    await for (var file in dir.list()) {
+      print('File: ${file.path}');
+      var bytes = await File(file.path).readAsBytes();
+      var index = GitIndex.decode(bytes);
+
+      expect(index.versionNo, 2);
+    }
+  }, skip: true);
 }

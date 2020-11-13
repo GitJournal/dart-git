@@ -7,7 +7,9 @@ import 'package:dart_git/plumbing/index.dart';
 
 void main() {
   test('Decode', () async {
-    var bytes = File('test/data/index').readAsBytesSync();
+    var bytes =
+        File('test/data/indexes/index-7a725350b88b05ca03541b59dd0649fda7f521f2')
+            .readAsBytesSync();
     var index = GitIndex.decode(bytes);
 
     expect(index.versionNo, 2);
@@ -15,7 +17,9 @@ void main() {
   });
 
   test('Decode Entries', () async {
-    var bytes = File('test/data/index').readAsBytesSync();
+    var bytes =
+        File('test/data/indexes/index-7a725350b88b05ca03541b59dd0649fda7f521f2')
+            .readAsBytesSync();
     var index = GitIndex.decode(bytes);
 
     var e = index.entries[0];
@@ -69,7 +73,9 @@ void main() {
           hash: GitHash('cf4aa3b38974fb7d81f367c0830f7d78d65ab86b')),
     ];
 
-    var bytes = File('test/data/index').readAsBytesSync();
+    var bytes =
+        File('test/data/indexes/index-7a725350b88b05ca03541b59dd0649fda7f521f2')
+            .readAsBytesSync();
     var index = GitIndex.decode(bytes);
     expect(index.cache, expectedEntries);
   });

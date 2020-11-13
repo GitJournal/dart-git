@@ -17,6 +17,7 @@ class GitIndex {
   var entries = <GitIndexEntry>[];
 
   List<TreeEntry> cache = []; // cached tree extension
+  EndOfIndexEntry endOfIndexEntry;
 
   GitIndex({@required this.versionNo});
 
@@ -66,19 +67,26 @@ class GitIndex {
     }
   }
 
-  bool _parseExtension(List<int> header, ByteDataReader reader) {
-    final treeHeader = ascii.encode('TREE');
-    final reucHeader = ascii.encode('REUC');
-    final eoicHeader = ascii.encode('EOIC');
+  static final _treeHeader = ascii.encode('TREE');
+  static final _reucHeader = ascii.encode('REUC');
+  static final _eoicHeader = ascii.encode('EOIC');
 
-    if (_listEq(header, treeHeader)) {
+  bool _parseExtension(List<int> header, ByteDataReader reader) {
+    if (_listEq(header, _treeHeader)) {
       var length = reader.readUint32();
       var data = reader.read(length);
       _parseCacheTreeExtension(data);
       return true;
     }
 
-    if (_listEq(header, reucHeader) || _listEq(header, eoicHeader)) {
+    if (_listEq(header, _eoicHeader)) {
+      var length = reader.readUint32();
+      var data = reader.read(length);
+      _parseEndOfIndexEntryExtension(data);
+      return true;
+    }
+
+    if (_listEq(header, _reucHeader)) {
       var length = reader.readUint32();
       reader.read(length); // Ignoring the data for now
       return true;
@@ -130,6 +138,21 @@ class GitIndex {
       );
       cache.add(treeEntry);
     }
+  }
+
+  void _parseEndOfIndexEntryExtension(Uint8List data) {
+    var reader = ByteDataReader(endian: Endian.big, copy: false);
+    reader.add(data);
+
+    if (endOfIndexEntry != null) {
+      throw Exception('Git Index "End of Index Extension" corrupted');
+    }
+    endOfIndexEntry = EndOfIndexEntry();
+    endOfIndexEntry.offset = reader.readUint32();
+
+    var bytes = reader.read(reader.remainingLength);
+    print(bytes.lengthInBytes);
+    endOfIndexEntry.hash = GitHash.fromBytes(reader.read(20));
   }
 
   List<int> serialize() {
@@ -383,6 +406,18 @@ class TreeEntry extends Equatable {
 
   @override
   bool get stringify => true;
+}
+
+/// EndOfIndexEntry is the End of Index Entry (EOIE) is used to locate the end of
+/// the variable length index entries and the beginning of the extensions. Code
+/// can take advantage of this to quickly locate the index extensions without
+/// having to parse through all of the index entries.
+///
+///  Because it must be able to be loaded before the variable length cache
+///  entries and other index extensions, this extension must be written last.
+class EndOfIndexEntry {
+  int offset;
+  GitHash hash;
 }
 
 class GitFileMode extends Equatable {

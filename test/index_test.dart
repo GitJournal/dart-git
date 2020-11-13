@@ -140,6 +140,20 @@ void main() {
         GitHash('14f8e368114f561c38e134f6e68ea6fea12d77ed'));
   });
 
+  test('End of index entry', () {
+    // Test adapted from go-git/plumbing/format/index/decoder_test
+    var bytes =
+        File('test/data/indexes/index-ab06771a67110b976953d34400d4dbc465ccd2d9')
+            .readAsBytesSync();
+
+    var index = GitIndex.decode(bytes);
+
+    expect(index.versionNo, 2);
+    expect(index.endOfIndexEntry.offset, 716);
+    expect(index.endOfIndexEntry.hash,
+        GitHash('922e89d9ffd7cefce93a211615b2053c0f42bd78'));
+  }, skip: true);
+
   test('Decode go-git-fixtures indexes', () async {
     var dir = Directory('test/data/indexes');
     await for (var file in dir.list()) {

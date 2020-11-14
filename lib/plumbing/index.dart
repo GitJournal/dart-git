@@ -36,14 +36,16 @@ class GitIndex {
     }
 
     versionNo = reader.readUint32();
-    if (versionNo <= 1 || versionNo >= 4) {
+    if (versionNo <= 1 || versionNo > 4) {
       throw Exception('GitIndexError: Version number not supported $versionNo');
     }
 
     // Read Index Entries
     var numEntries = reader.readUint32();
     for (var i = 0; i < numEntries; i++) {
-      var entry = GitIndexEntry.fromBytes(versionNo, bytes.length, reader);
+      var lastEntry = i == 0 ? null : entries[i - 1];
+      var entry =
+          GitIndexEntry.fromBytes(versionNo, bytes.length, reader, lastEntry);
       entries.add(entry);
     }
 
@@ -213,6 +215,9 @@ class GitIndexEntry {
 
   String path;
 
+  bool skipWorkTree;
+  bool intentToAdd;
+
   GitIndexEntry({
     @required this.cTime,
     @required this.mTime,
@@ -225,6 +230,8 @@ class GitIndexEntry {
     @required this.hash,
     this.stage = GitFileStage.Merged,
     @required this.path,
+    @required this.skipWorkTree,
+    @required this.intentToAdd,
   });
 
   GitIndexEntry.fromFS(String path, FileStat stat, GitHash hash) {
@@ -262,7 +269,11 @@ class GitIndexEntry {
   }
 
   GitIndexEntry.fromBytes(
-      int versionNo, int indexFileSize, ByteDataReader reader) {
+    int versionNo,
+    int indexFileSize,
+    ByteDataReader reader,
+    GitIndexEntry lastEntry,
+  ) {
     var startingBytes = indexFileSize - reader.remainingLength;
 
     var ctimeSeconds = reader.readUint32();
@@ -294,13 +305,22 @@ class GitIndexEntry {
     var flags = reader.readUint16();
     stage = GitFileStage((flags >> 12) & 0x3);
 
+    intentToAdd = false;
+    skipWorkTree = false;
+
     const hasExtendedFlag = 0x4000;
     if (flags & hasExtendedFlag != 0) {
       if (versionNo <= 2) {
         throw Exception('Index version 2 must not have an extended flag');
       }
-      reader.readUint16(); // extra Flags
-      // What to do with these extraFlags?
+
+      var extended = reader.readUint16(); // extra Flags
+
+      const intentToAddMask = 1 << 13;
+      const skipWorkTreeMask = 1 << 14;
+
+      intentToAdd = (extended & intentToAddMask) > 0;
+      skipWorkTree = (extended & skipWorkTreeMask) > 0;
     }
 
     // Read name
@@ -313,6 +333,15 @@ class GitIndexEntry {
         break;
 
       case 4:
+        var l = _readVariableWidthInt(reader);
+        var base = '';
+        if (lastEntry != null) {
+          base = lastEntry.path.substring(0, lastEntry.path.length - l);
+        }
+        var name = _readUntil(reader, 0x00);
+        path = base + utf8.decode(name);
+        break;
+
       default:
         throw Exception('Index version not supported');
     }
@@ -328,6 +357,10 @@ class GitIndexEntry {
   }
 
   Uint8List serialize() {
+    if (intentToAdd || skipWorkTree) {
+      throw Exception('Index Entry version not supported');
+    }
+
     var writer = ByteDataWriter(endian: Endian.big);
 
     cTime = cTime.toUtc();
@@ -384,10 +417,12 @@ class GitIndexEntry {
           fileSize == other.fileSize &&
           hash == other.hash &&
           stage == other.stage &&
-          path == other.path;
+          path == other.path &&
+          intentToAdd == other.intentToAdd &&
+          skipWorkTree == other.skipWorkTree;
 
   @override
-  int get hashCode => path.hashCode ^ hash.hashCode;
+  int get hashCode => serialize().hashCode;
 
   @override
   String toString() {
@@ -468,4 +503,60 @@ class GitFileStage extends Equatable {
 
   @override
   bool get stringify => true;
+}
+
+// ReadVariableWidthInt reads and returns an int in Git VLQ special format:
+//
+// Ordinary VLQ has some redundancies, example:  the number 358 can be
+// encoded as the 2-octet VLQ 0x8166 or the 3-octet VLQ 0x808166 or the
+// 4-octet VLQ 0x80808166 and so forth.
+//
+// To avoid these redundancies, the VLQ format used in Git removes this
+// prepending redundancy and extends the representable range of shorter
+// VLQs by adding an offset to VLQs of 2 or more octets in such a way
+// that the lowest possible value for such an (N+1)-octet VLQ becomes
+// exactly one more than the maximum possible value for an N-octet VLQ.
+// In particular, since a 1-octet VLQ can store a maximum value of 127,
+// the minimum 2-octet VLQ (0x8000) is assigned the value 128 instead of
+// 0. Conversely, the maximum value of such a 2-octet VLQ (0xff7f) is
+// 16511 instead of just 16383. Similarly, the minimum 3-octet VLQ
+// (0x808000) has a value of 16512 instead of zero, which means
+// that the maximum 3-octet VLQ (0xffff7f) is 2113663 instead of
+// just 2097151.  And so forth.
+//
+// This is how the offset is saved in C:
+//
+//     dheader[pos] = ofs & 127;
+//     while (ofs >>= 7)
+//         dheader[--pos] = 128 | (--ofs & 127);
+//
+
+final _maskContinue = 128; // 1000 000
+final _maskLength = 127; // 0111 1111
+final _lengthBits = 7; // subsequent bytes has 7 bits to store the length
+
+int _readVariableWidthInt(ByteDataReader file) {
+  var c = file.readInt8();
+
+  var v = (c & _maskLength);
+  while (c & _maskContinue > 0) {
+    v++;
+
+    c = file.readInt8();
+
+    v = (v << _lengthBits) + (c & _maskLength);
+  }
+
+  return v;
+}
+
+List<int> _readUntil(ByteDataReader file, int r) {
+  var l = <int>[];
+  while (true) {
+    var c = file.readInt8();
+    if (c == r) {
+      return l;
+    }
+    l.add(c);
+  }
 }

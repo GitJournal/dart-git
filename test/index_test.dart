@@ -94,6 +94,8 @@ void main() {
       stage: GitFileStage.TheirMode,
       hash: GitHash('e25b29c8946e0e192fae2edc1dabf7be71e8ecf3'),
       path: 'foo',
+      intentToAdd: false,
+      skipWorkTree: false,
     );
     index.entries.add(entry);
 
@@ -157,11 +159,42 @@ void main() {
   test('Decode go-git-fixtures indexes', () async {
     var dir = Directory('test/data/indexes');
     await for (var file in dir.list()) {
-      print('File: ${file.path}');
       var bytes = await File(file.path).readAsBytes();
       var index = GitIndex.decode(bytes);
 
-      expect(index.versionNo, 2);
+      expect(index.versionNo, inInclusiveRange(2, 4));
     }
-  }, skip: true);
+  });
+
+  test('decode v4', () async {
+    var bytes =
+        File('test/data/indexes/index-935e5ac17c41c309c356639816ea0694a568c484')
+            .readAsBytesSync();
+
+    var index = GitIndex.decode(bytes);
+
+    expect(index.versionNo, 4);
+    expect(index.entries.length, 11);
+
+    var names = [
+      '.gitignore',
+      'CHANGELOG',
+      'LICENSE',
+      'binary.jpg',
+      'go/example.go',
+      'haskal/haskal.hs',
+      'intent-to-add',
+      'json/long.json',
+      'json/short.json',
+      'php/crappy.php',
+      'vendor/foo.go',
+    ];
+
+    var actualNames = index.entries.map((e) => e.path);
+    expect(actualNames, names);
+
+    expect(index.entries[6].path, 'intent-to-add');
+    expect(index.entries[6].intentToAdd, true);
+    expect(index.entries[6].skipWorkTree, false);
+  });
 }

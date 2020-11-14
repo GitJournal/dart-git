@@ -1,5 +1,5 @@
 <p align="center">
-  <img height="250" width="auto" src="https://raw.githubusercontent.com/GitJournal/dart_git/master/assets/logo.png">
+  <img width="400" width="auto" src="https://raw.githubusercontent.com/GitJournal/dart_git/master/assets/logo.png">
   <br/>A Git Implementation in pure Dart
 </p>
 
@@ -21,7 +21,7 @@ Therefore, this is an experimental start at reimplementing Git in Dart. Right no
 
 *dart-git* aims to be fully compatible with [git](https://github.com/git/git), all the *porcelain* operations will be implemented to work exactly as *git* does.
 
-*Git* is a humongous project with years of development by thousands of contributors, *dart-git* does not aim to implement all its features. It's primarily driven by the needs of the GitJournal project. You can find a comparison of *go-git* vs *git* in the [compatibility documentation](COMPATIBILITY.md).
+*Git* is a humongous project with years of development by thousands of contributors, *dart-git* does not aim to implement all its features. It's primarily driven by the needs of the GitJournal project. You can find a comparison of *dart-git* vs *git* in the [compatibility documentation](COMPATIBILITY.md).
 
 
 ## License

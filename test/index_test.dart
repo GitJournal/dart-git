@@ -152,7 +152,7 @@ void main() {
     expect(index.endOfIndexEntry.offset, 716);
     expect(index.endOfIndexEntry.hash,
         GitHash('922e89d9ffd7cefce93a211615b2053c0f42bd78'));
-  }, skip: true);
+  });
 
   test('Decode go-git-fixtures indexes', () async {
     var dir = Directory('test/data/indexes');

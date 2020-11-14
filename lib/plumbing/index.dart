@@ -69,7 +69,7 @@ class GitIndex {
 
   static final _treeHeader = ascii.encode('TREE');
   static final _reucHeader = ascii.encode('REUC');
-  static final _eoicHeader = ascii.encode('EOIC');
+  static final _eoicHeader = ascii.encode('EOIE');
 
   bool _parseExtension(List<int> header, ByteDataReader reader) {
     if (_listEq(header, _treeHeader)) {
@@ -151,8 +151,10 @@ class GitIndex {
     endOfIndexEntry.offset = reader.readUint32();
 
     var bytes = reader.read(reader.remainingLength);
-    print(bytes.lengthInBytes);
-    endOfIndexEntry.hash = GitHash.fromBytes(reader.read(20));
+    if (bytes.length != 20) {
+      throw Exception('Git Index "End of Index Extension" hash corrupted');
+    }
+    endOfIndexEntry.hash = GitHash.fromBytes(bytes);
   }
 
   List<int> serialize() {

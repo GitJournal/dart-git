@@ -53,6 +53,7 @@ void main() {
   Future<void> _testGitCommand(
     String command, {
     bool containsMatch = false,
+    bool ignoreOutput = false,
   }) async {
     var outputL = <String>[];
     // hack: Untill we implement git fetch
@@ -64,10 +65,12 @@ void main() {
     var output = outputL.join('\n').trim();
     var expectedOutput = await runGitCommand(command, realGitDir);
 
-    if (!containsMatch) {
-      expect(output, expectedOutput);
-    } else {
-      expect(expectedOutput.contains(output), true);
+    if (!ignoreOutput) {
+      if (!containsMatch) {
+        expect(output, expectedOutput);
+      } else {
+        expect(expectedOutput.contains(output), true);
+      }
     }
     await testRepoEquals(dartGitDir, realGitDir);
   }
@@ -75,6 +78,7 @@ void main() {
   Future<void> _testCommands(
     List<String> commands, {
     bool emptyDirs = false,
+    bool ignoreOutput = false,
   }) async {
     if (emptyDirs) {
       await Directory(dartGitDir).delete(recursive: true);
@@ -87,7 +91,7 @@ void main() {
     for (var c in commands) {
       if (c.startsWith('git ')) {
         c = c.substring('git '.length);
-        await _testGitCommand(c);
+        await _testGitCommand(c, ignoreOutput: ignoreOutput);
       } else {
         await shell.run(
           c,
@@ -112,7 +116,7 @@ void main() {
     'write-tree',
     'rm LICENSE',
     'rm does-not-exist',
-    'branch -d not-existing'
+    'branch -d not-existing',
   ];
 
   for (var command in singleCommandTests) {

@@ -107,6 +107,6 @@ is supported by dart-git.
 | **other features** |
 | gitignore                             | ✖ |
 | gitattributes                         | ✖ |
-| index version                         | 2 or 3 |
+| index version                         | 2 - 4 |
 | packfile version                      | 2 |
 | push-certs                            | ✖ |

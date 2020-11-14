@@ -26,6 +26,6 @@ Therefore, this is an experimental start at reimplementing Git in Dart. Right no
 
 ## License
 
-This project has been heavily inspired by the [go-git](https://github.com/go-git/go-git/) project and has often adapted code from that project. [go-git] is licensed under Apache License Version 2.0
+This project has been heavily inspired by the [go-git](https://github.com/go-git/go-git/) project and has often adapted code from that project. go-git is licensed under Apache License Version 2.0
 
 dart-git is licensed under Affero General Public License 3.0, see [LICENSE](LICENSE)

@@ -59,15 +59,15 @@ DiffTreeResults diffTree(GitTree ta, GitTree tb) {
   var aPaths = <String, GitTreeEntry>{};
   var aPathSet = <String>{};
   for (var leaf in ta.entries) {
-    aPathSet.add(leaf.path);
-    aPaths[leaf.path] = leaf;
+    aPathSet.add(leaf.name);
+    aPaths[leaf.name] = leaf;
   }
 
   var bPaths = <String, GitTreeEntry>{};
   var bPathSet = <String>{};
   for (var leaf in tb.entries) {
-    bPathSet.add(leaf.path);
-    bPaths[leaf.path] = leaf;
+    bPathSet.add(leaf.name);
+    bPaths[leaf.name] = leaf;
   }
 
   var addedItems = <DiffTreeChange>[];

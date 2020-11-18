@@ -10,13 +10,13 @@ import 'package:dart_git/plumbing/objects/object.dart';
 
 class GitTreeEntry extends Equatable {
   final GitFileMode mode;
-  final String path;
+  final String name;
   final GitHash hash;
 
-  GitTreeEntry({@required this.mode, @required this.path, @required this.hash});
+  GitTreeEntry({@required this.mode, @required this.name, @required this.hash});
 
   @override
-  List<Object> get props => [mode, path, hash];
+  List<Object> get props => [mode, name, hash];
 
   @override
   bool get stringify => true;
@@ -39,12 +39,12 @@ class GitTree extends GitObject {
 
       var mode = raw.sublist(start, x);
       var y = raw.indexOf(0, x);
-      var path = raw.sublist(x + 1, y);
+      var name = raw.sublist(x + 1, y);
       var hashBytes = raw.sublist(y + 1, y + 21);
 
       var entry = GitTreeEntry(
         mode: GitFileMode.parse(ascii.decode(mode)),
-        path: utf8.decode(path),
+        name: utf8.decode(name),
         hash: GitHash.fromBytes(hashBytes),
       );
 
@@ -60,12 +60,12 @@ class GitTree extends GitObject {
 
     for (var e in entries) {
       assert(e.hash != null);
-      assert(e.path != null && e.path.isNotEmpty);
+      assert(e.name != null && e.name.isNotEmpty);
       assert(e.mode != null);
 
       data.addAll(ascii.encode(e.mode.toString()));
       data.add(asciiHelper.space);
-      data.addAll(utf8.encode(e.path));
+      data.addAll(utf8.encode(e.name));
       data.add(0x00);
       data.addAll(e.hash.bytes);
     }
@@ -84,7 +84,7 @@ class GitTree extends GitObject {
 
   void debugPrint() {
     for (var e in entries) {
-      print('${e.mode} ${e.path} ${e.hash}');
+      print('${e.mode} ${e.name} ${e.hash}');
     }
   }
 }

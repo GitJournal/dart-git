@@ -562,13 +562,13 @@ class GitRepository {
         var folderName = p.basename(dir);
         treeObjFullPath[parentTree] = parentDir;
 
-        var i = parentTree.entries.indexWhere((e) => e.path == folderName);
+        var i = parentTree.entries.indexWhere((e) => e.name == folderName);
         if (i != -1) {
           continue;
         }
         parentTree.entries.add(GitTreeEntry(
           mode: GitFileMode.Dir,
-          path: folderName,
+          name: folderName,
           hash: null,
         ));
       }
@@ -580,7 +580,7 @@ class GitRepository {
 
       var leaf = GitTreeEntry(
         mode: entry.mode,
-        path: fileName,
+        name: fileName,
         hash: entry.hash,
       );
       treeObjects[dirName].entries.add(leaf);
@@ -608,13 +608,13 @@ class GitRepository {
           continue;
         }
 
-        var fullPath = p.join(treeObjFullPath[tree], leaf.path);
+        var fullPath = p.join(treeObjFullPath[tree], leaf.name);
         var hash = hashMap[fullPath];
         assert(hash != null);
 
         tree.entries[i] = GitTreeEntry(
           mode: leaf.mode,
-          path: leaf.path,
+          name: leaf.name,
           hash: hash,
         );
       }
@@ -688,7 +688,7 @@ class GitRepository {
       var obj = await objStorage.readObjectFromHash(leaf.hash);
       assert(obj != null);
 
-      var leafRelativePath = p.join(relativePath, leaf.path);
+      var leafRelativePath = p.join(relativePath, leaf.name);
       if (obj is GitTree) {
         await _checkoutTree(leafRelativePath, obj, index);
         continue;

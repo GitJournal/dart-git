@@ -54,8 +54,8 @@ class DiffTreeCommand extends Command {
         state = 'D';
       }
 
-      var path = r.from.path;
-      print(':$prevMode $newMode ${r.from.hash} ${r.to.hash} $state\t$path');
+      var name = r.from.name;
+      print(':$prevMode $newMode ${r.from.hash} ${r.to.hash} $state\t$name');
     }
   }
 }

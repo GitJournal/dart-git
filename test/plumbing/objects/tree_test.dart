@@ -21,12 +21,12 @@ void main() {
     var leaf0 = tree.entries[0];
     expect(leaf0.mode.toString(), '100644');
     expect(leaf0.hash.toString(), '43fcaffe80f693d06f3c309e354bdbff5d6baa43');
-    expect(leaf0.path, 'c.md');
+    expect(leaf0.name, 'c.md');
 
     var leaf1 = tree.entries[1];
     expect(leaf1.mode.toString(), '100644');
     expect(leaf1.hash.toString(), '61f69766977e3d234e15bd1a58c01aa697039439');
-    expect(leaf1.path, 'd.md');
+    expect(leaf1.name, 'd.md');
 
     var fileRawBytes = await fs.file('test/data/tree').readAsBytes();
     var fileBytesDefalted = zlib.decode(fileRawBytes);

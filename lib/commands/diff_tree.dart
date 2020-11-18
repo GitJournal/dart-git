@@ -43,7 +43,7 @@ class DiffTreeCommand extends Command {
       await repo.objStorage.readObjectFromHash(tbHash),
     );
 
-    for (var r in results) {
+    for (var r in results.merged()) {
       var prevMode = r.prevMode.toString().padLeft(6, '0');
       var newMode = r.newMode.toString().padLeft(6, '0');
 

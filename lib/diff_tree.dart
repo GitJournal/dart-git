@@ -26,7 +26,25 @@ class DiffTreeItem {
   }
 }
 
-List<DiffTreeItem> diffTree(GitTree ta, GitTree tb) {
+class DiffTreeResults {
+  final List<DiffTreeItem> added;
+  final List<DiffTreeItem> modified;
+  final List<DiffTreeItem> removed;
+
+  DiffTreeResults({
+    @required this.added,
+    @required this.modified,
+    @required this.removed,
+  });
+
+  bool get isEmpty => added.isEmpty && modified.isEmpty && removed.isEmpty;
+
+  List<DiffTreeItem> merged() {
+    return [...added, ...removed, ...modified];
+  }
+}
+
+DiffTreeResults diffTree(GitTree ta, GitTree tb) {
   var aPaths = <String, GitTreeLeaf>{};
   var aPathSet = <String>{};
   for (var leaf in ta.leaves) {
@@ -41,18 +59,20 @@ List<DiffTreeItem> diffTree(GitTree ta, GitTree tb) {
     bPaths[leaf.path] = leaf;
   }
 
-  var results = <DiffTreeItem>[];
+  var addedItems = <DiffTreeItem>[];
+  var removedItems = <DiffTreeItem>[];
+  var modifiedItems = <DiffTreeItem>[];
 
   var removed = aPathSet.difference(bPathSet);
   for (var path in removed) {
     var item = DiffTreeItem(leaf: aPaths[path], newLeaf: null);
-    results.add(item);
+    removedItems.add(item);
   }
 
   var added = bPathSet.difference(aPathSet);
   for (var path in added) {
     var item = DiffTreeItem(leaf: null, newLeaf: bPaths[path]);
-    results.add(item);
+    addedItems.add(item);
   }
 
   var maybeModified = aPathSet.intersection(bPathSet);
@@ -61,9 +81,10 @@ List<DiffTreeItem> diffTree(GitTree ta, GitTree tb) {
     var bLeaf = bPaths[path];
     if (aLeaf.mode != bLeaf.mode || aLeaf.hash != bLeaf.hash) {
       var item = DiffTreeItem(leaf: aLeaf, newLeaf: bLeaf);
-      results.add(item);
+      modifiedItems.add(item);
     }
   }
 
-  return results;
+  return DiffTreeResults(
+      added: addedItems, modified: modifiedItems, removed: removedItems);
 }

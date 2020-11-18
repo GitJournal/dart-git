@@ -24,7 +24,7 @@ class LsTreeCommand extends Command {
     assert(obj is GitTree);
 
     var tree = obj as GitTree;
-    for (var leaf in tree.leaves) {
+    for (var leaf in tree.entries) {
       var leafObj = await repo.objStorage.readObjectFromHash(leaf.hash);
       var type = leafObj.formatStr();
       var mode = leaf.mode.toString()..padLeft(6, '0');

@@ -16,14 +16,14 @@ void main() {
     expect(obj is GitTree, equals(true));
 
     var tree = obj as GitTree;
-    expect(tree.leaves.length, 2);
+    expect(tree.entries.length, 2);
 
-    var leaf0 = tree.leaves[0];
+    var leaf0 = tree.entries[0];
     expect(leaf0.mode.toString(), '100644');
     expect(leaf0.hash.toString(), '43fcaffe80f693d06f3c309e354bdbff5d6baa43');
     expect(leaf0.path, 'c.md');
 
-    var leaf1 = tree.leaves[1];
+    var leaf1 = tree.entries[1];
     expect(leaf1.mode.toString(), '100644');
     expect(leaf1.hash.toString(), '61f69766977e3d234e15bd1a58c01aa697039439');
     expect(leaf1.path, 'd.md');

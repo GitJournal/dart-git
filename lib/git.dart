@@ -562,11 +562,11 @@ class GitRepository {
         var folderName = p.basename(dir);
         treeObjFullPath[parentTree] = parentDir;
 
-        var i = parentTree.leaves.indexWhere((e) => e.path == folderName);
+        var i = parentTree.entries.indexWhere((e) => e.path == folderName);
         if (i != -1) {
           continue;
         }
-        parentTree.leaves.add(GitTreeLeaf(
+        parentTree.entries.add(GitTreeEntry(
           mode: GitFileMode.Dir,
           path: folderName,
           hash: null,
@@ -578,12 +578,12 @@ class GitRepository {
         dirName = '';
       }
 
-      var leaf = GitTreeLeaf(
+      var leaf = GitTreeEntry(
         mode: entry.mode,
         path: fileName,
         hash: entry.hash,
       );
-      treeObjects[dirName].leaves.add(leaf);
+      treeObjects[dirName].entries.add(leaf);
     });
     assert(treeObjects.containsKey(''));
 
@@ -597,8 +597,8 @@ class GitRepository {
       var tree = treeObjects[dir];
       assert(tree != null);
 
-      for (var i = 0; i < tree.leaves.length; i++) {
-        var leaf = tree.leaves[i];
+      for (var i = 0; i < tree.entries.length; i++) {
+        var leaf = tree.entries[i];
 
         if (leaf.hash != null) {
           assert(await () async {
@@ -612,14 +612,14 @@ class GitRepository {
         var hash = hashMap[fullPath];
         assert(hash != null);
 
-        tree.leaves[i] = GitTreeLeaf(
+        tree.entries[i] = GitTreeEntry(
           mode: leaf.mode,
           path: leaf.path,
           hash: hash,
         );
       }
 
-      for (var leaf in tree.leaves) {
+      for (var leaf in tree.entries) {
         assert(leaf.hash != null);
       }
 
@@ -664,8 +664,27 @@ class GitRepository {
       String relativePath, GitTree tree, GitIndex index) async {
     assert(!relativePath.startsWith(p.separator));
 
-    var updated = 0;
+    var dir = fs.directory(p.join(workTree, relativePath));
+    await dir.create(recursive: true);
+
+    /*
+    // FIXME: We should really be smarter about this and not delete directories
+    // which don't need to be touch, basically minimize the amount of io
     for (var leaf in tree.leaves) {
+      var leafPath = p.join(workTree, relativePath, leaf.path);
+      if (leaf.mode == GitFileMode.Dir) {
+        var dir = fs.directory(leafPath);
+        await dir.delete(recursive: true);
+        continue;
+      }
+
+      var file = fs.file(leafPath);
+      await file.delete();
+    }
+    */
+
+    var updated = 0;
+    for (var leaf in tree.entries) {
       var obj = await objStorage.readObjectFromHash(leaf.hash);
       assert(obj != null);
 

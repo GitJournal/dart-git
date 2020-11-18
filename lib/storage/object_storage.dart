@@ -122,7 +122,7 @@ class ObjectStorage {
     var name = parts.item1;
     var remainingName = parts.item2;
 
-    for (var leaf in tree.leaves) {
+    for (var leaf in tree.entries) {
       if (leaf.path == name) {
         var obj = await readObjectFromHash(leaf.hash);
         if (remainingName.isEmpty) {

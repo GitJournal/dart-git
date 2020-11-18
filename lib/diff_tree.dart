@@ -13,8 +13,8 @@ class DiffTreeItem {
   final GitHash newHash;
 
   DiffTreeItem({
-    @required GitTreeLeaf leaf,
-    @required GitTreeLeaf newLeaf,
+    @required GitTreeEntry leaf,
+    @required GitTreeEntry newLeaf,
   })  : path = leaf != null ? leaf.path : newLeaf.path,
         prevMode = leaf != null ? leaf.mode : GitFileMode(0),
         prevHash = leaf != null ? leaf.hash : GitHash.zero(),
@@ -45,16 +45,16 @@ class DiffTreeResults {
 }
 
 DiffTreeResults diffTree(GitTree ta, GitTree tb) {
-  var aPaths = <String, GitTreeLeaf>{};
+  var aPaths = <String, GitTreeEntry>{};
   var aPathSet = <String>{};
-  for (var leaf in ta.leaves) {
+  for (var leaf in ta.entries) {
     aPathSet.add(leaf.path);
     aPaths[leaf.path] = leaf;
   }
 
-  var bPaths = <String, GitTreeLeaf>{};
+  var bPaths = <String, GitTreeEntry>{};
   var bPathSet = <String>{};
-  for (var leaf in tb.leaves) {
+  for (var leaf in tb.entries) {
     bPathSet.add(leaf.path);
     bPaths[leaf.path] = leaf;
   }

@@ -8,12 +8,12 @@ import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 
-class GitTreeLeaf extends Equatable {
+class GitTreeEntry extends Equatable {
   final GitFileMode mode;
   final String path;
   final GitHash hash;
 
-  GitTreeLeaf({@required this.mode, @required this.path, @required this.hash});
+  GitTreeEntry({@required this.mode, @required this.path, @required this.hash});
 
   @override
   List<Object> get props => [mode, path, hash];
@@ -27,7 +27,7 @@ class GitTree extends GitObject {
   static final List<int> _fmt = ascii.encode(fmt);
 
   final GitHash _hash;
-  List<GitTreeLeaf> leaves = [];
+  List<GitTreeEntry> entries = [];
 
   GitTree.empty() : _hash = null;
 
@@ -42,13 +42,13 @@ class GitTree extends GitObject {
       var path = raw.sublist(x + 1, y);
       var hashBytes = raw.sublist(y + 1, y + 21);
 
-      var leaf = GitTreeLeaf(
+      var entry = GitTreeEntry(
         mode: GitFileMode.parse(ascii.decode(mode)),
         path: utf8.decode(path),
         hash: GitHash.fromBytes(hashBytes),
       );
 
-      leaves.add(leaf);
+      entries.add(entry);
 
       start = y + 21;
     }
@@ -58,16 +58,16 @@ class GitTree extends GitObject {
   List<int> serializeData() {
     var data = <int>[];
 
-    for (var leaf in leaves) {
-      assert(leaf.hash != null);
-      assert(leaf.path != null && leaf.path.isNotEmpty);
-      assert(leaf.mode != null);
+    for (var e in entries) {
+      assert(e.hash != null);
+      assert(e.path != null && e.path.isNotEmpty);
+      assert(e.mode != null);
 
-      data.addAll(ascii.encode(leaf.mode.toString()));
+      data.addAll(ascii.encode(e.mode.toString()));
       data.add(asciiHelper.space);
-      data.addAll(utf8.encode(leaf.path));
+      data.addAll(utf8.encode(e.path));
       data.add(0x00);
-      data.addAll(leaf.hash.bytes);
+      data.addAll(e.hash.bytes);
     }
 
     return data;
@@ -83,8 +83,8 @@ class GitTree extends GitObject {
   GitHash hash() => _hash ?? GitHash.compute(serialize());
 
   void debugPrint() {
-    for (var leaf in leaves) {
-      print('${leaf.mode} ${leaf.path} ${leaf.hash}');
+    for (var e in entries) {
+      print('${e.mode} ${e.path} ${e.hash}');
     }
   }
 }

@@ -29,7 +29,8 @@ class CheckoutCommand extends Command {
 
       var remoteRef = await repo.remoteBranch(remoteName, remoteBranchName);
 
-      await repo.checkoutBranch(branchName, remoteRef.hash);
+      await repo.createBranch(branchName, remoteRef.hash);
+      await repo.checkoutBranch(branchName);
       await repo.setUpstreamTo(
           repo.config.remote(remoteName), remoteBranchName);
       print(

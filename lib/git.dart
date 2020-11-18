@@ -692,12 +692,14 @@ class GitRepository {
     return updated;
   }
 
-  /// Create a new branch with `branchName` which points to `hash`
-  /// and changes the workTree to match the hash
-  /// and updates HEAD to point to it
-  Future<void> checkoutBranch(String branchName, GitHash hash) async {
-    await createBranch(branchName, hash);
-    var obj = await objStorage.readObjectFromHash(hash);
+  Future<Reference> checkoutBranch(String branchName) async {
+    var ref = await refStorage.reference(ReferenceName.head(branchName));
+    if (ref == null) {
+      return null;
+    }
+    assert(ref.isHash);
+
+    var obj = await objStorage.readObjectFromHash(ref.hash);
     var commit = obj as GitCommit;
     var treeObj = await objStorage.readObjectFromHash(commit.treeHash);
 
@@ -710,6 +712,8 @@ class GitRepository {
     await fs
         .file(p.join(gitDir, 'HEAD'))
         .writeAsString('ref: ${refName.value}\n');
+
+    return ref;
   }
 
   Future<GitHash> deleteBranch(String branchName) async {

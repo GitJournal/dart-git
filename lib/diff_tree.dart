@@ -1,35 +1,46 @@
-import 'package:dart_git/git_hash.dart';
-import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 
 import 'package:meta/meta.dart';
 
-class DiffTreeItem {
-  final String path;
-  final GitFileMode prevMode;
-  final GitFileMode newMode;
+class DiffTreeChange {
+  final GitTreeEntry from;
+  final GitTreeEntry to;
 
-  final GitHash prevHash;
-  final GitHash newHash;
+  DiffTreeChange({
+    @required this.from,
+    @required this.to,
+  });
 
-  DiffTreeItem({
-    @required GitTreeEntry leaf,
-    @required GitTreeEntry newLeaf,
-  })  : path = leaf != null ? leaf.path : newLeaf.path,
-        prevMode = leaf != null ? leaf.mode : GitFileMode(0),
-        prevHash = leaf != null ? leaf.hash : GitHash.zero(),
-        newMode = newLeaf != null ? newLeaf.mode : GitFileMode(0),
-        newHash = newLeaf != null ? newLeaf.hash : GitHash.zero() {
-    if (leaf != null && newLeaf != null) {
-      assert(leaf.path == newLeaf.path);
-    }
-  }
+  bool get deleted => to == null;
+  bool get added => from == null;
+  bool get modified => to != null && from != null;
 }
 
+class Changes {
+  List<Change> added;
+  List<Change> removed;
+  List<Change> modified;
+}
+
+class Change {
+  ChangeEntry from;
+  ChangeEntry to;
+}
+
+class ChangeEntry {
+  String name;
+  GitTree tree;
+  GitTreeEntry entry;
+}
+
+//
+// diffTreeRecursive(...)
+//
+
 class DiffTreeResults {
-  final List<DiffTreeItem> added;
-  final List<DiffTreeItem> modified;
-  final List<DiffTreeItem> removed;
+  final List<DiffTreeChange> added;
+  final List<DiffTreeChange> modified;
+  final List<DiffTreeChange> removed;
 
   DiffTreeResults({
     @required this.added,
@@ -39,7 +50,7 @@ class DiffTreeResults {
 
   bool get isEmpty => added.isEmpty && modified.isEmpty && removed.isEmpty;
 
-  List<DiffTreeItem> merged() {
+  List<DiffTreeChange> merged() {
     return [...added, ...removed, ...modified];
   }
 }
@@ -59,19 +70,19 @@ DiffTreeResults diffTree(GitTree ta, GitTree tb) {
     bPaths[leaf.path] = leaf;
   }
 
-  var addedItems = <DiffTreeItem>[];
-  var removedItems = <DiffTreeItem>[];
-  var modifiedItems = <DiffTreeItem>[];
+  var addedItems = <DiffTreeChange>[];
+  var removedItems = <DiffTreeChange>[];
+  var modifiedItems = <DiffTreeChange>[];
 
   var removed = aPathSet.difference(bPathSet);
   for (var path in removed) {
-    var item = DiffTreeItem(leaf: aPaths[path], newLeaf: null);
+    var item = DiffTreeChange(from: aPaths[path], to: null);
     removedItems.add(item);
   }
 
   var added = bPathSet.difference(aPathSet);
   for (var path in added) {
-    var item = DiffTreeItem(leaf: null, newLeaf: bPaths[path]);
+    var item = DiffTreeChange(from: null, to: bPaths[path]);
     addedItems.add(item);
   }
 
@@ -80,7 +91,7 @@ DiffTreeResults diffTree(GitTree ta, GitTree tb) {
     var aLeaf = aPaths[path];
     var bLeaf = bPaths[path];
     if (aLeaf.mode != bLeaf.mode || aLeaf.hash != bLeaf.hash) {
-      var item = DiffTreeItem(leaf: aLeaf, newLeaf: bLeaf);
+      var item = DiffTreeChange(from: aLeaf, to: bLeaf);
       modifiedItems.add(item);
     }
   }

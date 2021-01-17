@@ -215,8 +215,8 @@ class GitIndexEntry {
 
   String path;
 
-  bool skipWorkTree;
-  bool intentToAdd;
+  bool skipWorkTree = false;
+  bool intentToAdd = false;
 
   GitIndexEntry({
     @required this.cTime,

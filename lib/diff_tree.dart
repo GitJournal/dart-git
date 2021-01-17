@@ -16,27 +16,6 @@ class DiffTreeChange {
   bool get modified => to != null && from != null;
 }
 
-class Changes {
-  List<Change> added;
-  List<Change> removed;
-  List<Change> modified;
-}
-
-class Change {
-  ChangeEntry from;
-  ChangeEntry to;
-}
-
-class ChangeEntry {
-  String name;
-  GitTree tree;
-  GitTreeEntry entry;
-}
-
-//
-// diffTreeRecursive(...)
-//
-
 class DiffTreeResults {
   final List<DiffTreeChange> added;
   final List<DiffTreeChange> modified;

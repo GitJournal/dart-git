@@ -44,18 +44,23 @@ class DiffTreeCommand extends Command {
     );
 
     for (var r in results.merged()) {
-      var prevMode = r.from.mode.toString().padLeft(6, '0');
-      var newMode = r.to.mode.toString().padLeft(6, '0');
+      var prevMode = ''.padLeft(6, '0');
+      var newMode = ''.padLeft(6, '0');
+      var prevHash = ''.padLeft(40, '0');
+      var newHash = ''.padLeft(40, '0');
 
       var state = 'M';
-      if (r.from.mode.isZero) {
+      if (r.added) {
         state = 'A';
-      } else if (r.to.mode.isZero) {
+        newMode = r.to.mode.toString().padLeft(6, '0');
+        newHash = r.to.hash.toString();
+      } else if (r.deleted) {
         state = 'D';
+        prevMode = r.from.mode.toString().padLeft(6, '0');
+        newHash = r.from.hash.toString();
       }
 
-      var name = r.from.name;
-      print(':$prevMode $newMode ${r.from.hash} ${r.to.hash} $state\t$name');
+      print(':$prevMode $newMode $prevHash $newHash $state\t${r.name}');
     }
   }
 }

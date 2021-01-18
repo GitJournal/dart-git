@@ -14,6 +14,8 @@ class DiffTreeChange {
   bool get deleted => to == null;
   bool get added => from == null;
   bool get modified => to != null && from != null;
+
+  String get name => from != null ? from.name : to.name;
 }
 
 class DiffTreeResults {
@@ -56,12 +58,14 @@ DiffTreeResults diffTree(GitTree ta, GitTree tb) {
   var removed = aPathSet.difference(bPathSet);
   for (var path in removed) {
     var item = DiffTreeChange(from: aPaths[path], to: null);
+    assert(item.deleted);
     removedItems.add(item);
   }
 
   var added = bPathSet.difference(aPathSet);
   for (var path in added) {
     var item = DiffTreeChange(from: null, to: bPaths[path]);
+    assert(item.added);
     addedItems.add(item);
   }
 
@@ -71,6 +75,7 @@ DiffTreeResults diffTree(GitTree ta, GitTree tb) {
     var bLeaf = bPaths[path];
     if (aLeaf.mode != bLeaf.mode || aLeaf.hash != bLeaf.hash) {
       var item = DiffTreeChange(from: aLeaf, to: bLeaf);
+      assert(item.modified);
       modifiedItems.add(item);
     }
   }

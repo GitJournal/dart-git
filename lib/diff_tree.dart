@@ -1,6 +1,7 @@
-import 'package:dart_git/plumbing/objects/tree.dart';
-
 import 'package:meta/meta.dart';
+
+import 'package:dart_git/plumbing/index.dart';
+import 'package:dart_git/plumbing/objects/tree.dart';
 
 class DiffTreeChange {
   final GitTreeEntry from;
@@ -16,6 +17,7 @@ class DiffTreeChange {
   bool get modified => to != null && from != null;
 
   String get name => from != null ? from.name : to.name;
+  GitFileMode get mode => from != null ? from.mode : to.mode;
 }
 
 class DiffTreeResults {
@@ -37,6 +39,14 @@ class DiffTreeResults {
 }
 
 DiffTreeResults diffTree(GitTree ta, GitTree tb) {
+  if (ta == null) {
+    var removed = tb.entries.map((e) => DiffTreeChange(from: null, to: e));
+    return DiffTreeResults(added: [], modified: [], removed: removed.toList());
+  } else if (tb == null) {
+    var added = ta.entries.map((e) => DiffTreeChange(from: e, to: null));
+    return DiffTreeResults(added: added.toList(), modified: [], removed: []);
+  }
+
   var aPaths = <String, GitTreeEntry>{};
   var aPathSet = <String>{};
   for (var leaf in ta.entries) {

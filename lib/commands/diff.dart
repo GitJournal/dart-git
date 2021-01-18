@@ -2,48 +2,46 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
-import 'package:dart_git/diff_tree.dart';
+import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
-import 'package:dart_git/plumbing/objects/commit.dart';
 
-class DiffTreeCommand extends Command {
+class DiffCommand extends Command {
   @override
-  final name = 'diff-tree';
+  final name = 'diff';
 
   @override
   final description =
-      'Compares the content and mode of blobs found via two tree objects';
+      'Show changes between commits, commit and working tree, etc';
+
+  DiffCommand() {
+    argParser.addFlag('raw');
+  }
 
   @override
   Future run() async {
+    var raw = argResults['raw'] as bool;
+    if (raw == false) {
+      print('Only supported with --raw');
+      return 1;
+    }
+
     var gitRootDir = GitRepository.findRootDir(Directory.current.path);
     var repo = await GitRepository.load(gitRootDir);
 
-    var hash = argResults.arguments[0];
-    var obj = await repo.objStorage.readObjectFromHash(GitHash(hash));
-    if (obj == null) {
-      print('fatal: bad object $hash');
-      return;
-    }
+    var fromStr = argResults.arguments[0];
+    var toStr = argResults.arguments[1];
 
-    if (obj is! GitCommit) {
-      print('error: object $hash is a ${obj.formatStr()}, not a commit');
-      return;
-    }
-    var commit = obj as GitCommit;
-    var parentHash = commit.parents.first;
-    var parentObj = await repo.objStorage.readObjectFromHash(parentHash);
+    var fromCommit = await repo.objStorage.readObjectFromHash(GitHash(fromStr));
+    var toCommit = await repo.objStorage.readObjectFromHash(GitHash(toStr));
 
-    var taHash = (parentObj as GitCommit).treeHash;
-    var tbHash = (obj as GitCommit).treeHash;
-
-    var results = diffTree(
-      await repo.objStorage.readObjectFromHash(taHash),
-      await repo.objStorage.readObjectFromHash(tbHash),
+    var changes = await diffCommits(
+      fromCommit: fromCommit,
+      toCommit: toCommit,
+      objStore: repo.objStorage,
     );
 
-    for (var r in results.merged()) {
+    for (var r in changes.merged()) {
       var prevMode = ''.padLeft(6, '0');
       var newMode = ''.padLeft(6, '0');
       var prevHash = ''.padLeft(40, '0');
@@ -65,7 +63,7 @@ class DiffTreeCommand extends Command {
         prevHash = r.from.hash.toString();
       }
 
-      print(':$prevMode $newMode $prevHash $newHash $state\t${r.name}');
+      print(':$prevMode $newMode $prevHash $newHash $state\t${r.path}');
     }
   }
 }

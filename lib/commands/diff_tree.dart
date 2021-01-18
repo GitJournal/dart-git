@@ -31,13 +31,13 @@ class DiffTreeCommand extends Command {
       print('error: object $hash is a ${obj.formatStr()}, not a commit');
       return;
     }
+    var commit = obj as GitCommit;
+    var parentHash = commit.parents.first;
+    var parentObj = await repo.objStorage.readObjectFromHash(parentHash);
 
-    var head = await repo.headHash();
-    var headCommit =
-        (await repo.objStorage.readObjectFromHash(head)) as GitCommit;
-
-    var taHash = headCommit.treeHash;
+    var taHash = (parentObj as GitCommit).treeHash;
     var tbHash = (obj as GitCommit).treeHash;
+
     var results = diffTree(
       await repo.objStorage.readObjectFromHash(taHash),
       await repo.objStorage.readObjectFromHash(tbHash),

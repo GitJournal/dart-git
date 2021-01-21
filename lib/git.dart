@@ -430,13 +430,12 @@ class GitRepository {
   Future<GitHash> rmFileFromIndex(GitIndex index, String filePath) async {
     var pathSpec = toPathSpec(_normalizePath(filePath));
 
-    var i = index.entries.indexWhere((e) => e.path == pathSpec);
-    if (i == -1) {
+    var hash = await index.removePath(pathSpec);
+    if (hash == null) {
       throw PathSpecInvalidException(pathSpec: filePath);
     }
 
-    var indexEntry = index.entries.removeAt(i);
-    return indexEntry.hash;
+    return hash;
   }
 
   Future<GitCommit> commit({

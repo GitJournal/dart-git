@@ -186,13 +186,38 @@ class GitIndex {
 
   static final _listEq = const ListEquality().equals;
 
-  void addPath(String path) async {
+  Future<void> addPath(String path, GitHash hash) async {
     var stat = await FileStat.stat(path);
-
-    var bytes = await File(path).readAsBytes();
-    var hash = GitHash.compute(bytes);
     var entry = GitIndexEntry.fromFS(path, stat, hash);
     entries.add(entry);
+  }
+
+  Future<void> updatePath(String path, GitHash hash) async {
+    var entry = entries.firstWhere((e) => e.path == path, orElse: () => null);
+    if (entry == null) {
+      return;
+    }
+
+    var stat = await FileStat.stat(path);
+
+    // Existing file
+    if (entry != null) {
+      entry.hash = hash;
+      entry.fileSize = stat.size;
+
+      entry.cTime = stat.changed;
+      entry.mTime = stat.modified;
+    }
+  }
+
+  Future<GitHash> removePath(String pathSpec) async {
+    var i = entries.indexWhere((e) => e.path == pathSpec);
+    if (i == -1) {
+      return null;
+    }
+
+    var indexEntry = entries.removeAt(i);
+    return indexEntry.hash;
   }
 }
 

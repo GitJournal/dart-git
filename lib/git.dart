@@ -385,20 +385,17 @@ class GitRepository {
     }
 
     // Add it to the index
-    GitIndexEntry entry;
-    for (var e in index.entries) {
-      if (e.path == pathSpec) {
-        entry = e;
-        break;
-      }
-    }
-
+    var entry = index.entries.firstWhere(
+      (e) => e.path == pathSpec,
+      orElse: () => null,
+    );
     var stat = await FileStat.stat(filePath);
 
     // Existing file
     if (entry != null) {
       entry.hash = hash;
       entry.fileSize = data.length;
+      assert(data.length == stat.size);
 
       entry.cTime = stat.changed;
       entry.mTime = stat.modified;

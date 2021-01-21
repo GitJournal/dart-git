@@ -627,22 +627,6 @@ class GitRepository {
     var dir = fs.directory(p.join(workTree, relativePath));
     await dir.create(recursive: true);
 
-    /*
-    // FIXME: We should really be smarter about this and not delete directories
-    // which don't need to be touch, basically minimize the amount of io
-    for (var leaf in tree.leaves) {
-      var leafPath = p.join(workTree, relativePath, leaf.path);
-      if (leaf.mode == GitFileMode.Dir) {
-        var dir = fs.directory(leafPath);
-        await dir.delete(recursive: true);
-        continue;
-      }
-
-      var file = fs.file(leafPath);
-      await file.delete();
-    }
-    */
-
     var updated = 0;
     for (var leaf in tree.entries) {
       var obj = await objStorage.readObjectFromHash(leaf.hash);
@@ -665,8 +649,6 @@ class GitRepository {
       await addFileToIndex(index, blobPath);
       updated++;
     }
-
-    // FIXME: What about removing the files from the prev tree?
 
     return updated;
   }

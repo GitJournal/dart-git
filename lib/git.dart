@@ -146,10 +146,7 @@ class GitRepository {
   }
 
   Future<GitHash> createBranch(String name, [GitHash hash]) async {
-    if (hash == null) {
-      var headRef = await resolveReference(await head());
-      hash = headRef.hash;
-    }
+    hash ??= await headHash();
 
     var branch = ReferenceName.branch(name);
     var ref = await refStorage.reference(branch);
@@ -234,6 +231,16 @@ class GitRepository {
   Future<GitHash> headHash() async {
     var ref = await refStorage.reference(ReferenceName('HEAD'));
     return (await resolveReference(ref)).hash;
+  }
+
+  Future<GitCommit> headCommit() async {
+    var hash = await headHash();
+    return await objStorage.readObjectFromHash(hash);
+  }
+
+  Future<GitTree> headTree() async {
+    var commit = await headCommit();
+    return await objStorage.readObjectFromHash(commit.treeHash);
   }
 
   Future<Reference> resolveReference(
@@ -593,16 +600,10 @@ class GitRepository {
   Future<int> checkout(String path) async {
     path = _normalizePath(path);
 
-    var headRef = await resolveReference(await head());
-
-    var obj = await objStorage.readObjectFromHash(headRef.hash);
-    var commit = obj as GitCommit;
-
-    obj = await objStorage.readObjectFromHash(commit.treeHash);
-    var tree = obj as GitTree;
+    var tree = await headTree();
 
     var spec = path.substring(workTree.length);
-    obj = await objStorage.refSpec(tree, spec);
+    var obj = await objStorage.refSpec(tree, spec);
     if (obj == null) {
       return null;
     }

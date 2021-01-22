@@ -139,7 +139,7 @@ class GitRepository {
       config.branches[branchName] = brConfig;
     }
     brConfig.remote = remote.name;
-    brConfig.merge = ReferenceName.head(remoteBranchName);
+    brConfig.merge = ReferenceName.branch(remoteBranchName);
 
     await saveConfig();
     return brConfig;
@@ -151,7 +151,7 @@ class GitRepository {
       hash = headRef.hash;
     }
 
-    var branch = ReferenceName.head(name);
+    var branch = ReferenceName.branch(name);
     var ref = await refStorage.reference(branch);
     if (ref != null) {
       throw BranchAlreadyExistsException(name);
@@ -481,7 +481,7 @@ class GitRepository {
       branchName = h.target.branchName();
     }
 
-    var newRef = Reference.hash(ReferenceName.head(branchName), hash);
+    var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
 
     await refStorage.saveRef(newRef);
 
@@ -654,7 +654,7 @@ class GitRepository {
   }
 
   Future<Reference> checkoutBranch(String branchName) async {
-    var ref = await refStorage.reference(ReferenceName.head(branchName));
+    var ref = await refStorage.reference(ReferenceName.branch(branchName));
     if (ref == null) {
       return null;
     }
@@ -669,7 +669,7 @@ class GitRepository {
     await writeIndex(index);
 
     // Set HEAD to to it
-    var refName = ReferenceName.head(branchName);
+    var refName = ReferenceName.branch(branchName);
     await fs
         .file(p.join(gitDir, 'HEAD'))
         .writeAsString('ref: ${refName.value}\n');
@@ -678,7 +678,7 @@ class GitRepository {
   }
 
   Future<GitHash> deleteBranch(String branchName) async {
-    var refName = ReferenceName.head(branchName);
+    var refName = ReferenceName.branch(branchName);
     var ref = await refStorage.reference(refName);
     if (ref == null) {
       return null;

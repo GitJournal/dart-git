@@ -62,7 +62,7 @@ class ReferenceName {
   ReferenceName.remote(String remote, String branch) {
     value = '$refRemotePrefix$remote/$branch';
   }
-  ReferenceName.head(String branch) {
+  ReferenceName.branch(String branch) {
     value = '$refHeadPrefix$branch';
   }
 

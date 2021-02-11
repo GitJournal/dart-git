@@ -687,7 +687,7 @@ class GitRepository {
 
         await index.updatePath(change.to.path, change.to.hash);
       } else if (change.deleted) {
-        await fs.file(change.from.path).delete();
+        await fs.file(change.from.path).delete(recursive: true);
 
         // FIXME: What if the parent directory also needs to be removed?
         var dir = fs.directory(p.dirname(change.from.path));

@@ -75,6 +75,9 @@ Future<CommitBlobChanges> diffCommits({
   @required GitCommit toCommit,
   @required ObjectStorage objStore,
 }) async {
+  assert(fromCommit != null);
+  assert(toCommit != null);
+
   var addedChanges = <Change>[];
   var removedChanges = <Change>[];
   var modifiedChanges = <Change>[];
@@ -94,6 +97,10 @@ Future<CommitBlobChanges> diffCommits({
 
   while (queue.isNotEmpty) {
     var item = queue.removeFirst();
+
+    if (item.fromTreeHash == item.toTreeHash) {
+      continue;
+    }
 
     GitTree fromTree = await objStore.readObjectFromHash(item.fromTreeHash);
     GitTree toTree = await objStore.readObjectFromHash(item.toTreeHash);

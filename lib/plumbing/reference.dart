@@ -46,6 +46,7 @@ class Reference {
   String toString() => isSymbolic ? '$name -> $target' : '$name -> sha1($hash)';
 }
 
+const refHead = 'HEAD';
 const refPrefix = 'refs/';
 const refHeadPrefix = refPrefix + 'heads/';
 const refTagPrefix = refPrefix + 'tags/';

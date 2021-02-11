@@ -179,4 +179,12 @@ void main() {
       'git remote rm origin',
     ], emptyDirs: true),
   );
+
+  test(
+    'git checkout branch',
+    () async => _testCommands([
+      'git branch branch-for-testing origin/branch-for-testing',
+      'git checkout branch-for-testing',
+    ], ignoreOutput: true),
+  );
 }

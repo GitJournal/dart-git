@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/config.dart';
+import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
@@ -131,6 +132,11 @@ class GitRepository {
   Future<BranchConfig> setUpstreamTo(
       GitRemoteConfig remote, String remoteBranchName) async {
     var branchName = await currentBranch();
+    return setBranchUpstreamTo(branchName, remote, remoteBranchName);
+  }
+
+  Future<BranchConfig> setBranchUpstreamTo(String branchName,
+      GitRemoteConfig remote, String remoteBranchName) async {
     var brConfig = await config.branch(branchName);
     if (brConfig == null) {
       brConfig = BranchConfig();
@@ -243,10 +249,8 @@ class GitRepository {
     return await objStorage.readObjectFromHash(commit.treeHash);
   }
 
-  Future<Reference> resolveReference(
-    Reference ref, {
-    bool recursive = true,
-  }) async {
+  Future<Reference> resolveReference(Reference ref,
+      {bool recursive = true}) async {
     if (ref.type == ReferenceType.Hash) {
       return ref;
     }
@@ -661,12 +665,45 @@ class GitRepository {
     }
     assert(ref.isHash);
 
-    var obj = await objStorage.readObjectFromHash(ref.hash);
-    var commit = obj as GitCommit;
-    var treeObj = await objStorage.readObjectFromHash(commit.treeHash);
+    var _headCommit = await headCommit();
+    var branchCommit =
+        await objStorage.readObjectFromHash(ref.hash) as GitCommit;
 
-    var index = GitIndex(versionNo: 2);
-    await _checkoutTree('', treeObj, index);
+    var blobChanges = await diffCommits(
+      fromCommit: _headCommit,
+      toCommit: branchCommit,
+      objStore: objStorage,
+    );
+    var index = await readIndex();
+
+    for (var change in blobChanges.merged()) {
+      if (change.added || change.modified) {
+        var obj = await objStorage.readObjectFromHash(change.to.hash);
+        var blobObj = obj as GitBlob;
+
+        // FIXME: Add file mode
+        await fs.directory(p.dirname(change.path)).create(recursive: true);
+        await fs.file(change.path).writeAsBytes(blobObj.blobData);
+
+        await index.updatePath(change.to.path, change.to.hash);
+      } else if (change.deleted) {
+        await fs.file(change.from.path).delete();
+
+        // FIXME: What if the parent directory also needs to be removed?
+        var dir = fs.directory(p.dirname(change.from.path));
+        await index.removePath(change.from.path);
+
+        var isEmpty = true;
+        await for (var _ in dir.list()) {
+          isEmpty = false;
+          break;
+        }
+        if (isEmpty) {
+          await dir.delete();
+        }
+      }
+    }
+
     await writeIndex(index);
 
     // Set HEAD to to it

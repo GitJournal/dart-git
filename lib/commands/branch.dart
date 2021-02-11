@@ -4,6 +4,8 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/config.dart';
 import 'package:dart_git/git.dart';
+import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/utils.dart';
 
 class BranchCommand extends Command {
   @override
@@ -68,7 +70,27 @@ class BranchCommand extends Command {
         }
         return;
       } else {
-        await repo.createBranch(argResults.rest.first);
+        var rest = argResults.rest;
+
+        if (rest.length == 1) {
+          await repo.createBranch(argResults.rest.first);
+        } else {
+          var parts = splitPath(argResults.rest[1]);
+          var remoteName = parts.item1;
+          var remoteBranchName = parts.item2;
+          var branchName = rest.first;
+
+          var refName = ReferenceName.remote(remoteName, remoteBranchName);
+          var ref = await repo.resolveReferenceName(refName);
+          assert(ref.isHash);
+          await repo.createBranch(branchName, ref.hash);
+
+          var remote = repo.config.remote(remoteName);
+          await repo.setBranchUpstreamTo(branchName, remote, remoteBranchName);
+
+          print(
+              "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
+        }
         return;
       }
     }
@@ -94,9 +116,9 @@ class BranchCommand extends Command {
       print("error: the requested upstream branch '$upstream' does not exist");
     }
 
-    var parts = upstream.split('/');
-    var remoteName = parts[0];
-    var remoteBranchName = parts.getRange(1, parts.length).join('/');
+    var parts = splitPath(upstream);
+    var remoteName = parts.item1;
+    var remoteBranchName = parts.item2;
 
     var remote = repo.config.remote(remoteName);
     if (remote == null) {

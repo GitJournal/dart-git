@@ -195,6 +195,9 @@ class GitIndex {
   Future<void> updatePath(String path, GitHash hash) async {
     var entry = entries.firstWhere((e) => e.path == path, orElse: () => null);
     if (entry == null) {
+      var stat = await FileStat.stat(path);
+      var entry = GitIndexEntry.fromFS(path, stat, hash);
+      entries.add(entry);
       return;
     }
 

@@ -23,14 +23,27 @@ class CheckoutCommand extends Command {
 
     var branchName = argResults['branch'] as String;
     if (branchName.isNotEmpty) {
-      var remoteFullBranchName = argResults.rest[0];
+      var remoteFullBranchName = '';
+      if (argResults.rest.isNotEmpty) {
+        remoteFullBranchName = argResults.rest[0];
+      } else {
+        var branches = await repo.branches();
+        if (branches.contains(branchName)) {
+          await repo.checkoutBranch(branchName);
+          return;
+        } else {
+          // FIXME: This should lookup which remote has it
+          remoteFullBranchName = 'origin/$branchName';
+        }
+      }
+
       var remoteName = splitPath(remoteFullBranchName).item1;
       var remoteBranchName = splitPath(remoteFullBranchName).item2;
 
       var remoteRef = await repo.remoteBranch(remoteName, remoteBranchName);
 
       await repo.createBranch(branchName, remoteRef.hash);
-      await repo.checkoutBranch(branchName);
+      await repo.checkout('.');
       await repo.setUpstreamTo(
           repo.config.remote(remoteName), remoteBranchName);
       print(
@@ -40,6 +53,7 @@ class CheckoutCommand extends Command {
       if (headRef.target.branchName() == branchName) {
         print("Already on '$branchName'");
       }
+
       return;
     }
 
@@ -49,6 +63,13 @@ class CheckoutCommand extends Command {
     }
 
     var pathSpec = argResults.arguments[0];
+    var branches = await repo.branches();
+    if (branches.contains(pathSpec)) {
+      await repo.checkoutBranch(pathSpec);
+      return;
+    }
+
+    // TODO: Check if one of the remotes contains this branch
 
     var objectsUpdated = await repo.checkout(pathSpec);
 
@@ -60,3 +81,7 @@ class CheckoutCommand extends Command {
     print('Updated $objectsUpdated path from the index');
   }
 }
+
+Future<void> checkoutPathSpec(GitRepository repo, String pathSpec) async {}
+Future<void> checkoutBranch(GitRepository repo, String branch) async {}
+Future<void> checkoutRemoteBranch(GitRepository repo, String branch) async {}

@@ -713,10 +713,9 @@ class GitRepository {
     await writeIndex(index);
 
     // Set HEAD to to it
-    var refName = ReferenceName.branch(branchName);
-    await fs
-        .file(p.join(gitDir, 'HEAD'))
-        .writeAsString('ref: ${refName.value}\n');
+    var branchRef = ReferenceName.branch(branchName);
+    var headRef = Reference('HEAD', branchRef.value);
+    await refStorage.saveRef(headRef);
 
     return ref;
   }

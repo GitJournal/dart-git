@@ -38,3 +38,12 @@ class BranchAlreadyExistsException implements GitFatalException {
   @override
   String toString() => "fatal: A branch named '$branchName' already exists.";
 }
+
+class GitIndexCorruptedException implements GitFatalException {
+  final String reason;
+
+  GitIndexCorruptedException(this.reason);
+
+  @override
+  String toString() => 'fatal: GitIndexCorrupted: $reason';
+}

@@ -8,6 +8,7 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 import 'package:dart_git/ascii_helper.dart';
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 
 final _indexSignature = ascii.encode('DIRC');
@@ -28,11 +29,11 @@ class GitIndex {
     // Read 12 byte header
     var sig = reader.read(4);
     if (sig.length != 4) {
-      throw Exception('GitIndexCorrupted: Invalid Signature lenght');
+      throw GitIndexCorruptedException('Invalid Signature lenght');
     }
 
     if (!_listEq(sig, _indexSignature)) {
-      throw Exception('GitIndexCorrupted: Invalid signature $sig');
+      throw GitIndexCorruptedException('Invalid signature $sig');
     }
 
     versionNo = reader.readUint32();
@@ -65,7 +66,7 @@ class GitIndex {
     if (expectedHash != actualHash) {
       print('ExpctedHash: $expectedHash');
       print('ActualHash:  $actualHash');
-      throw Exception('Index file seems to be corrupted');
+      throw GitIndexCorruptedException('Invalid Hash');
     }
   }
 
@@ -102,14 +103,14 @@ class GitIndex {
     while (pos < data.length) {
       var pathEndPos = data.indexOf(0, pos);
       if (pathEndPos == -1) {
-        throw Exception('Git Cache Index corrupted');
+        throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
       var path = data.sublist(pos, pathEndPos);
       pos = pathEndPos + 1;
 
       var entryCountEndPos = data.indexOf(asciiHelper.space, pos);
       if (entryCountEndPos == -1) {
-        throw Exception('Git Cache Index corrupted');
+        throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
       var entryCount = data.sublist(pos, entryCountEndPos);
       pos = entryCountEndPos + 1;
@@ -123,7 +124,7 @@ class GitIndex {
 
       var numSubtreeEndPos = data.indexOf(asciiHelper.newLine, pos);
       if (numSubtreeEndPos == -1) {
-        throw Exception('Git Cache Index corrupted');
+        throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
       var numSubTree = data.sublist(pos, numSubtreeEndPos);
       pos = numSubtreeEndPos + 1;
@@ -147,14 +148,16 @@ class GitIndex {
     reader.add(data);
 
     if (endOfIndexEntry != null) {
-      throw Exception('Git Index "End of Index Extension" corrupted');
+      throw GitIndexCorruptedException(
+          'Git Index "End of Index Extension" corrupted');
     }
     endOfIndexEntry = EndOfIndexEntry();
     endOfIndexEntry.offset = reader.readUint32();
 
     var bytes = reader.read(reader.remainingLength);
     if (bytes.length != 20) {
-      throw Exception('Git Index "End of Index Extension" hash corrupted');
+      throw GitIndexCorruptedException(
+          'Git Index "End of Index Extension" hash corrupted');
     }
     endOfIndexEntry.hash = GitHash.fromBytes(bytes);
   }

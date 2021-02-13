@@ -76,6 +76,9 @@ class GitRepository {
     }
 
     var configPath = p.join(repo.gitDir, 'config');
+    if (!fs.isFileSync(configPath)) {
+      throw InvalidRepoException(gitRootDir);
+    }
     var configFileContents = await fs.file(configPath).readAsString();
     repo.config = Config(configFileContents);
 

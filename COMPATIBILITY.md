@@ -20,7 +20,7 @@ is supported by dart-git.
 | mv                                    | ✖ |
 | **branching and merging** |
 | branch                                | ✔ |
-| checkout                              | ✖ | Basic usages of checkout are supported. |
+| checkout                              | ✔ | Basic usages of checkout are supported. |
 | merge                                 | ✖ |
 | mergetool                             | ✖ |
 | stash                                 | ✖ |
@@ -32,7 +32,7 @@ is supported by dart-git.
 | remote                                | ✖ |
 | submodule                             | ✖ |
 | **inspection and comparison** |
-| show                                  | ✔ |
+| show                                  | ✖ |
 | log                                   | ✔ |
 | shortlog                              | (see log) |
 | describe                              | |

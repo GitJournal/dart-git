@@ -63,22 +63,13 @@ class GitRepository {
   static Future<GitRepository> load(String gitRootDir, {FileSystem fs}) async {
     fs ??= const LocalFileSystem();
 
+    if (!(await isValidRepo(gitRootDir, fs: fs))) {
+      throw InvalidRepoException(gitRootDir);
+    }
+
     var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
 
-    var isDir = await fs.isDirectory(gitRootDir);
-    if (!isDir) {
-      throw InvalidRepoException(gitRootDir);
-    }
-
-    var dotGitExists = await fs.isDirectory(repo.gitDir);
-    if (!dotGitExists) {
-      throw InvalidRepoException(gitRootDir);
-    }
-
     var configPath = p.join(repo.gitDir, 'config');
-    if (!fs.isFileSync(configPath)) {
-      throw InvalidRepoException(gitRootDir);
-    }
     var configFileContents = await fs.file(configPath).readAsString();
     repo.config = Config(configFileContents);
 
@@ -86,6 +77,28 @@ class GitRepository {
     repo.refStorage = ReferenceStorage(repo.gitDir, fs);
 
     return repo;
+  }
+
+  static Future<bool> isValidRepo(String gitRootDir, {FileSystem fs}) async {
+    fs ??= const LocalFileSystem();
+
+    var isDir = await fs.isDirectory(gitRootDir);
+    if (!isDir) {
+      return false;
+    }
+
+    var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
+    var dotGitExists = await fs.isDirectory(repo.gitDir);
+    if (!dotGitExists) {
+      return false;
+    }
+
+    var configPath = p.join(repo.gitDir, 'config');
+    if (!fs.isFileSync(configPath)) {
+      return false;
+    }
+
+    return true;
   }
 
   static Future<void> init(String path, {FileSystem fs}) async {

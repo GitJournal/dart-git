@@ -173,13 +173,17 @@ class GitRepository {
     return brConfig;
   }
 
-  Future<GitHash> createBranch(String name, [GitHash hash]) async {
+  Future<GitHash> createBranch(
+    String name, {
+    GitHash hash,
+    bool overwrite = false,
+  }) async {
     hash ??= await headHash();
 
     var branch = ReferenceName.branch(name);
     var ref = await refStorage.reference(branch);
-    if (ref != null) {
-      throw BranchAlreadyExistsException(name);
+    if (!overwrite && ref != null) {
+      return null;
     }
 
     await refStorage.saveRef(Reference.hash(branch, hash));

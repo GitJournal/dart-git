@@ -354,6 +354,46 @@ class GitRepository {
     return parents.isEmpty ? -1 : seen.length;
   }
 
+  Future<Reference> guessRemoteHead(String remoteName) async {
+    // See: https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/25430727#25430727
+    //      https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/8841024#8841024
+    //
+    // The ideal way is to use https://libgit2.org/libgit2/#HEAD/group/remote/git_remote_default_branch
+    //
+    var branches = await remoteBranches(remoteName);
+    if (branches.isEmpty) {
+      return null;
+    }
+
+    var i = branches.indexWhere((b) => b.name.branchName() == 'HEAD');
+    if (i != -1) {
+      var remoteHead = branches[i];
+      assert(remoteHead.isSymbolic);
+
+      return resolveReference(remoteHead);
+    } else {
+      branches = branches.where((b) => b.name.branchName() != 'HEAD').toList();
+    }
+
+    if (branches.length == 1) {
+      return branches[0];
+    }
+
+    var mi = branches.indexWhere((e) => e.name.branchName() == 'master');
+    if (mi != -1) {
+      return branches[mi];
+    }
+
+    mi = branches.indexWhere((e) => e.name.branchName() == 'main');
+    if (mi != -1) {
+      return branches[mi];
+    }
+
+    // Return the first alphabetical one
+    branches.sort((a, b) => a.name.branchName().compareTo(b.name.branchName()));
+    return branches[0];
+  }
+
   Future<GitIndex> readIndex() async {
     var file = fs.file(p.join(gitDir, 'index'));
     if (!file.existsSync()) {

@@ -27,6 +27,10 @@ class Reference {
     type = ReferenceType.Hash;
   }
 
+  Reference.symbolic(this.name, this.target) {
+    type = ReferenceType.Symbolic;
+  }
+
   String toDisplayString() {
     switch (type) {
       case ReferenceType.Hash:

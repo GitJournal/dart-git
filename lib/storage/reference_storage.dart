@@ -87,8 +87,12 @@ class ReferenceStorage {
 
     await fs.directory(p.dirname(refFileName)).create(recursive: true);
     var file = fs.file(refFileName2);
-    await file.writeAsString(ref.hash.toString() + '\n', flush: true);
-
+    if (ref.isHash) {
+      await file.writeAsString(ref.hash.toString() + '\n', flush: true);
+    } else if (ref.isSymbolic) {
+      var val = symbolicRefPrefix + ref.target.value;
+      await file.writeAsString(val + '\n', flush: true);
+    }
     await file.rename(refFileName);
   }
 

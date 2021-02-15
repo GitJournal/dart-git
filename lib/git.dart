@@ -774,7 +774,7 @@ class GitRepository {
 
     // Set HEAD to to it
     var branchRef = ReferenceName.branch(branchName);
-    var headRef = Reference('HEAD', branchRef.value);
+    var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
     await refStorage.saveRef(headRef);
 
     return ref;

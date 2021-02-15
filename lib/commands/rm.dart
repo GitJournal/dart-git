@@ -19,7 +19,11 @@ class RmCommand extends Command {
     var filePath = argResults.arguments[0];
     var index = await repo.readIndex();
 
-    await repo.rmFileFromIndex(index, filePath);
+    var hash = await repo.rmFileFromIndex(index, filePath);
+    if (hash == null) {
+      print("fatal: pathspec '$filePath' did not match any files");
+      return;
+    }
     if (File(filePath).existsSync()) {
       await File(filePath).delete(recursive: true);
     }

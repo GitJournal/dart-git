@@ -443,12 +443,12 @@ class GitRepository {
     return aheadBy != -1 ? aheadBy : 0;
   }
 
-  Future<void> addFileToIndex(GitIndex index, String filePath) async {
+  Future<GitIndexEntry> addFileToIndex(GitIndex index, String filePath) async {
     filePath = _normalizePath(filePath);
 
     var file = fs.file(filePath);
     if (!file.existsSync()) {
-      throw Exception("fatal: pathspec '$filePath' did not match any files");
+      return null;
     }
 
     // Save that file as a blob
@@ -476,12 +476,13 @@ class GitRepository {
 
       entry.cTime = stat.changed;
       entry.mTime = stat.modified;
-      return;
+      return entry;
     }
 
     // New file
     entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
     index.entries.add(entry);
+    return entry;
   }
 
   Future<void> addDirectoryToIndex(GitIndex index, String dirPath,
@@ -499,20 +500,13 @@ class GitRepository {
         continue;
       }
 
-      print(fsEntity.path);
       await addFileToIndex(index, fsEntity.path);
     }
   }
 
   Future<GitHash> rmFileFromIndex(GitIndex index, String filePath) async {
     var pathSpec = toPathSpec(_normalizePath(filePath));
-
-    var hash = await index.removePath(pathSpec);
-    if (hash == null) {
-      throw PathSpecInvalidException(pathSpec: filePath);
-    }
-
-    return hash;
+    return index.removePath(pathSpec);
   }
 
   Future<GitCommit> commit({

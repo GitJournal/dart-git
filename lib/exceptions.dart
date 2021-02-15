@@ -21,15 +21,6 @@ class PathSpecOutsideRepoException implements GitFatalException {
   String toString() => "fatal: $pathSpec: '$pathSpec' is outside repository";
 }
 
-class PathSpecInvalidException implements GitFatalException {
-  final String pathSpec;
-
-  PathSpecInvalidException({@required this.pathSpec});
-
-  @override
-  String toString() => "fatal: pathspec '$pathSpec' did not match any files";
-}
-
 class GitIndexCorruptedException implements GitFatalException {
   final String reason;
 

@@ -158,7 +158,7 @@ class PackFile {
 
       var obj = await _getObject(entry.offset);
 
-      assert(obj.hash() == entry.hash);
+      assert(obj.hash == entry.hash);
       objects.add(obj);
     }
 

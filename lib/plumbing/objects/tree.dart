@@ -26,7 +26,7 @@ class GitTree extends GitObject {
   static const String fmt = ObjectTypes.TREE_STR;
   static final List<int> _fmt = ascii.encode(fmt);
 
-  final GitHash _hash;
+  GitHash _hash;
   List<GitTreeEntry> entries = [];
 
   GitTree.empty() : _hash = null;
@@ -80,7 +80,10 @@ class GitTree extends GitObject {
   String formatStr() => fmt;
 
   @override
-  GitHash hash() => _hash ?? GitHash.compute(serialize());
+  GitHash get hash {
+    _hash ??= GitHash.compute(serialize());
+    return _hash;
+  }
 
   void debugPrint() {
     for (var e in entries) {

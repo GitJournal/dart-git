@@ -30,7 +30,7 @@ class MergeBaseCommand extends Command {
     var b = await repo.objStorage.readObjectFromHash(bHash);
 
     if (a == b) {
-      print(a.hash());
+      print(a.hash);
       return;
     }
   }

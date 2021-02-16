@@ -74,7 +74,7 @@ class GitCommit extends GitObject {
   List<GitHash> parents = [];
   String gpgSig;
 
-  final GitHash _hash;
+  GitHash _hash;
 
   GitCommit.create({
     @required this.author,
@@ -134,7 +134,10 @@ class GitCommit extends GitObject {
   String formatStr() => fmt;
 
   @override
-  GitHash hash() => _hash ?? GitHash.compute(serialize());
+  GitHash get hash {
+    _hash ??= GitHash.compute(serialize());
+    return _hash;
+  }
 }
 
 Map<String, dynamic> kvlmParse(List<int> raw) {

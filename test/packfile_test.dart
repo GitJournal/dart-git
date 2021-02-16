@@ -28,7 +28,7 @@ void main() {
     var i = 0;
     var objects = await packfile.getAll();
     for (var obj in objects) {
-      expect(obj.hash().toString(), expectedHashes[i]);
+      expect(obj.hash.toString(), expectedHashes[i]);
       i++;
     }
     expect(i, expectedHashes.length);
@@ -61,7 +61,7 @@ void main() {
 
     var actualHashes = <String>[];
     for (var obj in objects) {
-      actualHashes.add(obj.hash().toString());
+      actualHashes.add(obj.hash.toString());
     }
 
     expectedHashes.sort();

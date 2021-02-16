@@ -46,7 +46,7 @@ Also add tons of comments
         [GitHash('69cf15d1783f903287d0bebc870e11b2992bc4f6')]);
 
     expect(utf8.decode(commitObj.serializeData()), contents);
-    expect(commitObj.hash(), hash);
+    expect(commitObj.hash, hash);
   });
 
   test('Commit with GPG', () {

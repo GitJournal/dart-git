@@ -27,7 +27,7 @@ abstract class GitObject {
   List<int> format();
   String formatStr();
 
-  GitHash hash();
+  GitHash get hash;
 
   @override
   bool operator ==(Object other) =>

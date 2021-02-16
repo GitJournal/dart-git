@@ -48,7 +48,7 @@ class HashObjectCommand extends Command {
     if (argResults['write'] as bool) {
       hash = await repo.objStorage.writeObject(obj);
     } else {
-      hash = obj.hash();
+      hash = obj.hash;
     }
     print(hash);
   }

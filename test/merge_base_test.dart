@@ -149,8 +149,8 @@ void main() {
         var output = await commitsFromRevs(repo, t.output);
         output.sort(sortByHash);
 
-        var actual = result.map((r) => r.hash()).toList();
-        var expected = output.map((r) => r.hash()).toList();
+        var actual = result.map((r) => r.hash).toList();
+        var expected = output.map((r) => r.hash).toList();
 
         expect(actual, expected);
       });
@@ -170,5 +170,5 @@ Future<List<GitCommit>> commitsFromRevs(
 }
 
 int sortByHash(GitObject a, GitObject b) {
-  return a.hash().toString().compareTo(b.hash().toString());
+  return a.hash.toString().compareTo(b.hash.toString());
 }

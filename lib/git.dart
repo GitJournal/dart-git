@@ -262,16 +262,30 @@ class GitRepository {
 
   Future<GitHash> headHash() async {
     var ref = await refStorage.reference(ReferenceName('HEAD'));
-    return (await resolveReference(ref)).hash;
+    if (ref == null) {
+      return null;
+    }
+
+    ref = await resolveReference(ref);
+    if (ref == null) {
+      return null;
+    }
+    return ref.hash;
   }
 
   Future<GitCommit> headCommit() async {
     var hash = await headHash();
+    if (hash == null) {
+      return null;
+    }
     return await objStorage.readObjectFromHash(hash);
   }
 
   Future<GitTree> headTree() async {
     var commit = await headCommit();
+    if (commit == null) {
+      return null;
+    }
     return await objStorage.readObjectFromHash(commit.treeHash);
   }
 
@@ -726,6 +740,24 @@ class GitRepository {
     assert(ref.isHash);
 
     var _headCommit = await headCommit();
+
+    if (_headCommit == null) {
+      var obj = await objStorage.readObjectFromHash(ref.hash);
+      var commit = obj as GitCommit;
+      var treeObj = await objStorage.readObjectFromHash(commit.treeHash);
+
+      var index = GitIndex(versionNo: 2);
+      await _checkoutTree('', treeObj, index);
+      await writeIndex(index);
+
+      // Set HEAD to to it
+      var branchRef = ReferenceName.branch(branchName);
+      var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
+      await refStorage.saveRef(headRef);
+
+      return ref;
+    }
+
     var branchCommit =
         await objStorage.readObjectFromHash(ref.hash) as GitCommit;
 

@@ -162,10 +162,10 @@ void main() {
   test(
     'git remote',
     () async => _testCommands([
-      'git remote add origin2 foo',
+      'git remote add origin2í foo',
       'git remote',
       'git remote -v',
-      'git remote rm origin2'
+      'git remote rm origin2í'
     ]),
   );
 
@@ -183,8 +183,8 @@ void main() {
   test(
     'git checkout branch',
     () async => _testCommands([
-      'git branch branch-for-testing origin/branch-for-testing',
-      'git checkout branch-for-testing',
+      'git branch branch-for-ítesting origin/branch-for-testing',
+      'git checkout branch-for-ítesting',
     ], ignoreOutput: true),
   );
 }

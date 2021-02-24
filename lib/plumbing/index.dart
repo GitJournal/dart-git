@@ -64,7 +64,7 @@ class GitIndex {
     var actualHash = GitHash.compute(
         bytes.sublist(0, bytes.length - 20)); // FIXME: Avoid this copy!
     if (expectedHash != actualHash) {
-      print('ExpctedHash: $expectedHash');
+      print('ExpectedHash: $expectedHash');
       print('ActualHash:  $actualHash');
       throw GitIndexCorruptedException('Invalid Hash');
     }
@@ -416,18 +416,19 @@ class GitIndexEntry {
     var flags = (stage.val & 0x3) << 12;
     const nameMask = 0xfff;
 
-    if (path.length < nameMask) {
-      flags |= path.length;
+    var pathUtf8 = utf8.encode(path);
+    if (pathUtf8.length < nameMask) {
+      flags |= pathUtf8.length;
     } else {
       flags |= nameMask;
     }
 
     writer.writeUint16(flags);
-    writer.write(ascii.encode(path));
+    writer.write(pathUtf8); // This is a problem!
 
     // Add padding
     const entryHeaderLength = 62;
-    var wrote = entryHeaderLength + path.length;
+    var wrote = entryHeaderLength + pathUtf8.length;
     var padLen = 8 - wrote % 8;
     writer.write(Uint8List(padLen));
 

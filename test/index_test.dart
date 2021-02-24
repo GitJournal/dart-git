@@ -93,7 +93,7 @@ void main() {
       fileSize: 42,
       stage: GitFileStage.TheirMode,
       hash: GitHash('e25b29c8946e0e192fae2edc1dabf7be71e8ecf3'),
-      path: 'foo',
+      path: 'fooí',
       intentToAdd: false,
       skipWorkTree: false,
     );

@@ -107,6 +107,10 @@ class GitCommit extends GitObject {
 
   @override
   List<int> serializeData() {
+    return kvlmSerialize(_toMap());
+  }
+
+  Map<String, dynamic> _toMap() {
     var map = <String, dynamic>{
       'tree': treeHash.toString(),
     };
@@ -123,8 +127,7 @@ class GitCommit extends GitObject {
     }
 
     map['_'] = message;
-
-    return kvlmSerialize(map);
+    return map;
   }
 
   @override
@@ -138,6 +141,9 @@ class GitCommit extends GitObject {
     _hash ??= GitHash.compute(serialize());
     return _hash;
   }
+
+  @override
+  String toString() => _toMap().toString();
 }
 
 Map<String, dynamic> kvlmParse(List<int> raw) {

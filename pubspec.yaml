@@ -12,6 +12,7 @@ dependencies:
   equatable: ^1.2.5
   file: ^5.2.1
   tuple: ^1.0.3
+  quiver: ^2.1.5
 
 dev_dependencies:
   pedantic: ^1.9.0

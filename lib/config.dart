@@ -6,6 +6,8 @@ import 'package:meta/meta.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
+import 'package:quiver/core.dart';
+
 class BranchConfig {
   String name;
   String remote;
@@ -342,7 +344,7 @@ class ConfigFile {
       other is ConfigFile && _listEq(sections, other.sections);
 
   @override
-  int get hashCode => sections.hashCode;
+  int get hashCode => hashObjects(sections);
 
   @override
   String toString() => serialize();

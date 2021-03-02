@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 
+import 'package:quiver/core.dart';
+
 class GitHash {
   Uint8List _bytes;
 
@@ -77,7 +79,7 @@ class GitHash {
   }
 
   @override
-  int get hashCode => _bytes.hashCode;
+  int get hashCode => hashObjects(_bytes);
 
   static final Function _listEq = const ListEquality().equals;
 }

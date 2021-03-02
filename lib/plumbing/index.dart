@@ -11,6 +11,8 @@ import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 
+import 'package:quiver/core.dart';
+
 final _indexSignature = ascii.encode('DIRC');
 
 class GitIndex {
@@ -454,7 +456,7 @@ class GitIndexEntry {
           skipWorkTree == other.skipWorkTree;
 
   @override
-  int get hashCode => serialize().hashCode;
+  int get hashCode => hashObjects(serialize());
 
   @override
   String toString() {

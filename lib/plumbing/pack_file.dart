@@ -65,7 +65,7 @@ class PackFile {
   }
 
   Future<GitObject> _getObject(int offset) async {
-    var file = await File(filePath).open();
+    var file = await File(filePath).open(mode: FileMode.read);
     await file.setPosition(offset);
 
     var headByte = await file.readByte();
@@ -119,14 +119,21 @@ class PackFile {
   }
 
   Future<List<int>> _decodeObject(RandomAccessFile file, int objSize) async {
-    var compressedData = <int>[];
+    // FIXME: This is crashing in Sentry -
+    // https://sentry.io/organizations/gitjournal/issues/2254310735/?project=5168082&query=is%3Aunresolved
+    // - I'm getting there is a huge object cloned and we're loading all of
+    //   it into memory.
+    //   A proper fix might be to never give back the data, only a way to read it
+    //   -> Just use streams?
+    //
 
+    var compressedData = BytesBuilder();
     while (true) {
       // The number 512 is chosen since the block size is generally 512
       // The dart zlib parser doesn't have a way to greedily keep reading
       // till it reaches a certain size
-      compressedData.addAll(await file.read(objSize + 512));
-      var decodedData = zlib.decode(compressedData);
+      compressedData.add(await file.read(objSize + 512));
+      var decodedData = zlib.decode(compressedData.toBytes());
       if (decodedData.length >= objSize) {
         return decodedData.sublist(0, objSize);
       }

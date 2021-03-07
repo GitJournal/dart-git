@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://github.com/GitJournal/dart_git/actions"><img alt="Build Status" src="https://github.com/GitJournal/dart_git/workflows/Dart%20CI/badge.svg"/></a>
-  <a href="https://www.gnu.org/licenses/agpl-3.0"><img alt="License: AGPL v3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg"></a>
+  <a href="https://www.apache.org/licenses/LICENSE-2.0.html"><img alt="License: AGPL v3" src="https://img.shields.io/badge/License-Apache%20v2-blue.svg"></a>
   </br>
   <a href="http://paypal.me/visheshhanda"><img alt="Donate Paypal" src="https://img.shields.io/badge/Donate-Paypal-%231999de"></a>
   <a href="https://github.com/sponsors/vHanda"><img alt="Sponsor via GitHub" src="https://img.shields.io/badge/Sponsor-Github-%235a353"></a>
@@ -28,4 +28,4 @@ Therefore, this is an experimental start at reimplementing Git in Dart. Right no
 
 This project has been heavily inspired by the [go-git](https://github.com/go-git/go-git/) project and has often adapted code from that project. go-git is licensed under Apache License Version 2.0
 
-dart-git is licensed under Affero General Public License 3.0, see [LICENSE](LICENSE)
+dart-git is licensed under Apache License Version 2.0, see [LICENSE](LICENSE)

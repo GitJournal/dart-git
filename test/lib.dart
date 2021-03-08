@@ -8,7 +8,9 @@ import 'package:process_run/shell.dart' as shell;
 import 'package:test/test.dart';
 
 import 'package:dart_git/config.dart';
+import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/main.dart' as git;
+import 'package:dart_git/plumbing/objects/commit.dart';
 
 Future<String> runGitCommand(String command, String dir,
     {Map<String, String> env = const {}}) async {
@@ -220,4 +222,15 @@ Future<String> openFixture(String filePath) async {
   }
 
   return gitDir;
+}
+
+extension GitStream on Stream<GitCommit> {
+  Future<List<String>> asHashStrings() async {
+    var list = <String>[];
+    await for (var commit in this) {
+      var hash = commit.hash.toString();
+      list.add(hash);
+    }
+    return list;
+  }
 }

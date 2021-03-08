@@ -17,12 +17,6 @@ void main() {
       from: headCommit,
     );
 
-    var actual = <String>[];
-    await for (var commit in iter) {
-      var hash = commit.hash.toString();
-      actual.add(hash);
-    }
-
     var expected = <String>[
       '6ecf0ef2c2dffb796033e5a02219af86ec6584e5',
       '918c48b83bd081e863dbe1b80f8998f058cd8294',
@@ -34,6 +28,6 @@ void main() {
       'b8e471f58bcbca63b07bda20e428190409c2db47',
     ];
 
-    expect(actual, expected);
+    expect(await iter.asHashStrings(), expected);
   });
 }

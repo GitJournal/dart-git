@@ -96,13 +96,13 @@ var data = [
 var independentData = [
   Test(['A'], ['A'], 'OnlyOne'),
   Test(['A', 'A', 'A'], ['A'], 'OnlyRepeated'),
-  // Test(['A', 'A', 'M', 'M', 'N'], ['A', 'N'], 'RepeatedAncestors'),
-  // Test(['S', 'G', 'P'], ['S', 'G'], 'BeyondShortcut'),
-  // Test(['CD1', 'CD2', 'M', 'N'], ['CD1', 'CD2'], 'BeyondShortcutBis'),
-  // Test(['C', 'D', 'M', 'N'], ['C', 'D'], 'PairOfAncestors'),
-  // Test(['C', 'G', 'dev', 'M', 'N'], ['C', 'G', 'dev'], 'AcrossCrossMerges'),
-  // Test(['A', 'A^', 'A', 'M', 'N'], ['A', 'N'], 'ChangingOrderRepetition'),
-  // Test(['A^^^', 'A^', 'A^^', 'A', 'N'], ['A', 'N'], 'ChangingOrder'),
+  Test(['A', 'A', 'M', 'M', 'N'], ['A', 'N'], 'RepeatedAncestors'),
+  Test(['S', 'G', 'P'], ['S', 'G'], 'BeyondShortcut'),
+  Test(['CD1', 'CD2', 'M', 'N'], ['CD1', 'CD2'], 'BeyondShortcutBis'),
+  Test(['C', 'D', 'M', 'N'], ['C', 'D'], 'PairOfAncestors'),
+  Test(['C', 'G', 'dev', 'M', 'N'], ['C', 'G', 'dev'], 'AcrossCrossMerges'),
+  Test(['A', 'A^', 'A', 'M', 'N'], ['A', 'N'], 'ChangingOrderRepetition'),
+  Test(['A^^^', 'A^', 'A^^', 'A', 'N'], ['A', 'N'], 'ChangingOrder'),
 ];
 
 // ancestor : TODO

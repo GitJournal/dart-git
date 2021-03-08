@@ -143,7 +143,7 @@ class GitCommit extends GitObject {
   }
 
   @override
-  String toString() => _toMap().toString();
+  String toString() => '$hash - ${_toMap().toString()}';
 }
 
 Map<String, dynamic> kvlmParse(List<int> raw) {

@@ -6,6 +6,8 @@ import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/storage/object_storage.dart';
 
+// FIXME: How to deal with missing objects?
+
 Stream<GitCommit> commitIteratorBFS({
   @required ObjectStorage objStorage,
   @required GitCommit from,
@@ -63,5 +65,29 @@ Stream<GitCommit> commitIteratorBFSFiltered({
     if (isValid(commit)) {
       yield commit;
     }
+  }
+}
+
+Stream<GitCommit> commitPreOrderIterator({
+  @required ObjectStorage objStorage,
+  @required GitCommit from,
+}) async* {
+  var stack = List<GitHash>.from([from.hash]);
+  var seen = <GitHash>{};
+
+  while (stack.isNotEmpty) {
+    var hash = stack.removeLast();
+    if (seen.contains(hash)) {
+      continue;
+    }
+    seen.add(hash);
+
+    var obj = await objStorage.readObjectFromHash(hash);
+    assert(obj is GitCommit);
+
+    var commit = obj as GitCommit;
+
+    stack.addAll(commit.parents.reversed);
+    yield commit;
   }
 }

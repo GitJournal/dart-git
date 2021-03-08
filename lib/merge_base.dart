@@ -8,10 +8,21 @@ extension MergeBase on GitRepository {
     return [a];
   }
 
-  Future<bool> isAncestor(GitCommit a, GitCommit b) async {
+  /// isAncestor returns true if the actual commit is ancestor of the passed one.
+  /// It returns an error if the history is not transversable
+  /// It mimics the behavior of `git merge --is-ancestor actual other`
+  Future<bool> isAncestor(GitCommit ancestor, GitCommit child) async {
+    var iter = commitPreOrderIterator(objStorage: objStorage, from: child);
+    await for (var commit in iter) {
+      if (commit.hash == ancestor.hash) {
+        return true;
+      }
+    }
     return false;
   }
 
+  /// Independents returns a subset of the passed commits, that are not reachable the others
+  /// It mimics the behavior of `git merge-base --independent commit...`.
   Future<List<GitCommit>> independents(List<GitCommit> commits) async {
     commits.sort(_commitDateDec);
     _removeDuplicates(commits);

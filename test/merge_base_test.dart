@@ -117,7 +117,7 @@ var ancestorData = [
   ATest(['A^^', 'A'], true, 'OnlyOne'),
   ATest(['A', 'A^^'], false, 'OnlyOneRev'),
   ATest(['M', 'G'], true, 'BeyondMerges'),
-  ATest(['G', 'M'], true, 'BeyondMergesRev'),
+  ATest(['G', 'M'], false, 'BeyondMergesRev'),
   ATest(['A', 'A'], true, 'AncestorSame'),
   ATest(['M', 'N'], false, 'AncestorUnrelated'),
   ATest(['N', 'M'], false, 'AncestorUnrelatedRev'),
@@ -177,7 +177,7 @@ void main() {
         expect(actual, t.output);
       });
     }
-  }, skip: true);
+  });
 }
 
 Future<List<GitCommit>> commitsFromRevs(

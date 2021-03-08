@@ -8,6 +8,10 @@ extension MergeBase on GitRepository {
     return [a];
   }
 
+  Future<bool> isAncestor(GitCommit a, GitCommit b) async {
+    return false;
+  }
+
   Future<List<GitCommit>> independents(List<GitCommit> commits) async {
     commits.sort(_commitDateDec);
     _removeDuplicates(commits);

@@ -105,7 +105,23 @@ var independentData = [
   Test(['A^^^', 'A^', 'A^^', 'A', 'N'], ['A', 'N'], 'ChangingOrder'),
 ];
 
-// ancestor : TODO
+class ATest {
+  final List<String> input;
+  final bool output;
+  final String name;
+
+  ATest(this.input, this.output, this.name);
+}
+
+var ancestorData = [
+  ATest(['A^^', 'A'], true, 'OnlyOne'),
+  ATest(['A', 'A^^'], false, 'OnlyOneRev'),
+  ATest(['M', 'G'], true, 'BeyondMerges'),
+  ATest(['G', 'M'], true, 'BeyondMergesRev'),
+  ATest(['A', 'A'], true, 'AncestorSame'),
+  ATest(['M', 'N'], false, 'AncestorUnrelated'),
+  ATest(['N', 'M'], false, 'AncestorUnrelatedRev'),
+];
 
 void main() {
   String gitDir;
@@ -150,6 +166,18 @@ void main() {
       });
     }
   });
+
+  group('Ancestor', () {
+    for (var t in ancestorData) {
+      test(t.name, () async {
+        var repo = await GitRepository.load(gitDir);
+        var commits = await commitsFromRevs(repo, t.input);
+
+        var actual = await repo.isAncestor(commits[0], commits[1]);
+        expect(actual, t.output);
+      });
+    }
+  }, skip: true);
 }
 
 Future<List<GitCommit>> commitsFromRevs(

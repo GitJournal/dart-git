@@ -18,15 +18,15 @@ Stream<GitCommit> commitIteratorBFS({
     if (seen.contains(hash)) {
       continue;
     }
+    seen.add(hash);
 
     var obj = await objStorage.readObjectFromHash(hash);
     assert(obj is GitCommit);
 
     var commit = obj as GitCommit;
-    yield commit;
 
-    seen.add(hash);
     queue.addAll(commit.parents);
+    yield commit;
   }
 }
 
@@ -57,12 +57,11 @@ Stream<GitCommit> commitIteratorBFSFiltered({
     assert(obj is GitCommit);
 
     var commit = obj as GitCommit;
-    if (isValid(commit)) {
-      yield commit;
-    }
-
     if (!isLimit(commit)) {
       queue.addAll(commit.parents);
+    }
+    if (isValid(commit)) {
+      yield commit;
     }
   }
 }

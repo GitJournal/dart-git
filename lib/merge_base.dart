@@ -4,8 +4,54 @@ import 'package:dart_git/plumbing/commit_iterator.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 
 extension MergeBase on GitRepository {
-  List<GitCommit> mergeBase(GitCommit a, GitCommit b) {
-    return [a];
+  /// mergeBase mimics the behavior of `git merge-base actual other`, returning the
+  /// best common ancestor between the actual and the passed one.
+  /// The best common ancestors can not be reached from other common ancestors.
+  Future<List<GitCommit>> mergeBase(GitCommit a, GitCommit b) async {
+    var clist = [a, b];
+    clist.sort(_commitDateDec);
+
+    var newer = clist[0];
+    var older = clist[1];
+
+    var newerHistory = await allAncestors(newer, shouldNotContain: older);
+    if (newerHistory == null) {
+      return [older];
+    }
+
+    var inNewerHistory = (GitCommit c) => newerHistory.contains(c.hash);
+
+    var results = <GitCommit>[];
+    var iter = commitIteratorBFSFiltered(
+      objStorage: objStorage,
+      from: older,
+      isValid: inNewerHistory,
+      isLimit: inNewerHistory,
+    );
+    await for (var c in iter) {
+      results.add(c);
+    }
+
+    return independents(results);
+  }
+
+  Future<Set<GitHash>> allAncestors(
+    GitCommit start, {
+    GitCommit shouldNotContain,
+  }) async {
+    if (start.hash == shouldNotContain.hash) null;
+
+    var all = <GitHash>{};
+    var iter = commitIteratorBFS(objStorage: objStorage, from: start);
+    await for (var commit in iter) {
+      if (commit.hash == shouldNotContain.hash) {
+        return null;
+      }
+
+      all.add(commit.hash);
+    }
+
+    return all;
   }
 
   /// isAncestor returns true if the actual commit is ancestor of the passed one.

@@ -87,7 +87,7 @@ is supported by dart-git.
 | hash-object                           | ✔ |
 | ls-files                              | ✖ |
 | ls-tree                               | ✔ |
-| merge-base                            | ✖ | Calculates the merge-base only between two commits. Does not support `--independent` and `--is-ancestor` modifiers; Does not support `--fork-point` nor `--octopus` modifiers. |
+| merge-base                            | ✔ | Calculates the merge-base only between two commits. Supports `--independent` and `--is-ancestor` modifiers; Does not support `--fork-point` nor `--octopus` modifiers. |
 | read-tree                             | ✖ |
 | rev-list                              | ✖ |
 | rev-parse                             | ✖ |

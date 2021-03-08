@@ -151,7 +151,7 @@ void main() {
         expect(actual, expected);
       });
     }
-  }, skip: true);
+  });
 
   group('Independents', () {
     for (var t in independentData) {

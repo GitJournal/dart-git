@@ -8,7 +8,6 @@ import 'package:process_run/shell.dart' as shell;
 import 'package:test/test.dart';
 
 import 'package:dart_git/config.dart';
-import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/main.dart' as git;
 import 'package:dart_git/plumbing/objects/commit.dart';
 

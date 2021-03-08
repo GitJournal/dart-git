@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-
 import 'package:quiver/core.dart';
 
 class GitHash {

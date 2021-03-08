@@ -2,11 +2,10 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:quiver/core.dart';
 
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
-
-import 'package:quiver/core.dart';
 
 class BranchConfig {
   String name;

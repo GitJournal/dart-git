@@ -1,5 +1,6 @@
-import 'package:dart_git/git_hash.dart';
 import 'package:test/test.dart';
+
+import 'package:dart_git/git_hash.dart';
 
 void main() {
   test('Equality', () {

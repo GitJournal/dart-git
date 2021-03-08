@@ -42,17 +42,14 @@ passed   result
  M, N     false     Commits with unrelated history, will return false
 */
 
-import 'dart:io';
+import 'package:test/test.dart';
 
-import 'package:archive/archive.dart';
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/merge_base.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
-import 'package:test/test.dart';
-
-import 'package:path/path.dart' as p;
+import 'lib.dart';
 
 var revisionIndex = <String, GitHash>{
   'master': GitHash('dce0e0c20d701c3d260146e443d6b3b079505191'),
@@ -114,24 +111,7 @@ void main() {
   String gitDir;
 
   setUpAll(() async {
-    final bytes = File('test/data/git-merge-base.tar.gz').readAsBytesSync();
-    final gzipBytes = GZipDecoder().decodeBytes(bytes);
-    final archive = TarDecoder().decodeBytes(gzipBytes);
-
-    gitDir = (await Directory.systemTemp.createTemp('merge_base')).path;
-    var gitDotDir = p.join(gitDir, '.git');
-
-    for (var file in archive) {
-      var filename = file.name;
-      if (file.isFile) {
-        var data = file.content as List<int>;
-        File(p.join(gitDotDir, filename))
-          ..createSync(recursive: true)
-          ..writeAsBytesSync(data);
-      } else {
-        await Directory(p.join(gitDotDir, filename)).create(recursive: true);
-      }
-    }
+    gitDir = await openFixture('test/data/git-merge-base.tar.gz');
   });
 
   group('MergeBase', () {

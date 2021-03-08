@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:archive/archive_io.dart';
 import 'package:path/path.dart' as p;
 import 'package:process_run/process_run.dart';
 import 'package:process_run/shell.dart' as shell;
@@ -196,4 +197,27 @@ Future<void> copyDirectory(String source, String destination) async {
       await entity.copy(p.join(destination, p.basename(entity.path)));
     }
   }
+}
+
+Future<String> openFixture(String filePath) async {
+  final bytes = await File(filePath).readAsBytes();
+  final gzipBytes = GZipDecoder().decodeBytes(bytes);
+  final archive = TarDecoder().decodeBytes(gzipBytes);
+
+  var gitDir = (await Directory.systemTemp.createTemp()).path;
+  var gitDotDir = p.join(gitDir, '.git');
+
+  for (var file in archive) {
+    var filename = file.name;
+    if (file.isFile) {
+      var data = file.content as List<int>;
+      File(p.join(gitDotDir, filename))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(data);
+    } else {
+      await Directory(p.join(gitDotDir, filename)).create(recursive: true);
+    }
+  }
+
+  return gitDir;
 }

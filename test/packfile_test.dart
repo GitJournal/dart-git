@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
+import 'lib.dart';
 
 void main() {
   test('Packfile', () async {
@@ -64,10 +65,7 @@ void main() {
       actualHashes.add(obj.hash.toString());
     }
 
-    expectedHashes.sort();
-    actualHashes.sort();
-
-    expect(expectedHashes, actualHashes);
+    expect(expectedHashes.toSet(), actualHashes.toSet());
   });
 
   test('Packfile with deltas 2', () async {
@@ -83,6 +81,24 @@ void main() {
     var obj = await packfile
         .object(GitHash('0d2a7502772ce4d1afdec4ed380181acd7ea91f0'));
 
-    expect(obj != null, true);
+    expect(obj, isNotNull);
   });
+
+  test('Packfile with Ref Delta', () async {
+    var gitDir = await openFixture('test/data/git-ofs-delta.tgz');
+
+    var basePath = '$gitDir/.git/objects/pack';
+    var packFileName = 'pack-c544593473465e6315ad4182d04d366c4592b829';
+
+    var idxFileBytes = await File('$basePath/$packFileName.idx').readAsBytes();
+    var idxFile = IdxFile.decode(idxFileBytes);
+
+    var packfile =
+        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack');
+
+    var obj = await packfile
+        .object(GitHash('6ecf0ef2c2dffb796033e5a02219af86ec6584e5'));
+
+    expect(obj, isNotNull);
+  }, skip: true);
 }

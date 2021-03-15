@@ -98,14 +98,12 @@ class PackFile {
         return _fillOFSDeltaObject(baseOffset, deltaData);
 
       case ObjectTypes.REF_DELTA:
-        throw Exception('OFS_REF_DELTA not supported');
-
-      /*
         var hashBytes = await file.read(20);
         var hash = GitHash.fromBytes(hashBytes);
+        var deltaData = await _decodeObject(file, objHeader.size);
 
-        return _fillRefDeltaObject(hash, objHeader, rawObjData);
-        */
+        return _fillRefDeltaObject(hash, deltaData);
+
       default:
         break;
     }
@@ -148,14 +146,13 @@ class PackFile {
     return createObject(ascii.decode(baseObject.format()), deltaObj);
   }
 
-  /*
   Future<GitObject> _fillRefDeltaObject(
-      GitHash hash, PackObjectHeader objHeader, List<int> deltaData) async {
-    var typeStr = ObjectTypes.getTypeString(objHeader.type);
+      GitHash baseHash, List<int> deltaData) async {
+    var baseObject = await object(baseHash);
+    var deltaObj = patchDelta(baseObject.serializeData(), deltaData);
 
-    return createObject(typeStr, rawData);
+    return createObject(ascii.decode(baseObject.format()), deltaObj);
   }
-  */
 
   Future<Iterable<GitObject>> getAll() async {
     var objects = <GitObject>[];

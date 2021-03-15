@@ -100,5 +100,5 @@ void main() {
         .object(GitHash('6ecf0ef2c2dffb796033e5a02219af86ec6584e5'));
 
     expect(obj, isNotNull);
-  }, skip: true);
+  });
 }

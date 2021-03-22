@@ -39,7 +39,7 @@ class IdxFile {
     var numObjects = fanTable.last;
 
     // Read Hashes
-    var hashes = List<GitHash>(numObjects);
+    var hashes = List<GitHash>.filled(numObjects, GitHash.zero());
     for (var i = 0; i < numObjects; i++) {
       var hash = GitHash.fromBytes(reader.read(20));
 
@@ -47,13 +47,13 @@ class IdxFile {
     }
 
     // Read crc32
-    var crcValues = List<int>(numObjects);
+    var crcValues = List<int>.filled(numObjects, 0);
     for (var i = 0; i < numObjects; i++) {
       crcValues[i] = reader.readUint32();
     }
 
     // Read offsets
-    var offsets = List<int>(numObjects);
+    var offsets = List<int>.filled(numObjects, 0);
     var offset64BitPos = <int>[];
     for (var i = 0; i < numObjects; i++) {
       offsets[i] = reader.readUint32();
@@ -86,7 +86,7 @@ class IdxFile {
       throw Exception('GitIdxFileCorrupted: Extra bytes in the end');
     }
 
-    entries = List<IdxFileEntry>(numObjects);
+    entries = List<IdxFileEntry>.filled(numObjects, null);
     for (var i = 0; i < numObjects; i++) {
       entries[i] = IdxFileEntry(
         hash: hashes[i],

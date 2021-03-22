@@ -23,7 +23,7 @@ List<int> patchDelta(List<int> base, List<int> delta) {
   }
 
   // pre allocate buffer to hold the results
-  var rv = List<int>(header.targetBufferSize);
+  var rv = List<int>.filled(header.targetBufferSize, 0);
 
   // start patching
   while (offset < delta.length) {

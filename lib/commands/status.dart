@@ -28,7 +28,7 @@ class StatusCommand extends Command {
       return;
     }
 
-    var branch = await repo.config.branch(head.target.branchName());
+    var branch = repo.config.branch(head.target.branchName());
 
     // Construct remote's branch
     var remoteBranchName = branch.merge.branchName();

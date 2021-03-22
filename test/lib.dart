@@ -63,8 +63,10 @@ done''';
   var script = p.join(Directory.systemTemp.path, 'list-objects');
   await File(script).writeAsString(listObjScript);
 
-  var repo1Result = await run('bash', [script], workingDirectory: repo1);
-  var repo2Result = await run('bash', [script], workingDirectory: repo2);
+  var repo1Result =
+      await runExecutableArguments('bash', [script], workingDirectory: repo1);
+  var repo2Result =
+      await runExecutableArguments('bash', [script], workingDirectory: repo2);
 
   var repo1Objects =
       repo1Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
@@ -78,8 +80,10 @@ done''';
   script = p.join(Directory.systemTemp.path, 'list-refs');
   await File(script).writeAsString(listRefScript);
 
-  repo1Result = await run('bash', [script], workingDirectory: repo1);
-  repo2Result = await run('bash', [script], workingDirectory: repo2);
+  repo1Result =
+      await runExecutableArguments('bash', [script], workingDirectory: repo1);
+  repo2Result =
+      await runExecutableArguments('bash', [script], workingDirectory: repo2);
 
   var repo1Refs =
       repo1Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
@@ -93,8 +97,10 @@ done''';
   script = p.join(Directory.systemTemp.path, 'list-index');
   await File(script).writeAsString(listIndexScript);
 
-  repo1Result = await run('bash', [script], workingDirectory: repo1);
-  repo2Result = await run('bash', [script], workingDirectory: repo2);
+  repo1Result =
+      await runExecutableArguments('bash', [script], workingDirectory: repo1);
+  repo2Result =
+      await runExecutableArguments('bash', [script], workingDirectory: repo2);
 
   var repo1Index = repo1Result.stdout
       .split('\n')

@@ -159,7 +159,7 @@ class GitRepository {
 
   Future<BranchConfig> setBranchUpstreamTo(String branchName,
       GitRemoteConfig remote, String remoteBranchName) async {
-    var brConfig = await config.branch(branchName);
+    var brConfig = config.branch(branchName);
     if (brConfig == null) {
       brConfig = BranchConfig();
       brConfig.name = branchName;
@@ -321,7 +321,7 @@ class GitRepository {
       return false;
     }
 
-    var brConfig = await config.branch(head.target.branchName());
+    var brConfig = config.branch(head.target.branchName());
     if (brConfig == null) {
       // FIXME: Maybe we can push other branches!
       return false;
@@ -434,7 +434,7 @@ class GitRepository {
       return 0;
     }
 
-    var brConfig = await config.branch(head.target.branchName());
+    var brConfig = config.branch(head.target.branchName());
     if (brConfig == null) {
       return 0;
     }

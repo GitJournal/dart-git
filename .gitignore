@@ -2,3 +2,4 @@
 .packages
 .dart_tool
 *.swp
+pubspec.lock

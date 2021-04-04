@@ -1,5 +1,7 @@
 // Code Adapated from go-git commit_walker_bfs_filtered_test.go
 
+// @dart=2.9
+
 import 'package:test/test.dart';
 
 import 'package:dart_git/dart_git.dart';

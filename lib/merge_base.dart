@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/commit_iterator.dart';

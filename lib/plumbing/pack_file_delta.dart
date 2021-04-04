@@ -1,5 +1,7 @@
 // This file has been adapted from https://github.com/tarruda/node-git-core/blob/master/src/js/delta.js
 
+// @dart=2.9
+
 import 'dart:typed_data';
 
 bool _isCopyFromSrc(int cmd) => (cmd & 0x80) != 0;

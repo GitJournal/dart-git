@@ -1,5 +1,7 @@
 // Code base adapted from go-git/plumbing/object/merge_base_test.go
 
+// @dart=2.9
+
 /*
 
 The following tests consider this history having two root commits: V and W

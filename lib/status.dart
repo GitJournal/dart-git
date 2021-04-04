@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'package:file/file.dart';
 
 import 'package:dart_git/dart_git.dart';

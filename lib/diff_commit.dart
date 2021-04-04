@@ -42,6 +42,17 @@ class Change {
 
   String get path => from != null ? from.path : to.path;
   GitFileMode get mode => from != null ? from.mode : to.mode;
+
+  @override
+  String toString() {
+    if (from == null) {
+      return 'ChangeAdded{$to}';
+    } else if (to == null) {
+      return 'ChangeDeleted{$from}';
+    } else {
+      return 'ChangeModified{$from, $to}';
+    }
+  }
 }
 
 class ChangeEntry {
@@ -53,6 +64,11 @@ class ChangeEntry {
 
   GitHash get hash => entry.hash;
   GitFileMode get mode => entry.mode;
+
+  @override
+  String toString() {
+    return 'ChangeEntry{path: $path, hash: $hash}';
+  }
 }
 
 class _Item {

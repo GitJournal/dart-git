@@ -3,9 +3,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dart_git/plumbing/pack_file_delta.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
+
+import 'package:dart_git/plumbing/pack_file_delta.dart';
 
 class Piece {
   final String val;

@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:dart_git/config.dart';
 import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/exceptions.dart';
+import 'package:dart_git/fs.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
@@ -43,7 +44,7 @@ class GitRepository {
   }
 
   static String findRootDir(String path, {FileSystem fs}) {
-    fs ??= const LocalFileSystem();
+    fs ??= const LocalFileSystemWithChecks();
 
     while (true) {
       var gitDir = p.join(path, '.git');
@@ -61,7 +62,7 @@ class GitRepository {
   }
 
   static Future<GitRepository> load(String gitRootDir, {FileSystem fs}) async {
-    fs ??= const LocalFileSystem();
+    fs ??= const LocalFileSystemWithChecks();
 
     if (!(await isValidRepo(gitRootDir, fs: fs))) {
       throw InvalidRepoException(gitRootDir);
@@ -80,7 +81,7 @@ class GitRepository {
   }
 
   static Future<bool> isValidRepo(String gitRootDir, {FileSystem fs}) async {
-    fs ??= const LocalFileSystem();
+    fs ??= const LocalFileSystemWithChecks();
 
     var isDir = await fs.isDirectory(gitRootDir);
     if (!isDir) {
@@ -774,15 +775,21 @@ class GitRepository {
         var blobObj = obj as GitBlob;
 
         // FIXME: Add file mode
-        await fs.directory(p.dirname(change.path)).create(recursive: true);
-        await fs.file(change.path).writeAsBytes(blobObj.blobData);
+        await fs
+            .directory(p.join(workTree, p.dirname(change.path)))
+            .create(recursive: true);
+        await fs
+            .file(p.join(workTree, change.path))
+            .writeAsBytes(blobObj.blobData);
 
         await index.updatePath(change.to.path, change.to.hash);
       } else if (change.deleted) {
-        await fs.file(change.from.path).delete(recursive: true);
+        await fs
+            .file(p.join(workTree, change.from.path))
+            .delete(recursive: true);
 
         // FIXME: What if the parent directory also needs to be removed?
-        var dir = fs.directory(p.dirname(change.from.path));
+        var dir = fs.directory(p.join(workTree, p.dirname(change.from.path)));
         await index.removePath(change.from.path);
 
         var isEmpty = true;

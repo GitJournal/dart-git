@@ -62,7 +62,7 @@ class ObjectStorage {
         continue;
       }
 
-      var bytes = await fs.file(fsEntity).readAsBytes();
+      var bytes = await fs.file(fsEntity.path).readAsBytes();
       var idxFile = IdxFile.decode(bytes);
 
       var packFilePath = fsEntity.path;

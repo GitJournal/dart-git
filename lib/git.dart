@@ -617,7 +617,7 @@ class GitRepository {
         parentTree.entries.add(GitTreeEntry(
           mode: GitFileMode.Dir,
           name: folderName,
-          hash: null,
+          hash: GitHash.zero(),
         ));
       }
 
@@ -648,7 +648,7 @@ class GitRepository {
       for (var i = 0; i < tree.entries.length; i++) {
         var leaf = tree.entries[i];
 
-        if (leaf.hash != null) {
+        if (leaf.hash.isNotEmpty) {
           assert(await () async {
             var leafObj = await objStorage.readObjectFromHash(leaf.hash);
             return leafObj.formatStr() == 'blob';

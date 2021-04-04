@@ -1,13 +1,13 @@
-// @dart=2.9
-
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:quiver/core.dart';
 
+import 'package:dart_git/exceptions.dart';
+
 class GitHash {
-  Uint8List _bytes;
+  late Uint8List _bytes;
 
   Uint8List get bytes => _bytes;
 
@@ -27,14 +27,17 @@ class GitHash {
     var j = 0;
     for (var i = 0; i < sha.length; i += 2) {
       var hexChar = sha.substring(i, i + 2);
-      var num = int.parse(hexChar, radix: 16);
+      var num = int.tryParse(hexChar, radix: 16);
+      if (num == null) {
+        throw GitHashStringNotHexadecimal();
+      }
       _bytes[j] = num;
       j++;
     }
   }
 
   GitHash.compute(List<int> data) {
-    _bytes = sha1.convert(data).bytes;
+    _bytes = sha1.convert(data).bytes as Uint8List;
   }
 
   GitHash.zero() {
@@ -76,7 +79,7 @@ class GitHash {
   @override
   bool operator ==(Object other) {
     if (other is! GitHash) return false;
-    return _listEq(_bytes, (other as GitHash)._bytes);
+    return _listEq(_bytes, other._bytes);
   }
 
   @override

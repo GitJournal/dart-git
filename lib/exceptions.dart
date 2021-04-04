@@ -1,7 +1,3 @@
-
-
-import 'package:meta/meta.dart';
-
 class GitException implements Exception {}
 
 class InvalidRepoException implements GitException {
@@ -31,3 +27,5 @@ class GitIndexCorruptedException implements GitFatalException {
   @override
   String toString() => 'fatal: GitIndexCorrupted: $reason';
 }
+
+class GitHashStringNotHexadecimal implements GitException {}

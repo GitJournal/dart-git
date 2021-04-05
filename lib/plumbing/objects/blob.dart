@@ -1,4 +1,4 @@
-// @dart=2.9
+
 
 import 'dart:convert';
 
@@ -10,7 +10,7 @@ class GitBlob extends GitObject {
   static final List<int> _fmt = ascii.encode(fmt);
 
   final List<int> blobData;
-  GitHash _hash;
+  GitHash? _hash;
 
   GitBlob(this.blobData, this._hash);
 
@@ -26,6 +26,6 @@ class GitBlob extends GitObject {
   @override
   GitHash get hash {
     _hash ??= GitHash.compute(serialize());
-    return _hash;
+    return _hash!;
   }
 }

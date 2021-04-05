@@ -1,9 +1,6 @@
-// @dart=2.9
-
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
@@ -15,7 +12,7 @@ class GitTreeEntry extends Equatable {
   final String name;
   final GitHash hash;
 
-  GitTreeEntry({@required this.mode, @required this.name, @required this.hash});
+  GitTreeEntry({required this.mode, required this.name, required this.hash});
 
   @override
   List<Object> get props => [mode, name, hash];
@@ -28,7 +25,7 @@ class GitTree extends GitObject {
   static const String fmt = ObjectTypes.TREE_STR;
   static final List<int> _fmt = ascii.encode(fmt);
 
-  GitHash _hash;
+  GitHash? _hash;
   List<GitTreeEntry> entries = [];
 
   GitTree.empty() : _hash = null;
@@ -61,10 +58,6 @@ class GitTree extends GitObject {
     var data = <int>[];
 
     for (var e in entries) {
-      assert(e.hash != null);
-      assert(e.name != null && e.name.isNotEmpty);
-      assert(e.mode != null);
-
       data.addAll(ascii.encode(e.mode.toString()));
       data.add(asciiHelper.space);
       data.addAll(utf8.encode(e.name));
@@ -84,7 +77,7 @@ class GitTree extends GitObject {
   @override
   GitHash get hash {
     _hash ??= GitHash.compute(serialize());
-    return _hash;
+    return _hash!;
   }
 
   void debugPrint() {

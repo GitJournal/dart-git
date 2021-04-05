@@ -118,7 +118,8 @@ class Config {
       }
     }
 
-    user = GitAuthor(name: name, email: email);
+    // The date doesn't matter
+    user = GitAuthor(name: name, email: email, date: DateTime.now());
   }
 
   void _parseCore(Section section) {

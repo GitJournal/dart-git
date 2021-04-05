@@ -1,8 +1,4 @@
-// @dart=2.9
-
 import 'dart:convert';
-
-import 'package:meta/meta.dart';
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
@@ -11,40 +7,35 @@ import 'package:dart_git/plumbing/objects/object.dart';
 class GitAuthor {
   String name;
   String email;
-  int timestamp;
-  int timezoneOffset;
+  late int timezoneOffset;
   DateTime date;
 
   GitAuthor({
-    @required this.name,
-    @required this.email,
-    this.date,
-    this.timezoneOffset,
+    required this.name,
+    required this.email,
+    required this.date,
+    int? timezoneOffset,
   }) {
-    if (date == null) {
-      date = DateTime.now();
-      timestamp = date.millisecondsSinceEpoch;
-    }
-
-    timezoneOffset ??= date.timeZoneOffset.inHours * 100 +
-        (date.timeZoneOffset.inMinutes % 60);
+    this.timezoneOffset = timezoneOffset ??
+        date.timeZoneOffset.inHours * 100 +
+            (date.timeZoneOffset.inMinutes % 60);
   }
 
-  GitAuthor._internal();
-
-  static GitAuthor parse(String input) {
+  static GitAuthor? parse(String input) {
     // Regex " AuthorName <Email>  timestamp timeOffset"
     var pattern = RegExp(r'(.*) <(.*)> (\d+) ([+\-]\d\d\d\d)');
     var match = pattern.allMatches(input).toList();
+    if (match.isEmpty) {
+      return null;
+    }
 
-    var author = GitAuthor._internal();
-    author.name = match[0].group(1);
-    author.email = match[0].group(2);
-    author.timestamp = (int.parse(match[0].group(3))) * 1000;
-    author.date =
-        DateTime.fromMillisecondsSinceEpoch(author.timestamp, isUtc: true);
-    author.timezoneOffset = int.parse(match[0].group(4));
-    return author;
+    var timestamp = (int.parse(match[0].group(3)!)) * 1000;
+    return GitAuthor(
+      name: match[0].group(1)!,
+      email: match[0].group(2)!,
+      date: DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: true),
+      timezoneOffset: int.parse(match[0].group(4)!),
+    );
   }
 
   String serialize() {
@@ -58,10 +49,7 @@ class GitAuthor {
 
   @override
   String toString() {
-    if (timestamp != 0) {
-      return 'GitAuthor(name: $name, email: $email, date: $date)';
-    }
-    return 'GitAuthor(name: $name, email: $email)';
+    return 'GitAuthor(name: $name, email: $email, date: $date, offset: $timezoneOffset)';
   }
 }
 
@@ -69,29 +57,29 @@ class GitCommit extends GitObject {
   static const String fmt = ObjectTypes.COMMIT_STR;
   static final List<int> _fmt = ascii.encode(fmt);
 
-  GitAuthor author;
-  GitAuthor committer;
-  String message;
-  GitHash treeHash;
+  late GitAuthor author;
+  late GitAuthor committer;
+  late String message;
+  late GitHash treeHash;
   List<GitHash> parents = [];
-  String gpgSig;
+  String gpgSig = '';
 
-  GitHash _hash;
+  GitHash? _hash;
 
   GitCommit.create({
-    @required this.author,
-    @required this.committer,
-    @required this.message,
-    @required this.treeHash,
-    @required this.parents,
+    required this.author,
+    required this.committer,
+    required this.message,
+    required this.treeHash,
+    required this.parents,
     this.gpgSig = '',
   }) : _hash = null;
 
   GitCommit(List<int> rawData, this._hash) {
     var map = kvlmParse(rawData);
-    message = map['_'];
-    author = GitAuthor.parse(map['author']);
-    committer = GitAuthor.parse(map['committer']);
+    message = map['_'] ?? '';
+    author = GitAuthor.parse(map['author'])!;
+    committer = GitAuthor.parse(map['committer'])!;
 
     if (map.containsKey('parent')) {
       var parent = map['parent'];
@@ -100,6 +88,7 @@ class GitCommit extends GitObject {
       } else if (parent is String) {
         parents.add(GitHash(parent));
       } else {
+        // FIXME: Don't throw errors, this isn't the end of the world
         throw Exception('Unknow parent type');
       }
     }
@@ -141,7 +130,7 @@ class GitCommit extends GitObject {
   @override
   GitHash get hash {
     _hash ??= GitHash.compute(serialize());
-    return _hash;
+    return _hash!;
   }
 
   @override

@@ -75,7 +75,7 @@ gpgsig -----BEGIN PGP SIGNATURE-----
 
 Create first draft''';
 
-    var commitObj = GitCommit(utf8.encode(rawStr), null);
+    var commitObj = GitCommit.parse(utf8.encode(rawStr), null);
     expect(utf8.decode(commitObj.serializeData()), rawStr);
   });
 

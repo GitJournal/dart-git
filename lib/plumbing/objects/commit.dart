@@ -57,10 +57,10 @@ class GitCommit extends GitObject {
   static const String fmt = ObjectTypes.COMMIT_STR;
   static final List<int> _fmt = ascii.encode(fmt);
 
-  late GitAuthor author;
-  late GitAuthor committer;
-  late String message;
-  late GitHash treeHash;
+  GitAuthor author;
+  GitAuthor committer;
+  String message;
+  GitHash treeHash;
   List<GitHash> parents = [];
   String gpgSig = '';
 
@@ -75,11 +75,20 @@ class GitCommit extends GitObject {
     this.gpgSig = '',
   }) : _hash = null;
 
-  GitCommit(List<int> rawData, this._hash) {
+  static GitCommit? parse(List<int> rawData, GitHash? hash) {
     var map = kvlmParse(rawData);
-    message = map['_'] ?? '';
-    author = GitAuthor.parse(map['author'])!;
-    committer = GitAuthor.parse(map['committer'])!;
+    var requiredKeys = ['author', 'committer', 'tree', '_'];
+    for (var key in requiredKeys) {
+      if (!map.containsKey(key)) {
+        // FIXME: At least log the error?
+        return null;
+      }
+    }
+
+    var message = map['_'] ?? '';
+    var author = GitAuthor.parse(map['author'])!;
+    var committer = GitAuthor.parse(map['committer'])!;
+    var parents = <GitHash>[];
 
     if (map.containsKey('parent')) {
       var parent = map['parent'];
@@ -88,12 +97,21 @@ class GitCommit extends GitObject {
       } else if (parent is String) {
         parents.add(GitHash(parent));
       } else {
-        // FIXME: Don't throw errors, this isn't the end of the world
-        throw Exception('Unknow parent type');
+        // FIXME: At least log the error?
+        return null;
       }
     }
-    treeHash = GitHash(map['tree']);
-    gpgSig = map['gpgsig'] ?? '';
+    var treeHash = GitHash(map['tree']);
+    var gpgSig = map['gpgsig'] ?? '';
+
+    return GitCommit.create(
+      author: author,
+      committer: committer,
+      message: message,
+      treeHash: treeHash,
+      parents: parents,
+      gpgSig: gpgSig,
+    );
   }
 
   @override

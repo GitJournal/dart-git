@@ -40,11 +40,11 @@ abstract class GitObject {
 
 Function _listEq = const ListEquality().equals;
 
-GitObject createObject(String fmt, List<int> rawData, [String? filePath]) {
+GitObject? createObject(String fmt, List<int> rawData, [String? filePath]) {
   if (fmt == GitBlob.fmt) {
     return GitBlob(rawData, null);
   } else if (fmt == GitCommit.fmt) {
-    return GitCommit(rawData, null);
+    return GitCommit.parse(rawData, null);
   } else if (fmt == GitTree.fmt) {
     return GitTree(rawData, null);
   } else {

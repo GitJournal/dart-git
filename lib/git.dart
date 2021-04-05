@@ -20,6 +20,7 @@ import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/reference_storage.dart';
+import 'package:dart_git/utils/file_mode.dart';
 
 // A Git Repo has 5 parts -
 // * Object Store

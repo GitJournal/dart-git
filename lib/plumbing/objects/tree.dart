@@ -4,8 +4,8 @@ import 'package:equatable/equatable.dart';
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
-import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
+import 'package:dart_git/utils/file_mode.dart';
 
 class GitTreeEntry extends Equatable {
   final GitFileMode mode;

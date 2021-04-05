@@ -6,6 +6,7 @@ import 'package:test/test.dart';
 
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
+import 'package:dart_git/utils/file_mode.dart';
 
 void main() {
   test('Decode', () async {

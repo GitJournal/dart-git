@@ -2,8 +2,8 @@
 
 import 'package:meta/meta.dart';
 
-import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
+import 'package:dart_git/utils/file_mode.dart';
 
 class DiffTreeChange {
   final GitTreeEntry from;

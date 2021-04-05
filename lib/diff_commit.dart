@@ -7,10 +7,10 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/diff_tree.dart';
 import 'package:dart_git/git_hash.dart';
-import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/utils/file_mode.dart';
 
 class CommitBlobChanges {
   final List<Change> added;

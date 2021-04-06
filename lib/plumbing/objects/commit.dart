@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
@@ -54,8 +55,8 @@ class GitAuthor {
 }
 
 class GitCommit extends GitObject {
-  static const String fmt = ObjectTypes.COMMIT_STR;
-  static final List<int> _fmt = ascii.encode(fmt);
+  static const fmt = ObjectTypes.COMMIT_STR;
+  static final _fmt = ascii.encode(fmt);
 
   GitAuthor author;
   GitAuthor committer;
@@ -75,7 +76,7 @@ class GitCommit extends GitObject {
     this.gpgSig = '',
   }) : _hash = null;
 
-  static GitCommit? parse(List<int> rawData, GitHash? hash) {
+  static GitCommit? parse(Uint8List rawData, GitHash? hash) {
     var map = kvlmParse(rawData);
     var requiredKeys = ['author', 'committer', 'tree', '_'];
     for (var key in requiredKeys) {
@@ -115,7 +116,7 @@ class GitCommit extends GitObject {
   }
 
   @override
-  List<int> serializeData() {
+  Uint8List serializeData() {
     return kvlmSerialize(_toMap());
   }
 
@@ -140,7 +141,7 @@ class GitCommit extends GitObject {
   }
 
   @override
-  List<int> format() => _fmt;
+  Uint8List format() => _fmt;
 
   @override
   String formatStr() => fmt;
@@ -155,7 +156,7 @@ class GitCommit extends GitObject {
   String toString() => '$hash - ${_toMap().toString()}';
 }
 
-Map<String, dynamic> kvlmParse(List<int> raw) {
+Map<String, dynamic> kvlmParse(Uint8List raw) {
   var dict = <String, dynamic>{};
 
   var start = 0;
@@ -200,8 +201,8 @@ Map<String, dynamic> kvlmParse(List<int> raw) {
   return dict;
 }
 
-List<int> kvlmSerialize(Map<String, dynamic> kvlm) {
-  var ret = <int>[];
+Uint8List kvlmSerialize(Map<String, dynamic> kvlm) {
+  var bytesBuilder = BytesBuilder(copy: false);
 
   kvlm.forEach((key, val) {
     if (key == '_') {
@@ -213,15 +214,16 @@ List<int> kvlmSerialize(Map<String, dynamic> kvlm) {
     }
 
     val.forEach((v) {
-      ret.addAll([
-        ...utf8.encode(key),
-        asciiHelper.space,
-        ...utf8.encode(v.replaceAll('\n', '\n ')),
-        asciiHelper.newLine,
-      ]);
+      bytesBuilder
+        ..add(utf8.encode(key))
+        ..addByte(asciiHelper.space)
+        ..add(utf8.encode(v.replaceAll('\n', '\n ')))
+        ..addByte(asciiHelper.newLine);
     });
   });
 
-  ret.addAll([asciiHelper.newLine, ...utf8.encode(kvlm['_'])]);
-  return ret;
+  bytesBuilder
+    ..addByte(asciiHelper.newLine)
+    ..add(utf8.encode(kvlm['_']));
+  return bytesBuilder.toBytes();
 }

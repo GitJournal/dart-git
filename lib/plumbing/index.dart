@@ -63,8 +63,10 @@ class GitIndex {
       }
     }
 
-    var hashBytes = [...extensionHeader, ...reader.read(16)];
-    var expectedHash = GitHash.fromBytes(hashBytes);
+    var hashBytesBuilder = BytesBuilder(copy: false);
+    hashBytesBuilder..add(extensionHeader)..add(reader.read(16));
+
+    var expectedHash = GitHash.fromBytes(hashBytesBuilder.toBytes());
     var actualHash = GitHash.compute(
         bytes.sublist(0, bytes.length - 20)); // FIXME: Avoid this copy!
     if (expectedHash != actualHash) {

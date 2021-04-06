@@ -11,11 +11,11 @@ class GitHash {
 
   Uint8List get bytes => _bytes;
 
-  GitHash.fromBytes(List<int> bytes) {
+  GitHash.fromBytes(Uint8List bytes) {
     if (bytes.length != 20) {
       throw Exception('Hash size must be 20');
     }
-    _bytes = Uint8List.fromList(bytes);
+    _bytes = bytes;
   }
 
   GitHash(String sha) {

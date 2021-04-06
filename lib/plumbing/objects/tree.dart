@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
@@ -22,15 +23,15 @@ class GitTreeEntry extends Equatable {
 }
 
 class GitTree extends GitObject {
-  static const String fmt = ObjectTypes.TREE_STR;
-  static final List<int> _fmt = ascii.encode(fmt);
+  static const fmt = ObjectTypes.TREE_STR;
+  static final _fmt = ascii.encode(fmt);
 
   GitHash? _hash;
   List<GitTreeEntry> entries = [];
 
   GitTree.empty() : _hash = null;
 
-  GitTree(List<int> raw, this._hash) {
+  GitTree(Uint8List raw, this._hash) {
     var start = 0;
     while (start < raw.length) {
       var x = raw.indexOf(asciiHelper.space, start);
@@ -54,22 +55,23 @@ class GitTree extends GitObject {
   }
 
   @override
-  List<int> serializeData() {
-    var data = <int>[];
+  Uint8List serializeData() {
+    final bytesBuilder = BytesBuilder(copy: false);
 
     for (var e in entries) {
-      data.addAll(ascii.encode(e.mode.toString()));
-      data.add(asciiHelper.space);
-      data.addAll(utf8.encode(e.name));
-      data.add(0x00);
-      data.addAll(e.hash.bytes);
+      bytesBuilder
+        ..add(ascii.encode(e.mode.toString()))
+        ..addByte(asciiHelper.space)
+        ..add(utf8.encode(e.name))
+        ..addByte(0x00)
+        ..add(e.hash.bytes);
     }
 
-    return data;
+    return bytesBuilder.toBytes();
   }
 
   @override
-  List<int> format() => _fmt;
+  Uint8List format() => _fmt;
 
   @override
   String formatStr() => fmt;

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
@@ -9,22 +10,23 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 
 abstract class GitObject {
-  List<int> serialize() {
+  Uint8List serialize() {
     var data = serializeData();
-    var result = [
-      ...format(),
-      asciiHelper.space,
-      ...ascii.encode(data.length.toString()),
-      0x0,
-      ...data,
-    ];
+
+    final bytesBuilder = BytesBuilder(copy: false);
+    bytesBuilder
+      ..add(format())
+      ..addByte(asciiHelper.space)
+      ..add(ascii.encode(data.length.toString()))
+      ..addByte(0x0)
+      ..add(data);
 
     //assert(GitHash.compute(result) == hash());
-    return result;
+    return bytesBuilder.toBytes();
   }
 
-  List<int> serializeData();
-  List<int> format();
+  Uint8List serializeData();
+  Uint8List format();
   String formatStr();
 
   GitHash get hash;
@@ -40,7 +42,7 @@ abstract class GitObject {
 
 Function _listEq = const ListEquality().equals;
 
-GitObject? createObject(String fmt, List<int> rawData, [String? filePath]) {
+GitObject? createObject(String fmt, Uint8List rawData, [String? filePath]) {
   if (fmt == GitBlob.fmt) {
     return GitBlob(rawData, null);
   } else if (fmt == GitCommit.fmt) {

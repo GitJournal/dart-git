@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
@@ -105,7 +106,9 @@ class ObjectStorage {
     }
 
     var fmtStr = ascii.decode(fmt);
-    return createObject(fmtStr, raw.sublist(y + 1), filePath);
+    // FIXME: Avoid this copy?
+    var rawData = Uint8List.fromList(raw.sublist(y + 1));
+    return createObject(fmtStr, rawData, filePath);
   }
 
   Future<GitHash> writeObject(GitObject obj) async {

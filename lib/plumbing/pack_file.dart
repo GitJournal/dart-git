@@ -116,7 +116,7 @@ class PackFile {
     return createObject(typeStr, rawObjData);
   }
 
-  Future<List<int>> _decodeObject(RandomAccessFile file, int objSize) async {
+  Future<Uint8List> _decodeObject(RandomAccessFile file, int objSize) async {
     // FIXME: This is crashing in Sentry -
     // https://sentry.io/organizations/gitjournal/issues/2254310735/?project=5168082&query=is%3Aunresolved
     // - I'm getting there is a huge object cloned and we're loading all of
@@ -133,13 +133,17 @@ class PackFile {
       compressedData.add(await file.read(objSize + 512));
       var decodedData = zlib.decode(compressedData.toBytes());
       if (decodedData.length >= objSize) {
-        return decodedData.sublist(0, objSize);
+        var data = decodedData.sublist(0, objSize);
+        if (data is Uint8List) {
+          return data;
+        }
+        return Uint8List.fromList(data);
       }
     }
   }
 
   Future<GitObject?> _fillOFSDeltaObject(
-      int baseOffset, List<int> deltaData) async {
+      int baseOffset, Uint8List deltaData) async {
     var baseObject = await _getObject(baseOffset);
     if (baseObject == null) {
       return null;
@@ -150,7 +154,7 @@ class PackFile {
   }
 
   Future<GitObject?> _fillRefDeltaObject(
-      GitHash baseHash, List<int> deltaData) async {
+      GitHash baseHash, Uint8List deltaData) async {
     var baseObject = await object(baseHash);
     if (baseObject == null) {
       return null;

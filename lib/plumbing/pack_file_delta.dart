@@ -10,7 +10,7 @@ bool _isCopyFromDelta(int cmd) => (cmd & 0x80) == 0 && cmd != 0;
 
 // produces a buffer that is the result of 'delta' applied to 'base'
 // algorithm taken from 'patch-delta.c' in the git source tree
-List<int> patchDelta(List<int> base, List<int> delta) {
+Uint8List patchDelta(Uint8List base, Uint8List delta) {
   var copyLength = 0;
   var rvOffset = 0;
 
@@ -23,7 +23,7 @@ List<int> patchDelta(List<int> base, List<int> delta) {
   }
 
   // pre allocate buffer to hold the results
-  var rv = List<int>.filled(header.targetBufferSize, 0);
+  var rv = Uint8List(header.targetBufferSize);
 
   // start patching
   while (offset < delta.length) {
@@ -77,7 +77,7 @@ List<int> patchDelta(List<int> base, List<int> delta) {
   return rv;
 }
 
-void _replaceRange(List<int> list, int offset, Iterable<int> replaceIter) {
+void _replaceRange(Uint8List list, int offset, Iterable<int> replaceIter) {
   for (var val in replaceIter) {
     list[offset++] = val;
   }

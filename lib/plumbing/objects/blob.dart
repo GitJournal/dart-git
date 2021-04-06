@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 
 import 'package:dart_git/git_hash.dart';

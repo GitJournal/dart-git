@@ -1,5 +1,3 @@
-
-
 /*
   Dart Git
   Copyright (C) 2020  Vishesh Handa

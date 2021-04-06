@@ -81,11 +81,25 @@ class ObjectStorage {
 
     // Read Object Type
     var x = raw.indexOf(asciiHelper.space);
+    if (x == -1) {
+      print('Object Type not found');
+      return null;
+    }
     var fmt = raw.sublist(0, x);
 
     // Read and validate object size
     var y = raw.indexOf(0x0, x);
-    var size = int.parse(ascii.decode(raw.sublist(x, y)));
+    if (y == -1) {
+      print('Object size not found');
+      return null;
+    }
+
+    var size = int.tryParse(ascii.decode(raw.sublist(x, y)));
+    if (size == null) {
+      print('Could not parse Object size');
+      return null;
+    }
+
     if (size != (raw.length - y - 1)) {
       throw Exception('Malformed object $filePath: bad length');
     }

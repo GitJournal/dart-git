@@ -165,9 +165,7 @@ class GitRepository {
       GitRemoteConfig remote, String remoteBranchName) async {
     var brConfig = config.branch(branchName);
     if (brConfig == null) {
-      brConfig = BranchConfig();
-      brConfig.name = branchName;
-
+      brConfig = BranchConfig(name: branchName);
       config.branches[branchName] = brConfig;
     }
     brConfig.remote = remote.name;
@@ -230,18 +228,19 @@ class GitRepository {
   }
 
   Future<GitRemoteConfig> addOrUpdateRemote(String name, String url) async {
-    var remote = config.remotes.firstWhere(
-      (r) => r.name == name,
-      orElse: () => null,
-    );
-    if (remote == null) {
+    var i = config.remotes.indexWhere((r) => r.name == name);
+    if (i == -1) {
       return addRemote(name, url);
     }
 
-    remote.url = url;
+    config.remotes[i] = GitRemoteConfig(
+      name: config.remotes[i].name,
+      fetch: config.remotes[i].fetch,
+      url: url,
+    );
     await saveConfig();
 
-    return remote;
+    return config.remotes[i];
   }
 
   Future<GitRemoteConfig> removeRemote(String name) async {

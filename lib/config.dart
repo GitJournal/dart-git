@@ -1,46 +1,47 @@
-// @dart=2.9
-
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 import 'package:quiver/core.dart';
 
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
 class BranchConfig {
-  String name;
-  String remote;
+  final String name;
+  String? remote;
+  ReferenceName? merge;
 
-  ReferenceName merge;
+  BranchConfig({required this.name, this.remote, this.merge});
 
   @override
   String toString() => 'Branch{name: $name, remote: $remote, merge: $merge}';
 
-  String trackingBranch() => merge.branchName();
+  String? trackingBranch() => merge!.branchName();
   String remoteTrackingBranch() => '$remote/${trackingBranch()}';
 }
 
 class GitRemoteConfig {
-  String name;
-  String url;
-  String fetch; // This should be a refspec
+  final String name;
+  final String url;
+  final String fetch; // This should be a refspec
 
-  GitRemoteConfig();
-  GitRemoteConfig.create({@required this.name, @required this.url}) {
-    fetch = '+refs/heads/*:refs/remotes/$name/*';
-  }
+  GitRemoteConfig({
+    required this.name,
+    required this.url,
+    required this.fetch,
+  });
+  GitRemoteConfig.create({required this.name, required this.url})
+      : fetch = '+refs/heads/*:refs/remotes/$name/*';
 }
 
 class Config {
-  bool bare;
+  bool? bare;
   Map<String, BranchConfig> branches = {};
   List<GitRemoteConfig> remotes = [];
 
-  GitAuthor user;
+  GitAuthor? user;
 
-  ConfigFile configFile;
+  late ConfigFile configFile;
 
   Config(String raw) {
     configFile = ConfigFile.parse(raw);
@@ -62,51 +63,55 @@ class Config {
     }
   }
 
-  BranchConfig branch(String name) => branches[name];
+  BranchConfig? branch(String name) => branches[name];
 
-  GitRemoteConfig remote(String name) {
-    return remotes.firstWhere((r) => r.name == name, orElse: () => null);
+  GitRemoteConfig? remote(String name) {
+    return remotes.firstWhereOrNull((r) => r.name == name);
   }
 
   void _parseBranch(Section section) {
-    var branch = BranchConfig();
-    branch.name = section.name;
+    var remote = '';
+    ReferenceName? merge;
 
     for (var entry in section.options.entries) {
       switch (entry.key) {
         case 'remote':
-          branch.remote = entry.value;
+          remote = entry.value;
           break;
         case 'merge':
-          branch.merge = ReferenceName(entry.value);
+          merge = ReferenceName(entry.value);
           break;
       }
     }
 
-    branches[branch.name] = branch;
+    branches[section.name] = BranchConfig(
+      name: section.name,
+      remote: remote,
+      merge: merge,
+    );
   }
 
   void _parseRemote(Section section) {
-    var remote = GitRemoteConfig();
-    remote.name = section.name;
+    var url = '';
+    var fetch = '';
 
     for (var entry in section.options.entries) {
       switch (entry.key) {
         case 'url':
-          remote.url = entry.value;
+          url = entry.value;
           break;
         case 'fetch':
-          remote.fetch = entry.value;
+          fetch = entry.value;
           break;
       }
     }
 
-    remotes.add(remote);
+    remotes.add(GitRemoteConfig(name: section.name, url: url, fetch: fetch));
   }
 
   void _parseUser(Section section) {
-    String name;
-    String email;
+    var name = '';
+    var email = '';
     for (var entry in section.options.entries) {
       switch (entry.key) {
         case 'name':
@@ -150,10 +155,14 @@ class Config {
     var serializedBranches = <String>{};
     for (var branch in branches.values) {
       var bs = branchSection.getOrCreateSection(branch.name);
-      bs.options['remote'] = branch.remote;
-      bs.options['merge'] = branch.merge.toString();
+      if (branch.remote != null) {
+        bs.options['remote'] = branch.remote!;
+      }
+      if (branch.merge != null) {
+        bs.options['merge'] = branch.merge.toString();
+        assert(branch.merge!.isBranch());
+      }
 
-      assert(branch.merge.isBranch());
       if (serializedRemotes.contains(branch.remote)) {
         serializedBranches.add(branch.name);
       }
@@ -169,8 +178,8 @@ class Config {
     // User
     if (user != null) {
       var sec = section('user');
-      sec.options['name'] = user.name;
-      sec.options['email'] = user.email;
+      sec.options['name'] = user!.name;
+      sec.options['email'] = user!.email;
     }
 
     return configFile.serialize();
@@ -272,10 +281,10 @@ class ConfigFile {
 
   static ConfigFile parse(String content) {
     var config = ConfigFile();
-    Section currentSection;
+    Section? currentSection;
 
     for (var line in LineSplitter.split(content)) {
-      RegExpMatch match;
+      RegExpMatch? match;
       match = _commentPattern.firstMatch(line);
       if (match != null) {
         continue;
@@ -288,8 +297,10 @@ class ConfigFile {
 
       match = _sectionPattern.firstMatch(line);
       if (match != null) {
+        assert(match.groupCount == 1);
+
         currentSection = null;
-        var name = match.group(1);
+        var name = match.group(1)!;
         var sectionNames = name.split(' ');
 
         assert(sectionNames.length <= 2);
@@ -301,9 +312,8 @@ class ConfigFile {
             sectionName = sectionName.substring(1, sectionName.length - 1);
           }
 
-          var section = config.sections.firstWhere(
+          var section = config.sections.firstWhereOrNull(
             (s) => s.name == sectionName,
-            orElse: () => null,
           );
           if (section == null) {
             section = Section(sectionName);
@@ -322,10 +332,11 @@ class ConfigFile {
       match = _entryPattern.firstMatch(line);
       if (match != null) {
         assert(currentSection != null);
+        assert(match.groupCount == 2);
 
-        var key = match[1].trim();
-        var value = match[2].trim();
-        currentSection.options[key] = value;
+        var key = match[1]!.trim();
+        var value = match[2]!.trim();
+        currentSection!.options[key] = value;
         continue;
       }
     }

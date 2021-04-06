@@ -41,7 +41,7 @@ class ObjectStorage {
     }
 
     for (var packFile in packFiles) {
-      var obj = packFile.object(hash);
+      var obj = await packFile.object(hash);
       if (obj != null) {
         return obj;
       }

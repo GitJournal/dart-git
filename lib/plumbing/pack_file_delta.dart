@@ -1,7 +1,5 @@
 // This file has been adapted from https://github.com/tarruda/node-git-core/blob/master/src/js/delta.js
 
-// @dart=2.9
-
 import 'dart:typed_data';
 
 bool _isCopyFromSrc(int cmd) => (cmd & 0x80) != 0;
@@ -86,14 +84,15 @@ void _replaceRange(List<int> list, int offset, Iterable<int> replaceIter) {
 }
 
 class DeltaHeader {
-  int baseBufferSize;
-  int targetBufferSize;
-  int offset;
+  late int baseBufferSize;
+  late int targetBufferSize;
+  int offset = 0;
 
   DeltaHeader(this.baseBufferSize, this.targetBufferSize);
 
   // gets sizes of the base buffer/target buffer formatted in LEB128 and
   // the delta header length
+  // FIXME: What if the buffer is too small?
   DeltaHeader.decode(List<int> buffer) {
     offset = 0;
 

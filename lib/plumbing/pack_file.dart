@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -12,7 +10,7 @@ import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/pack_file_delta.dart';
 
 class PackFile {
-  int numObjects;
+  int numObjects = 0;
   IdxFile idx;
   String filePath;
 
@@ -55,7 +53,7 @@ class PackFile {
   // FIXME: Check the packFile hash from the idx?
   // FIXME: Verify that the crc32 is correct?
 
-  Future<GitObject> object(GitHash hash) {
+  Future<GitObject?> object(GitHash hash) async {
     // FIXME: The speed of this can be improved by using the fanout table
     var i = idx.entries.indexWhere((e) => e.hash == hash);
     if (i == -1) {
@@ -66,7 +64,7 @@ class PackFile {
     return _getObject(entry.offset);
   }
 
-  Future<GitObject> _getObject(int offset) async {
+  Future<GitObject?> _getObject(int offset) async {
     var file = await File(filePath).open(mode: FileMode.read);
     await file.setPosition(offset);
 
@@ -140,17 +138,23 @@ class PackFile {
     }
   }
 
-  Future<GitObject> _fillOFSDeltaObject(
+  Future<GitObject?> _fillOFSDeltaObject(
       int baseOffset, List<int> deltaData) async {
     var baseObject = await _getObject(baseOffset);
+    if (baseObject == null) {
+      return null;
+    }
     var deltaObj = patchDelta(baseObject.serializeData(), deltaData);
 
     return createObject(ascii.decode(baseObject.format()), deltaObj);
   }
 
-  Future<GitObject> _fillRefDeltaObject(
+  Future<GitObject?> _fillRefDeltaObject(
       GitHash baseHash, List<int> deltaData) async {
     var baseObject = await object(baseHash);
+    if (baseObject == null) {
+      return null;
+    }
     var deltaObj = patchDelta(baseObject.serializeData(), deltaData);
 
     return createObject(ascii.decode(baseObject.format()), deltaObj);
@@ -163,7 +167,9 @@ class PackFile {
       var entry = idx.entries[i];
 
       var obj = await _getObject(entry.offset);
-
+      if (obj == null) {
+        continue;
+      }
       assert(obj.hash == entry.hash);
       objects.add(obj);
     }

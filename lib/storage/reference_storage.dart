@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,7 +12,7 @@ class ReferenceStorage {
 
   ReferenceStorage(this.dotGitDir, this.fs);
 
-  Future<Reference> reference(ReferenceName refName) async {
+  Future<Reference?> reference(ReferenceName refName) async {
     var file = fs.file(p.join(dotGitDir, refName.value));
     if (file.existsSync()) {
       var contents = await file.readAsString();
@@ -54,8 +52,10 @@ class ReferenceStorage {
       var refName =
           ReferenceName(fsEntity.path.substring(dotGitDir.length + 1));
       var ref = await reference(refName);
-      refs.add(ref);
-      processedRefNames.add(refName);
+      if (ref != null) {
+        refs.add(ref);
+        processedRefNames.add(refName);
+      }
     }
 
     for (var ref in await _packedRefs()) {
@@ -92,7 +92,7 @@ class ReferenceStorage {
     if (ref.isHash) {
       await file.writeAsString(ref.hash.toString() + '\n', flush: true);
     } else if (ref.isSymbolic) {
-      var val = symbolicRefPrefix + ref.target.value;
+      var val = symbolicRefPrefix + ref.target!.value;
       await file.writeAsString(val + '\n', flush: true);
     }
     await file.rename(refFileName);

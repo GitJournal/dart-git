@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -18,13 +16,14 @@ class ObjectStorage {
   final String gitDir;
   final FileSystem fs;
 
-  DateTime _packDirChanged;
-  DateTime _packDirModified;
+  DateTime? _packDirChanged;
+  DateTime? _packDirModified;
   var packFiles = <PackFile>[];
 
   ObjectStorage(this.gitDir, this.fs);
 
-  Future<GitObject> readObjectFromHash(GitHash hash) async {
+  // FIXME: Handle all fs exceptions
+  Future<GitObject?> readObjectFromHash(GitHash hash) async {
     var sha = hash.toString();
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
     if (await fs.isFile(path)) {
@@ -76,7 +75,7 @@ class ObjectStorage {
     }
   }
 
-  Future<GitObject> readObjectFromPath(String filePath) async {
+  Future<GitObject?> readObjectFromPath(String filePath) async {
     var contents = await fs.file(filePath).readAsBytes();
     var raw = zlib.decode(contents);
 
@@ -114,7 +113,7 @@ class ObjectStorage {
     return hash;
   }
 
-  Future<GitObject> refSpec(GitTree tree, String spec) async {
+  Future<GitObject?> refSpec(GitTree tree, String spec) async {
     assert(!spec.startsWith(p.separator));
     if (spec.isEmpty) {
       return tree;

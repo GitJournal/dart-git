@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:dart_git/git_hash.dart';
 
 enum ReferenceType {
@@ -8,10 +6,10 @@ enum ReferenceType {
 }
 
 class Reference {
-  ReferenceType type;
-  ReferenceName name;
-  GitHash hash;
-  ReferenceName target;
+  late ReferenceType type;
+  late ReferenceName name;
+  GitHash? hash;
+  ReferenceName? target;
 
   Reference(String source, String target) {
     name = ReferenceName(source);
@@ -25,12 +23,14 @@ class Reference {
     type = ReferenceType.Hash;
   }
 
-  Reference.hash(this.name, this.hash) {
+  Reference.hash(this.name, GitHash hash) {
     type = ReferenceType.Hash;
+    this.hash = hash;
   }
 
-  Reference.symbolic(this.name, this.target) {
+  Reference.symbolic(this.name, ReferenceName target) {
     type = ReferenceType.Symbolic;
+    this.target = target;
   }
 
   String toDisplayString() {
@@ -61,7 +61,7 @@ const refNotePrefix = refPrefix + 'notes/';
 const symbolicRefPrefix = 'ref: ';
 
 class ReferenceName {
-  String value;
+  late String value;
   ReferenceName(this.value) {
     assert(value.startsWith(refPrefix) || value == 'HEAD', 'prefix: $value');
   }
@@ -81,7 +81,7 @@ class ReferenceName {
   bool isRemote() => value.startsWith(refRemotePrefix);
   bool isNote() => value.startsWith(refNotePrefix);
 
-  String branchName() {
+  String? branchName() {
     assert(isBranch() || isRemote());
     if (isBranch()) {
       return value.substring(refHeadPrefix.length);

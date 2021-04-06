@@ -36,7 +36,7 @@ class GitRepository {
 
   FileSystem fs;
   ReferenceStorage refStorage;
-  ObjectStorage objStorage;
+  ObjectStorage /*!*/ objStorage;
 
   GitRepository._internal({@required String rootDir, @required this.fs}) {
     workTree = rootDir;

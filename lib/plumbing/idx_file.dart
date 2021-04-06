@@ -1,17 +1,14 @@
-// @dart=2.9
-
 import 'dart:typed_data';
 
 import 'package:buffer/buffer.dart';
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
 
 import 'package:dart_git/git_hash.dart';
 
 class IdxFile {
   var entries = <IdxFileEntry>[];
   var fanTable = Uint32List(_FAN_TABLE_LENGTH);
-  GitHash packFileHash;
+  late GitHash packFileHash;
 
   static const _PACK_IDX_SIGNATURE = 0xff744f63;
   static const _PACK_VERSION = 2;
@@ -88,14 +85,13 @@ class IdxFile {
       throw Exception('GitIdxFileCorrupted: Extra bytes in the end');
     }
 
-    entries = List<IdxFileEntry>.filled(numObjects, null);
-    for (var i = 0; i < numObjects; i++) {
-      entries[i] = IdxFileEntry(
+    entries = List<IdxFileEntry>.generate(numObjects, (i) {
+      return IdxFileEntry(
         hash: hashes[i],
         crc32: crcValues[i],
         offset: offsets[i],
       );
-    }
+    });
   }
 
   Uint8List encode() {
@@ -151,9 +147,9 @@ class IdxFileEntry extends Equatable {
   final int offset;
 
   IdxFileEntry({
-    @required this.hash,
-    @required this.crc32,
-    @required this.offset,
+    required this.hash,
+    required this.crc32,
+    required this.offset,
   });
 
   @override

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/commit_iterator.dart';
@@ -37,9 +35,9 @@ extension MergeBase on GitRepository {
     return independents(results);
   }
 
-  Future<Set<GitHash>> allAncestors(
+  Future<Set<GitHash>?> allAncestors(
     GitCommit start, {
-    GitCommit shouldNotContain,
+    required GitCommit shouldNotContain,
   }) async {
     if (start.hash == shouldNotContain.hash) null;
 

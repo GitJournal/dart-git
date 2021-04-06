@@ -1,8 +1,4 @@
-// @dart=2.9
-
 import 'dart:collection';
-
-import 'package:meta/meta.dart';
 
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
@@ -11,8 +7,8 @@ import 'package:dart_git/storage/object_storage.dart';
 // FIXME: How to deal with missing objects?
 
 Stream<GitCommit> commitIteratorBFS({
-  @required ObjectStorage objStorage,
-  @required GitCommit from,
+  required ObjectStorage objStorage,
+  required GitCommit from,
 }) async* {
   var queue = Queue<GitHash>.from([from.hash]);
   var seen = <GitHash>{};
@@ -27,6 +23,10 @@ Stream<GitCommit> commitIteratorBFS({
     var obj = await objStorage.readObjectFromHash(hash);
     assert(obj is GitCommit);
 
+    if (obj == null) {
+      continue;
+    }
+
     var commit = obj as GitCommit;
 
     queue.addAll(commit.parents);
@@ -39,10 +39,10 @@ final _allCommitsValidFilter = (GitCommit _) => true;
 final _allCommitsNotValidFilter = (GitCommit _) => false;
 
 Stream<GitCommit> commitIteratorBFSFiltered({
-  @required ObjectStorage objStorage,
-  @required GitCommit from,
-  CommitFilter isValid,
-  CommitFilter isLimit,
+  required ObjectStorage objStorage,
+  required GitCommit from,
+  CommitFilter? isValid,
+  CommitFilter? isLimit,
 }) async* {
   isValid ??= _allCommitsValidFilter;
   isLimit ??= _allCommitsNotValidFilter;
@@ -60,6 +60,10 @@ Stream<GitCommit> commitIteratorBFSFiltered({
     var obj = await objStorage.readObjectFromHash(hash);
     assert(obj is GitCommit);
 
+    if (obj == null) {
+      continue;
+    }
+
     var commit = obj as GitCommit;
     if (!isLimit(commit)) {
       queue.addAll(commit.parents);
@@ -71,8 +75,8 @@ Stream<GitCommit> commitIteratorBFSFiltered({
 }
 
 Stream<GitCommit> commitPreOrderIterator({
-  @required ObjectStorage objStorage,
-  @required GitCommit from,
+  required ObjectStorage objStorage,
+  required GitCommit from,
 }) async* {
   var stack = List<GitHash>.from([from.hash]);
   var seen = <GitHash>{};
@@ -86,6 +90,10 @@ Stream<GitCommit> commitPreOrderIterator({
 
     var obj = await objStorage.readObjectFromHash(hash);
     assert(obj is GitCommit);
+
+    if (obj == null) {
+      continue;
+    }
 
     var commit = obj as GitCommit;
 

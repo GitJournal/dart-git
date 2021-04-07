@@ -1,8 +1,5 @@
-// @dart=2.9
-
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/diff_tree.dart';
@@ -18,9 +15,9 @@ class CommitBlobChanges {
   final List<Change> modified;
 
   CommitBlobChanges({
-    @required this.added,
-    @required this.removed,
-    @required this.modified,
+    required this.added,
+    required this.removed,
+    required this.modified,
   });
 
   bool get isEmpty => added.isEmpty && modified.isEmpty && removed.isEmpty;
@@ -31,10 +28,10 @@ class CommitBlobChanges {
 }
 
 class Change {
-  final ChangeEntry from;
-  final ChangeEntry to;
+  final ChangeEntry? from;
+  final ChangeEntry? to;
 
-  Change({@required this.from, @required this.to}) {
+  Change({required this.from, required this.to}) {
     assert(from != null || to != null);
   }
 
@@ -42,8 +39,9 @@ class Change {
   bool get added => from == null;
   bool get modified => to != null && from != null;
 
-  String get path => from != null ? from.path : to.path;
-  GitFileMode get mode => from != null ? from.mode : to.mode;
+  // This could crash, no?
+  String get path => from != null ? from!.path : to!.path;
+  GitFileMode get mode => from != null ? from!.mode : to!.mode;
 
   @override
   String toString() {
@@ -59,13 +57,13 @@ class Change {
 
 class ChangeEntry {
   final String path;
-  final GitTree tree;
-  final GitTreeEntry entry;
+  final GitTree? tree;
+  final GitTreeEntry? entry;
 
   ChangeEntry(this.path, this.tree, this.entry);
 
-  GitHash get hash => entry.hash;
-  GitFileMode get mode => entry.mode;
+  GitHash get hash => entry!.hash;
+  GitFileMode get mode => entry!.mode;
 
   @override
   String toString() {
@@ -74,28 +72,25 @@ class ChangeEntry {
 }
 
 class _Item {
-  final GitHash fromTreeHash;
-  final GitHash fromParentHash;
+  final GitHash? fromTreeHash;
+  final GitHash? fromParentHash;
 
-  final GitHash toTreeHash;
-  final GitHash toParentHash;
+  final GitHash? toTreeHash;
+  final GitHash? toParentHash;
 
   _Item({
-    @required this.fromTreeHash,
-    @required this.fromParentHash,
-    @required this.toTreeHash,
-    @required this.toParentHash,
+    required this.fromTreeHash,
+    required this.fromParentHash,
+    required this.toTreeHash,
+    required this.toParentHash,
   });
 }
 
 Future<CommitBlobChanges> diffCommits({
-  @required GitCommit fromCommit,
-  @required GitCommit toCommit,
-  @required ObjectStorage objStore,
+  required GitCommit fromCommit,
+  required GitCommit toCommit,
+  required ObjectStorage objStore,
 }) async {
-  assert(fromCommit != null);
-  assert(toCommit != null);
-
   var addedChanges = <Change>[];
   var removedChanges = <Change>[];
   var modifiedChanges = <Change>[];
@@ -120,23 +115,40 @@ Future<CommitBlobChanges> diffCommits({
       continue;
     }
 
-    GitTree fromTree = await objStore.readObjectFromHash(item.fromTreeHash);
-    GitTree toTree = await objStore.readObjectFromHash(item.toTreeHash);
+    GitTree? fromTree;
+    GitTree? toTree;
+
+    if (item.fromTreeHash != null) {
+      var from = await objStore.readObjectFromHash(item.fromTreeHash!);
+      if (from == null) {
+        print('Failed to fetch from commit. Ignoring ...');
+        continue;
+      }
+      fromTree = from as GitTree?;
+    }
+    if (item.toTreeHash != null) {
+      var to = await objStore.readObjectFromHash(item.toTreeHash!);
+      if (to == null) {
+        print('Failed to fetch to commit. Ignoring ...');
+        continue;
+      }
+      toTree = to as GitTree?;
+    }
 
     var diffTreeResults = diffTree(fromTree, toTree);
     for (var result in diffTreeResults.merged()) {
       if (result.mode == GitFileMode.Dir) {
         if (result.from != null) {
-          var fromParentPath = pathMap[item.fromTreeHash];
-          var fromPath = p.join(fromParentPath, result.from.name);
+          var fromParentPath = pathMap[item.fromTreeHash]!;
+          var fromPath = p.join(fromParentPath, result.from!.name);
 
-          pathMap[result.from.hash] = fromPath;
+          pathMap[result.from!.hash] = fromPath;
         }
         if (result.to != null) {
-          var toParentPath = pathMap[item.toTreeHash];
-          var toPath = p.join(toParentPath, result.to.name);
+          var toParentPath = pathMap[item.toTreeHash]!;
+          var toPath = p.join(toParentPath, result.to!.name);
 
-          pathMap[result.to.hash] = toPath;
+          pathMap[result.to!.hash] = toPath;
         }
 
         queue.add(_Item(
@@ -147,32 +159,32 @@ Future<CommitBlobChanges> diffCommits({
         ));
       } else {
         if (result.modified) {
-          var fromParentPath = pathMap[item.fromTreeHash];
-          var toParentPath = pathMap[item.toTreeHash];
+          var fromParentPath = pathMap[item.fromTreeHash]!;
+          var toParentPath = pathMap[item.toTreeHash]!;
 
-          var fromPath = p.join(fromParentPath, result.from.name);
-          var toPath = p.join(toParentPath, result.to.name);
+          var fromPath = p.join(fromParentPath, result.from!.name);
+          var toPath = p.join(toParentPath, result.to!.name);
 
           var from = ChangeEntry(fromPath, fromTree, result.from);
           var to = ChangeEntry(toPath, toTree, result.to);
 
-          assert(result.from.hash.isNotEmpty && result.to.hash.isNotEmpty);
+          assert(result.from!.hash.isNotEmpty && result.to!.hash.isNotEmpty);
 
           modifiedChanges.add(Change(from: from, to: to));
         } else if (result.added) {
-          var toParentPath = pathMap[item.toTreeHash];
-          var toPath = p.join(toParentPath, result.to.name);
+          var toParentPath = pathMap[item.toTreeHash]!;
+          var toPath = p.join(toParentPath, result.to!.name);
           var to = ChangeEntry(toPath, toTree, result.to);
 
-          assert(result.to.hash.isNotEmpty);
+          assert(result.to!.hash.isNotEmpty);
 
           removedChanges.add(Change(from: null, to: to));
         } else if (result.deleted) {
-          var fromParentPath = pathMap[item.fromTreeHash];
-          var fromPath = p.join(fromParentPath, result.from.name);
+          var fromParentPath = pathMap[item.fromTreeHash]!;
+          var fromPath = p.join(fromParentPath, result.from!.name);
           var from = ChangeEntry(fromPath, fromTree, result.from);
 
-          assert(result.from.hash.isNotEmpty);
+          assert(result.from!.hash.isNotEmpty);
 
           addedChanges.add(Change(from: from, to: null));
         }

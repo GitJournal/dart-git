@@ -1,25 +1,21 @@
-// @dart=2.9
-
-import 'package:meta/meta.dart';
-
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 class DiffTreeChange {
-  final GitTreeEntry from;
-  final GitTreeEntry to;
+  final GitTreeEntry? from;
+  final GitTreeEntry? to;
 
   DiffTreeChange({
-    @required this.from,
-    @required this.to,
+    required this.from,
+    required this.to,
   });
 
   bool get deleted => to == null;
   bool get added => from == null;
   bool get modified => to != null && from != null;
 
-  String get name => from != null ? from.name : to.name;
-  GitFileMode get mode => from != null ? from.mode : to.mode;
+  String get name => from != null ? from!.name : to!.name;
+  GitFileMode get mode => from != null ? from!.mode : to!.mode;
 }
 
 class DiffTreeResults {
@@ -28,9 +24,9 @@ class DiffTreeResults {
   final List<DiffTreeChange> removed;
 
   DiffTreeResults({
-    @required this.added,
-    @required this.modified,
-    @required this.removed,
+    required this.added,
+    required this.modified,
+    required this.removed,
   });
 
   bool get isEmpty => added.isEmpty && modified.isEmpty && removed.isEmpty;
@@ -40,9 +36,13 @@ class DiffTreeResults {
   }
 }
 
-DiffTreeResults diffTree(GitTree ta, GitTree tb) {
+DiffTreeResults diffTree(GitTree? ta, GitTree? tb) {
+  if (ta == null && tb == null) {
+    return DiffTreeResults(added: [], modified: [], removed: []);
+  }
+
   if (ta == null) {
-    var removed = tb.entries.map((e) => DiffTreeChange(from: null, to: e));
+    var removed = tb!.entries.map((e) => DiffTreeChange(from: null, to: e));
     return DiffTreeResults(added: [], modified: [], removed: removed.toList());
   } else if (tb == null) {
     var added = ta.entries.map((e) => DiffTreeChange(from: e, to: null));
@@ -83,8 +83,8 @@ DiffTreeResults diffTree(GitTree ta, GitTree tb) {
 
   var maybeModified = aPathSet.intersection(bPathSet);
   for (var path in maybeModified) {
-    var aLeaf = aPaths[path];
-    var bLeaf = bPaths[path];
+    var aLeaf = aPaths[path]!;
+    var bLeaf = bPaths[path]!;
     if (aLeaf.mode != bLeaf.mode || aLeaf.hash != bLeaf.hash) {
       var item = DiffTreeChange(from: aLeaf, to: bLeaf);
       assert(item.modified);

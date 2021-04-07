@@ -25,7 +25,7 @@ class GitIndex {
   GitIndex({required this.versionNo});
 
   // FIXME: BytesDataReader can throw a range error!
-  GitIndex.decode(List<int> bytes) {
+  GitIndex.decode(Uint8List bytes) {
     var reader = ByteDataReader(endian: Endian.big, copy: false);
     reader.add(bytes);
 
@@ -67,7 +67,8 @@ class GitIndex {
 
     var expectedHash = GitHash.fromBytes(hashBytesBuilder.toBytes());
     var actualHash = GitHash.compute(
-        bytes.sublist(0, bytes.length - 20)); // FIXME: Avoid this copy!
+      Uint8List.sublistView(bytes, 0, bytes.length - 20),
+    );
     if (expectedHash != actualHash) {
       print('ExpectedHash: $expectedHash');
       print('ActualHash:  $actualHash');
@@ -103,6 +104,7 @@ class GitIndex {
     return false;
   }
 
+  // FIXME: Use sublistView everywhere!
   void _parseCacheTreeExtension(Uint8List data) {
     var pos = 0;
     while (pos < data.length) {
@@ -110,7 +112,7 @@ class GitIndex {
       if (pathEndPos == -1) {
         throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
-      var path = data.sublist(pos, pathEndPos);
+      var path = Uint8List.sublistView(data, pos, pathEndPos);
       pos = pathEndPos + 1;
 
       var entryCountEndPos = data.indexOf(asciiHelper.space, pos);

@@ -15,7 +15,7 @@ class IdxFile {
   static const _FAN_TABLE_LENGTH = 256;
 
   // FIXME: BytesDataReader can throw a range error!
-  IdxFile.decode(Iterable<int> bytes) {
+  IdxFile.decode(Uint8List bytes) {
     var allBytes = bytes.toList();
     var reader = ByteDataReader(endian: Endian.big, copy: false);
     reader.add(allBytes);
@@ -77,7 +77,7 @@ class IdxFile {
 
     var bytesRead = reader.offsetInBytes;
     var idxFileHash = GitHash.fromBytes(reader.read(20));
-    var fileHash = GitHash.compute(allBytes.sublist(0, bytesRead));
+    var fileHash = GitHash.compute(Uint8List.sublistView(bytes, 0, bytesRead));
     if (fileHash != idxFileHash) {
       throw Exception('GitIdxFileCorrupted: Invalid file hash');
     }

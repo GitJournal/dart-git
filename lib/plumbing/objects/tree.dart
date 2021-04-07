@@ -7,6 +7,7 @@ import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/utils/file_mode.dart';
+import 'package:dart_git/utils/uint8list.dart';
 
 class GitTreeEntry extends Equatable {
   final GitFileMode mode;
@@ -37,10 +38,10 @@ class GitTree extends GitObject {
       var x = raw.indexOf(asciiHelper.space, start);
       assert(x - start == 5 || x - start == 6);
 
-      var mode = raw.sublist(start, x);
+      var mode = raw.sublistView(start, x);
       var y = raw.indexOf(0, x);
-      var name = raw.sublist(x + 1, y);
-      var hashBytes = raw.sublist(y + 1, y + 21);
+      var name = raw.sublistView(x + 1, y);
+      var hashBytes = raw.sublistView(y + 1, y + 21);
 
       var entry = GitTreeEntry(
         mode: GitFileMode.parse(ascii.decode(mode)),

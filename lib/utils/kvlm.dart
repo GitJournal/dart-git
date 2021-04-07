@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dart_git/ascii_helper.dart';
+import 'package:dart_git/utils/uint8list.dart';
 
 Map<String, dynamic> kvlmParse(Uint8List raw) {
   var dict = <String, dynamic>{};
@@ -18,11 +19,11 @@ Map<String, dynamic> kvlmParse(Uint8List raw) {
     if (newLineIndex < spaceIndex || spaceIndex == -1) {
       assert(newLineIndex == start);
 
-      dict['_'] = utf8.decode(raw.sublist(start + 1));
+      dict['_'] = utf8.decode(raw.sublistView(start + 1));
       break;
     }
 
-    var key = raw.sublist(start, spaceIndex);
+    var key = raw.sublistView(start, spaceIndex);
     var end = spaceIndex;
     while (true) {
       end = raw.indexOf(asciiHelper.newLine, end + 1);
@@ -31,7 +32,7 @@ Map<String, dynamic> kvlmParse(Uint8List raw) {
       }
     }
 
-    var value = raw.sublist(spaceIndex + 1, end);
+    var value = raw.sublistView(spaceIndex + 1, end);
     var valueStr = utf8.decode(value).replaceAll('\n ', '\n');
 
     var keyStr = utf8.decode(key);

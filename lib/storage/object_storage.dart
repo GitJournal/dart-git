@@ -12,6 +12,7 @@ import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
 import 'package:dart_git/utils.dart';
+import 'package:dart_git/utils/uint8list.dart';
 
 class ObjectStorage {
   final String gitDir;
@@ -78,7 +79,7 @@ class ObjectStorage {
 
   Future<GitObject?> readObjectFromPath(String filePath) async {
     var contents = await fs.file(filePath).readAsBytes();
-    var raw = zlib.decode(contents);
+    var raw = zlib.decode(contents) as Uint8List;
 
     // Read Object Type
     var x = raw.indexOf(asciiHelper.space);
@@ -86,7 +87,7 @@ class ObjectStorage {
       print('Object Type not found');
       return null;
     }
-    var fmt = raw.sublist(0, x);
+    var fmt = raw.sublistView(0, x);
 
     // Read and validate object size
     var y = raw.indexOf(0x0, x);
@@ -95,7 +96,7 @@ class ObjectStorage {
       return null;
     }
 
-    var size = int.tryParse(ascii.decode(raw.sublist(x, y)));
+    var size = int.tryParse(ascii.decode(raw.sublistView(x, y)));
     if (size == null) {
       print('Could not parse Object size');
       return null;
@@ -107,7 +108,7 @@ class ObjectStorage {
 
     var fmtStr = ascii.decode(fmt);
     // FIXME: Avoid this copy?
-    var rawData = Uint8List.fromList(raw.sublist(y + 1));
+    var rawData = Uint8List.fromList(raw.sublistView(y + 1));
     return createObject(fmtStr, rawData, filePath);
   }
 

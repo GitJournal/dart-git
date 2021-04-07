@@ -12,6 +12,7 @@ import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/utils/bytes_data_reader.dart';
 import 'package:dart_git/utils/file_mode.dart';
+import 'package:dart_git/utils/uint8list.dart';
 
 final _indexSignature = ascii.encode('DIRC');
 
@@ -66,9 +67,7 @@ class GitIndex {
     hashBytesBuilder..add(extensionHeader)..add(reader.read(16));
 
     var expectedHash = GitHash.fromBytes(hashBytesBuilder.toBytes());
-    var actualHash = GitHash.compute(
-      Uint8List.sublistView(bytes, 0, bytes.length - 20),
-    );
+    var actualHash = GitHash.compute(bytes.sublistView(0, bytes.length - 20));
     if (expectedHash != actualHash) {
       print('ExpectedHash: $expectedHash');
       print('ActualHash:  $actualHash');
@@ -112,20 +111,23 @@ class GitIndex {
       if (pathEndPos == -1) {
         throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
-      var path = Uint8List.sublistView(data, pos, pathEndPos);
+      var path = data.sublistView(pos, pathEndPos);
       pos = pathEndPos + 1;
 
       var entryCountEndPos = data.indexOf(asciiHelper.space, pos);
       if (entryCountEndPos == -1) {
         throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
-      var entryCount = data.sublist(pos, entryCountEndPos);
+      var entryCount = data.sublistView(pos, entryCountEndPos);
       pos = entryCountEndPos + 1;
       assert(data[pos - 1] == asciiHelper.space);
 
-      var numEntries = int.parse(ascii.decode(entryCount));
+      var numEntries = int.tryParse(ascii.decode(entryCount));
+      if (numEntries == null) {
+        // FIXME: Log this?
+        continue;
+      }
       if (numEntries == -1) {
-        // Invalid entry
         continue;
       }
 
@@ -133,17 +135,22 @@ class GitIndex {
       if (numSubtreeEndPos == -1) {
         throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
-      var numSubTree = data.sublist(pos, numSubtreeEndPos);
+      var numSubTreeData = data.sublistView(pos, numSubtreeEndPos);
+      var numSubTrees = int.tryParse(ascii.decode(numSubTreeData));
+      if (numSubTrees == null) {
+        // FIXME: Log this?
+        continue;
+      }
       pos = numSubtreeEndPos + 1;
       assert(data[pos - 1] == asciiHelper.newLine);
 
-      var hashBytes = data.sublist(pos, pos + 20);
+      var hashBytes = data.sublistView(pos, pos + 20);
       pos += 20;
 
       var treeEntry = TreeEntry(
         path: utf8.decode(path),
         numEntries: numEntries,
-        numSubTrees: int.parse(ascii.decode(numSubTree)),
+        numSubTrees: numSubTrees,
         hash: GitHash.fromBytes(hashBytes),
       );
       cache.add(treeEntry);

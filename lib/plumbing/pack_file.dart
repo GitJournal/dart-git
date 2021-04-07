@@ -133,13 +133,12 @@ class PackFile {
       // The dart zlib parser doesn't have a way to greedily keep reading
       // till it reaches a certain size
       compressedData.add(await file.read(objSize + 512));
-      var decodedData = zlib.decode(compressedData.toBytes());
+      var decodedData = zlib.decode(compressedData.toBytes()) as Uint8List;
+
       if (decodedData.length >= objSize) {
-        var data = decodedData.sublist(0, objSize);
-        if (data is Uint8List) {
-          return data;
-        }
-        return Uint8List.fromList(data);
+        // FIXME: Use sublistView if the zlib encoder doesn't make the object
+        //        too big because we are using + 512
+        return decodedData.sublist(0, objSize);
       }
     }
   }

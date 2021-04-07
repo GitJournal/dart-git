@@ -4,6 +4,7 @@ import 'package:buffer/buffer.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/utils/uint8list.dart';
 
 class IdxFile {
   var entries = <IdxFileEntry>[];
@@ -77,7 +78,7 @@ class IdxFile {
 
     var bytesRead = reader.offsetInBytes;
     var idxFileHash = GitHash.fromBytes(reader.read(20));
-    var fileHash = GitHash.compute(Uint8List.sublistView(bytes, 0, bytesRead));
+    var fileHash = GitHash.compute(bytes.sublistView(0, bytesRead));
     if (fileHash != idxFileHash) {
       throw Exception('GitIdxFileCorrupted: Invalid file hash');
     }

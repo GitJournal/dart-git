@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -18,23 +16,23 @@ class LsTreeCommand extends Command {
 
   @override
   Future run() async {
-    var objectSha1 = argResults.rest.first;
+    var objectSha1 = argResults!.rest.first;
 
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
     var obj = await repo.objStorage.readObjectFromHash(GitHash(objectSha1));
-    GitTree tree;
+    GitTree? tree;
     if (obj is GitTree) {
       tree = obj;
     } else if (obj is GitCommit) {
-      tree = await repo.objStorage.readObjectFromHash(obj.treeHash);
+      tree = await repo.objStorage.readObjectFromHash(obj.treeHash) as GitTree;
     } else {
       assert(false);
     }
 
-    for (var leaf in tree.entries) {
-      var leafObj = await repo.objStorage.readObjectFromHash(leaf.hash);
+    for (var leaf in tree!.entries) {
+      var leafObj = (await repo.objStorage.readObjectFromHash(leaf.hash))!;
       var type = leafObj.formatStr();
       var mode = leaf.mode.toString().padLeft(6, '0');
       print('$mode $type ${leaf.hash}    ${leaf.name}');

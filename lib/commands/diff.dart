@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -7,6 +5,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/objects/commit.dart';
 
 class DiffCommand extends Command {
   @override
@@ -22,24 +21,33 @@ class DiffCommand extends Command {
 
   @override
   Future run() async {
-    var raw = argResults['raw'] as bool;
+    var raw = argResults!['raw'] as bool?;
     if (raw == false) {
       print('Only supported with --raw');
       return 1;
     }
 
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var fromStr = argResults.arguments[0];
-    var toStr = argResults.arguments[1];
+    var fromStr = argResults!.arguments[0];
+    var toStr = argResults!.arguments[1];
 
     var fromCommit = await repo.objStorage.readObjectFromHash(GitHash(fromStr));
     var toCommit = await repo.objStorage.readObjectFromHash(GitHash(toStr));
 
+    if (fromCommit == null) {
+      print('fromCommit not found');
+      return;
+    }
+    if (toCommit == null) {
+      print('toCommit not found');
+      return;
+    }
+
     var changes = await diffCommits(
-      fromCommit: fromCommit,
-      toCommit: toCommit,
+      fromCommit: fromCommit as GitCommit,
+      toCommit: toCommit as GitCommit,
       objStore: repo.objStorage,
     );
 
@@ -52,17 +60,17 @@ class DiffCommand extends Command {
       var state = 'M';
       if (r.added) {
         state = 'A';
-        newMode = r.to.mode.toString().padLeft(6, '0');
-        newHash = r.to.hash.toString();
+        newMode = r.to!.mode.toString().padLeft(6, '0');
+        newHash = r.to!.hash.toString();
       } else if (r.deleted) {
         state = 'D';
-        prevMode = r.from.mode.toString().padLeft(6, '0');
-        prevHash = r.from.hash.toString();
+        prevMode = r.from!.mode.toString().padLeft(6, '0');
+        prevHash = r.from!.hash.toString();
       } else {
-        newMode = r.to.mode.toString().padLeft(6, '0');
-        newHash = r.to.hash.toString();
-        prevMode = r.from.mode.toString().padLeft(6, '0');
-        prevHash = r.from.hash.toString();
+        newMode = r.to!.mode.toString().padLeft(6, '0');
+        newHash = r.to!.hash.toString();
+        prevMode = r.from!.mode.toString().padLeft(6, '0');
+        prevHash = r.from!.hash.toString();
       }
 
       print(':$prevMode $newMode $prevHash $newHash $state\t${r.path}');

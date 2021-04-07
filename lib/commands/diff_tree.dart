@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -8,6 +6,7 @@ import 'package:dart_git/diff_tree.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
+import 'package:dart_git/plumbing/objects/tree.dart';
 
 class DiffTreeCommand extends Command {
   @override
@@ -19,10 +18,10 @@ class DiffTreeCommand extends Command {
 
   @override
   Future run() async {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var hash = argResults.arguments[0];
+    var hash = argResults!.arguments[0];
     var obj = await repo.objStorage.readObjectFromHash(GitHash(hash));
     if (obj == null) {
       print('fatal: bad object $hash');
@@ -33,16 +32,16 @@ class DiffTreeCommand extends Command {
       print('error: object $hash is a ${obj.formatStr()}, not a commit');
       return;
     }
-    var commit = obj as GitCommit;
+    var commit = obj;
     var parentHash = commit.parents.first;
     var parentObj = await repo.objStorage.readObjectFromHash(parentHash);
 
     var taHash = (parentObj as GitCommit).treeHash;
-    var tbHash = (obj as GitCommit).treeHash;
+    var tbHash = obj.treeHash;
 
     var results = diffTree(
-      await repo.objStorage.readObjectFromHash(taHash),
-      await repo.objStorage.readObjectFromHash(tbHash),
+      await repo.objStorage.readObjectFromHash(taHash) as GitTree,
+      await repo.objStorage.readObjectFromHash(tbHash) as GitTree,
     );
 
     for (var r in results.merged()) {
@@ -54,17 +53,17 @@ class DiffTreeCommand extends Command {
       var state = 'M';
       if (r.added) {
         state = 'A';
-        newMode = r.to.mode.toString().padLeft(6, '0');
-        newHash = r.to.hash.toString();
+        newMode = r.to!.mode.toString().padLeft(6, '0');
+        newHash = r.to!.hash.toString();
       } else if (r.deleted) {
         state = 'D';
-        prevMode = r.from.mode.toString().padLeft(6, '0');
-        prevHash = r.from.hash.toString();
+        prevMode = r.from!.mode.toString().padLeft(6, '0');
+        prevHash = r.from!.hash.toString();
       } else {
-        newMode = r.to.mode.toString().padLeft(6, '0');
-        newHash = r.to.hash.toString();
-        prevMode = r.from.mode.toString().padLeft(6, '0');
-        prevHash = r.from.hash.toString();
+        newMode = r.to!.mode.toString().padLeft(6, '0');
+        newHash = r.to!.hash.toString();
+        prevMode = r.from!.mode.toString().padLeft(6, '0');
+        prevHash = r.from!.hash.toString();
       }
 
       print(':$prevMode $newMode $prevHash $newHash $state\t${r.name}');

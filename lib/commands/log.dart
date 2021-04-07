@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -18,27 +16,34 @@ class LogCommand extends Command {
 
   @override
   Future run() async {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    GitHash sha;
-    if (argResults.rest.isNotEmpty) {
-      sha = GitHash(argResults.rest.first);
+    GitHash? sha;
+    if (argResults!.rest.isNotEmpty) {
+      sha = GitHash(argResults!.rest.first);
     } else {
-      var headRef = await repo.resolveReference(await repo.head());
-      sha = headRef.hash;
+      sha = await repo.headHash();
+      if (sha == null) {
+        print('fatal: head hash not found');
+        return;
+      }
     }
 
     var seen = <GitHash>{};
-    var parents = <GitHash>[];
+    var parents = <GitHash?>[];
     parents.add(sha);
 
     while (parents.isNotEmpty) {
-      var sha = parents[0];
+      var sha = parents[0]!;
       parents.removeAt(0);
       seen.add(sha);
 
       var obj = await repo.objStorage.readObjectFromHash(sha);
+      if (obj == null) {
+        print('panic: object with sha $sha not found');
+        return;
+      }
       assert(obj is GitCommit);
       var commit = obj as GitCommit;
 

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -16,32 +14,36 @@ class StatusCommand extends Command {
 
   @override
   Future run() async {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
     var head = await repo.head();
+    if (head == null) {
+      print('fatal: no head found');
+      return;
+    }
     if (head.isHash) {
       print('HEAD detached at ${head.hash}');
     } else {
-      print('On branch ${head.target.branchName()}');
+      print('On branch ${head.target!.branchName()}');
     }
 
     if (head.isHash) {
       return;
     }
 
-    var branch = repo.config.branch(head.target.branchName());
+    var branch = repo.config.branch(head.target!.branchName()!)!;
 
     // Construct remote's branch
-    var remoteBranchName = branch.merge.branchName();
-    var remoteRef = ReferenceName.remote(branch.remote, remoteBranchName);
+    var remoteBranchName = branch.merge!.branchName()!;
+    var remoteRef = ReferenceName.remote(branch.remote!, remoteBranchName);
 
-    var headHash = (await repo.resolveReference(head)).hash;
-    var remoteHash = (await repo.resolveReferenceName(remoteRef)).hash;
+    var headHash = (await repo.resolveReference(head))!.hash;
+    var remoteHash = (await repo.resolveReferenceName(remoteRef))!.hash;
 
     var remoteStr = '${branch.remote}/$remoteBranchName';
     if (headHash != remoteHash) {
-      var aheadBy = await repo.countTillAncestor(headHash, remoteHash);
+      var aheadBy = await repo.countTillAncestor(headHash!, remoteHash!);
       if (aheadBy != -1) {
         print('Your branch is ahead of $remoteStr by $aheadBy commits');
       } else {

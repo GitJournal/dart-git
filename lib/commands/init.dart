@@ -1,4 +1,4 @@
-// @dart=2.9
+
 
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
@@ -19,15 +19,15 @@ class InitCommand extends Command {
 
   @override
   Future run() async {
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       print('Must provide a path');
       return false;
     }
 
-    var path = argResults.rest.first;
+    var path = argResults!.rest.first;
     await GitRepository.init(path);
 
-    var quiet = argResults['quiet'] as bool;
+    var quiet = argResults!['quiet'] as bool;
     if (quiet) {
       return;
     }

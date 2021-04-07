@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -20,14 +18,14 @@ class CheckoutCommand extends Command {
 
   @override
   Future run() async {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var branchName = argResults['branch'] as String;
+    var branchName = argResults!['branch'] as String;
     if (branchName.isNotEmpty) {
       var remoteFullBranchName = '';
-      if (argResults.rest.isNotEmpty) {
-        remoteFullBranchName = argResults.rest[0];
+      if (argResults!.rest.isNotEmpty) {
+        remoteFullBranchName = argResults!.rest[0];
       } else {
         var branches = await repo.branches();
         if (branches.contains(branchName)) {
@@ -43,28 +41,36 @@ class CheckoutCommand extends Command {
       var remoteBranchName = splitPath(remoteFullBranchName).item2;
 
       var remoteRef = await repo.remoteBranch(remoteName, remoteBranchName);
+      if (remoteRef == null) {
+        print('fatal: remote $remoteName branch $remoteBranchName not found');
+        return;
+      }
 
       await repo.createBranch(branchName, hash: remoteRef.hash);
       await repo.checkout('.');
       await repo.setUpstreamTo(
-          repo.config.remote(remoteName), remoteBranchName);
+          repo.config.remote(remoteName)!, remoteBranchName);
       print(
           "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
 
       var headRef = await repo.head();
-      if (headRef.target.branchName() == branchName) {
+      if (headRef == null) {
+        print('fatal: head not found');
+        return;
+      }
+      if (headRef.target!.branchName() == branchName) {
         print("Already on '$branchName'");
       }
 
       return;
     }
 
-    if (argResults.arguments.isEmpty) {
+    if (argResults!.arguments.isEmpty) {
       print('Must provide a file');
       exit(1);
     }
 
-    var pathSpec = argResults.arguments[0];
+    var pathSpec = argResults!.arguments[0];
     var branches = await repo.branches();
     if (branches.contains(pathSpec)) {
       await repo.checkoutBranch(pathSpec);

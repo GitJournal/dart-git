@@ -1,5 +1,4 @@
-// @dart=2.9
-
+import 'package:collection/collection.dart';
 import 'package:file/file.dart';
 
 import 'package:dart_git/dart_git.dart';
@@ -21,25 +20,24 @@ class GitStatusResult {
 }
 
 extension Status on GitRepository {
-  Future<GitStatusResult> status() async {
+  Future<GitStatusResult?> status() async {
     var rootTree = await headTree();
 
-    GitStatusResult result;
+    GitStatusResult? result;
     return _status(rootTree, workTree, result);
   }
 
-  Future<GitStatusResult> _status(
-      GitTree tree, String treePath, GitStatusResult result) async {
+  Future<GitStatusResult?> _status(
+      GitTree tree, String? treePath, GitStatusResult? result) async {
     var dirContents = await fs.directory(treePath).list().toList();
     var newFilesAdded = dirContents.map((e) => e.path).toSet();
 
     for (var entry in tree.entries) {
-      var fsEntity = dirContents.firstWhere(
+      var fsEntity = dirContents.firstWhereOrNull(
         (e) => e.basename == entry.name,
-        orElse: () => null,
       );
       if (fsEntity == null) {
-        result.removed.add(fsEntity.path);
+        result!.removed.add(fsEntity!.path);
         continue;
       }
 
@@ -51,16 +49,19 @@ extension Status on GitRepository {
 
       if (entry.mode != GitFileMode.Dir) {
         if (_fileModified(fsEntity, entry)) {
-          result.modified.add(fsEntity.path);
+          result!.modified.add(fsEntity.path);
         }
         continue;
       }
 
       var subTree = await objStorage.readObjectFromHash(entry.hash);
-      result.add(await _status(subTree, fsEntity.path, result));
+      var r = await _status(subTree as GitTree, fsEntity.path, result);
+      if (r != null) {
+        result!.add(r);
+      }
     }
 
-    result.added.addAll(newFilesAdded);
+    result!.added.addAll(newFilesAdded);
     return result;
   }
 

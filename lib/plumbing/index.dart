@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -7,7 +5,6 @@ import 'dart:typed_data';
 import 'package:buffer/buffer.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
 import 'package:quiver/core.dart';
 
 import 'package:dart_git/ascii_helper.dart';
@@ -23,9 +20,9 @@ class GitIndex {
   var entries = <GitIndexEntry>[];
 
   List<TreeEntry> cache = []; // cached tree extension
-  EndOfIndexEntry endOfIndexEntry;
+  EndOfIndexEntry? endOfIndexEntry;
 
-  GitIndex({@required this.versionNo});
+  GitIndex({required this.versionNo});
 
   // FIXME: BytesDataReader can throw a range error!
   GitIndex.decode(List<int> bytes) {
@@ -204,7 +201,7 @@ class GitIndex {
   }
 
   Future<void> updatePath(String path, GitHash hash) async {
-    var entry = entries.firstWhere((e) => e.path == path, orElse: () => null);
+    var entry = entries.firstWhereOrNull((e) => e.path == path);
     if (entry == null) {
       var stat = await FileStat.stat(path);
       var entry = GitIndexEntry.fromFS(path, stat, hash);
@@ -215,16 +212,14 @@ class GitIndex {
     var stat = await FileStat.stat(path);
 
     // Existing file
-    if (entry != null) {
-      entry.hash = hash;
-      entry.fileSize = stat.size;
+    entry.hash = hash;
+    entry.fileSize = stat.size;
 
-      entry.cTime = stat.changed;
-      entry.mTime = stat.modified;
-    }
+    entry.cTime = stat.changed;
+    entry.mTime = stat.modified;
   }
 
-  Future<GitHash> removePath(String pathSpec) async {
+  Future<GitHash?> removePath(String pathSpec) async {
     var i = entries.indexWhere((e) => e.path == pathSpec);
     if (i == -1) {
       return null;
@@ -250,37 +245,37 @@ class GitIndexEntry {
   int fileSize;
   GitHash hash;
 
-  GitFileStage stage;
+  GitFileStage /*!*/ stage;
 
   String path;
 
-  bool skipWorkTree = false;
-  bool intentToAdd = false;
+  bool skipWorkTree;
+  bool intentToAdd;
 
   GitIndexEntry({
-    @required this.cTime,
-    @required this.mTime,
-    @required this.dev,
-    @required this.ino,
-    @required this.mode,
-    @required this.uid,
-    @required this.gid,
-    @required this.fileSize,
-    @required this.hash,
+    required this.cTime,
+    required this.mTime,
+    required this.dev,
+    required this.ino,
+    required this.mode,
+    required this.uid,
+    required this.gid,
+    required this.fileSize,
+    required this.hash,
     this.stage = GitFileStage.Merged,
-    @required this.path,
-    @required this.skipWorkTree,
-    @required this.intentToAdd,
+    required this.path,
+    this.skipWorkTree = false,
+    this.intentToAdd = false,
   });
 
-  GitIndexEntry.fromFS(String path, FileStat stat, GitHash hash) {
-    cTime = stat.changed;
-    mTime = stat.modified;
-    mode = GitFileMode(stat.mode);
+  static GitIndexEntry fromFS(String path, FileStat stat, GitHash hash) {
+    var cTime = stat.changed;
+    var mTime = stat.modified;
+    var mode = GitFileMode(stat.mode);
 
     // These don't seem to be exposed in Dart
-    ino = 0;
-    dev = 0;
+    var ino = 0;
+    var dev = 0;
 
     switch (stat.type) {
       case FileSystemEntityType.file:
@@ -295,23 +290,33 @@ class GitIndexEntry {
     }
 
     // Don't seem accessible in Dart -https://github.com/dart-lang/sdk/issues/15078
-    uid = 0;
-    gid = 0;
+    var uid = 0;
+    var gid = 0;
 
-    fileSize = stat.size;
-    this.hash = hash;
-    this.path = path;
-
-    stage = GitFileStage(0);
+    var fileSize = stat.size;
+    var stage = GitFileStage(0);
 
     assert(!path.startsWith('/'));
+    return GitIndexEntry(
+      cTime: cTime,
+      mTime: mTime,
+      dev: dev,
+      ino: ino,
+      mode: mode,
+      uid: uid,
+      gid: gid,
+      fileSize: fileSize,
+      hash: hash,
+      stage: stage,
+      path: path,
+    );
   }
 
   static GitIndexEntry fromBytes(
     int versionNo,
     int indexFileSize,
     ByteDataReader reader,
-    GitIndexEntry lastEntry,
+    GitIndexEntry? lastEntry,
   ) {
     var startingBytes = indexFileSize - reader.remainingLength;
 
@@ -487,15 +492,20 @@ class GitIndexEntry {
 }
 
 class TreeEntry extends Equatable {
-  final String /*!*/ path;
-  final int /*!*/ numEntries;
-  final int /*!*/ numSubTrees;
-  final GitHash /*!*/ hash;
+  final String path;
+  final int numEntries;
+  final int numSubTrees;
+  final GitHash hash;
 
-  const TreeEntry({this.path, this.numEntries, this.numSubTrees, this.hash});
+  const TreeEntry({
+    required this.path,
+    required this.numEntries,
+    required this.numSubTrees,
+    required this.hash,
+  });
 
   @override
-  List<Object /*!*/ /*?*/ > get props => [path, numEntries, numSubTrees, hash];
+  List<Object?> get props => [path, numEntries, numSubTrees, hash];
 
   @override
   bool get stringify => true;

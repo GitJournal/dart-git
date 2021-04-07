@@ -13,12 +13,13 @@ import 'package:quiver/core.dart';
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/utils/bytes_data_reader.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 final _indexSignature = ascii.encode('DIRC');
 
 class GitIndex {
-  int versionNo;
+  int versionNo = 0;
   var entries = <GitIndexEntry>[];
 
   List<TreeEntry> cache = []; // cached tree extension
@@ -158,15 +159,15 @@ class GitIndex {
       throw GitIndexCorruptedException(
           'Git Index "End of Index Extension" corrupted');
     }
-    endOfIndexEntry = EndOfIndexEntry();
-    endOfIndexEntry.offset = reader.readUint32();
+    var offset = reader.readUint32();
 
     var bytes = reader.read(reader.remainingLength);
     if (bytes.length != 20) {
       throw GitIndexCorruptedException(
           'Git Index "End of Index Extension" hash corrupted');
     }
-    endOfIndexEntry.hash = GitHash.fromBytes(bytes);
+    var hash = GitHash.fromBytes(bytes);
+    endOfIndexEntry = EndOfIndexEntry(offset, hash);
   }
 
   List<int> serialize() {
@@ -371,12 +372,12 @@ class GitIndexEntry {
         break;
 
       case 4:
-        var l = _readVariableWidthInt(reader);
+        var l = reader.readVariableWidthInt();
         var base = '';
         if (lastEntry != null) {
           base = lastEntry.path.substring(0, lastEntry.path.length - l);
         }
-        var name = _readUntil(reader, 0x00);
+        var name = reader.readUntil(0x00);
         path = base + utf8.decode(name);
         break;
 
@@ -470,15 +471,15 @@ class GitIndexEntry {
 }
 
 class TreeEntry extends Equatable {
-  final String path;
-  final int numEntries;
-  final int numSubTrees;
-  final GitHash hash;
+  final String /*!*/ path;
+  final int /*!*/ numEntries;
+  final int /*!*/ numSubTrees;
+  final GitHash /*!*/ hash;
 
   const TreeEntry({this.path, this.numEntries, this.numSubTrees, this.hash});
 
   @override
-  List<Object> get props => [path, numEntries, numSubTrees, hash];
+  List<Object /*!*/ /*?*/ > get props => [path, numEntries, numSubTrees, hash];
 
   @override
   bool get stringify => true;
@@ -492,8 +493,10 @@ class TreeEntry extends Equatable {
 ///  Because it must be able to be loaded before the variable length cache
 ///  entries and other index extensions, this extension must be written last.
 class EndOfIndexEntry {
-  int offset;
-  GitHash hash;
+  final int offset;
+  final GitHash hash;
+
+  EndOfIndexEntry(this.offset, this.hash);
 }
 
 class GitFileStage extends Equatable {
@@ -511,60 +514,4 @@ class GitFileStage extends Equatable {
 
   @override
   bool get stringify => true;
-}
-
-// ReadVariableWidthInt reads and returns an int in Git VLQ special format:
-//
-// Ordinary VLQ has some redundancies, example:  the number 358 can be
-// encoded as the 2-octet VLQ 0x8166 or the 3-octet VLQ 0x808166 or the
-// 4-octet VLQ 0x80808166 and so forth.
-//
-// To avoid these redundancies, the VLQ format used in Git removes this
-// prepending redundancy and extends the representable range of shorter
-// VLQs by adding an offset to VLQs of 2 or more octets in such a way
-// that the lowest possible value for such an (N+1)-octet VLQ becomes
-// exactly one more than the maximum possible value for an N-octet VLQ.
-// In particular, since a 1-octet VLQ can store a maximum value of 127,
-// the minimum 2-octet VLQ (0x8000) is assigned the value 128 instead of
-// 0. Conversely, the maximum value of such a 2-octet VLQ (0xff7f) is
-// 16511 instead of just 16383. Similarly, the minimum 3-octet VLQ
-// (0x808000) has a value of 16512 instead of zero, which means
-// that the maximum 3-octet VLQ (0xffff7f) is 2113663 instead of
-// just 2097151.  And so forth.
-//
-// This is how the offset is saved in C:
-//
-//     dheader[pos] = ofs & 127;
-//     while (ofs >>= 7)
-//         dheader[--pos] = 128 | (--ofs & 127);
-//
-
-final _maskContinue = 128; // 1000 000
-final _maskLength = 127; // 0111 1111
-final _lengthBits = 7; // subsequent bytes has 7 bits to store the length
-
-int _readVariableWidthInt(ByteDataReader file) {
-  var c = file.readInt8();
-
-  var v = (c & _maskLength);
-  while (c & _maskContinue > 0) {
-    v++;
-
-    c = file.readInt8();
-
-    v = (v << _lengthBits) + (c & _maskLength);
-  }
-
-  return v;
-}
-
-List<int> _readUntil(ByteDataReader file, int r) {
-  var l = <int>[];
-  while (true) {
-    var c = file.readInt8();
-    if (c == r) {
-      return l;
-    }
-    l.add(c);
-  }
 }

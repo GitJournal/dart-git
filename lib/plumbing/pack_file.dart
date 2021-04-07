@@ -8,6 +8,7 @@ import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/pack_file_delta.dart';
+import 'package:dart_git/utils/bytes_data_reader.dart';
 
 class PackFile {
   int numObjects = 0;
@@ -92,7 +93,7 @@ class PackFile {
     // Construct the PackObject
     switch (objHeader.type) {
       case ObjectTypes.OFS_DELTA:
-        var n = await _readVariableWidthInt(file);
+        var n = await file.readVariableWidthInt();
         var baseOffset = offset - n;
         var deltaData = await _decodeObject(file, objHeader.size);
 
@@ -200,49 +201,4 @@ class PackObjectHeader {
   @override
   String toString() =>
       'PackObjectHeader{size: $size, type: $type, offset: $offset}';
-}
-
-// ReadVariableWidthInt reads and returns an int in Git VLQ special format:
-//
-// Ordinary VLQ has some redundancies, example:  the number 358 can be
-// encoded as the 2-octet VLQ 0x8166 or the 3-octet VLQ 0x808166 or the
-// 4-octet VLQ 0x80808166 and so forth.
-//
-// To avoid these redundancies, the VLQ format used in Git removes this
-// prepending redundancy and extends the representable range of shorter
-// VLQs by adding an offset to VLQs of 2 or more octets in such a way
-// that the lowest possible value for such an (N+1)-octet VLQ becomes
-// exactly one more than the maximum possible value for an N-octet VLQ.
-// In particular, since a 1-octet VLQ can store a maximum value of 127,
-// the minimum 2-octet VLQ (0x8000) is assigned the value 128 instead of
-// 0. Conversely, the maximum value of such a 2-octet VLQ (0xff7f) is
-// 16511 instead of just 16383. Similarly, the minimum 3-octet VLQ
-// (0x808000) has a value of 16512 instead of zero, which means
-// that the maximum 3-octet VLQ (0xffff7f) is 2113663 instead of
-// just 2097151.  And so forth.
-//
-// This is how the offset is saved in C:
-//
-//     dheader[pos] = ofs & 127;
-//     while (ofs >>= 7)
-//         dheader[--pos] = 128 | (--ofs & 127);
-//
-
-final _maskContinue = 128; // 1000 000
-final _maskLength = 127; // 0111 1111
-final _lengthBits = 7; // subsequent bytes has 7 bits to store the length
-
-Future<int> _readVariableWidthInt(RandomAccessFile file) async {
-  var c = await file.readByte();
-
-  var v = (c & _maskLength);
-  while (c & _maskContinue > 0) {
-    v++;
-
-    c = await file.readByte();
-
-    v = (v << _lengthBits) + (c & _maskLength);
-  }
-
-  return v;
 }

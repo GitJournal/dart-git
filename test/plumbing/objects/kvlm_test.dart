@@ -3,8 +3,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dart_git/utils/kvlm.dart';
 import 'package:test/test.dart';
+
+import 'package:dart_git/utils/kvlm.dart';
 
 void main() {
   var rawStr = '''tree 29ff16c9c14e2652b22f8b78bb08a5a07930c147

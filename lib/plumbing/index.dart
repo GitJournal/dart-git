@@ -26,6 +26,7 @@ class GitIndex {
 
   GitIndex({@required this.versionNo});
 
+  // FIXME: BytesDataReader can throw a range error!
   GitIndex.decode(List<int> bytes) {
     var reader = ByteDataReader(endian: Endian.big, copy: false);
     reader.add(bytes);

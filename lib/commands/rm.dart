@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -15,10 +13,10 @@ class RmCommand extends Command {
 
   @override
   Future run() async {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var filePath = argResults.arguments[0];
+    var filePath = argResults!.arguments[0];
     var index = await repo.readIndex();
 
     var hash = await repo.rmFileFromIndex(index, filePath);

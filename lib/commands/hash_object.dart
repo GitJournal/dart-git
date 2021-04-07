@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -34,23 +32,23 @@ class HashObjectCommand extends Command {
 
   @override
   Future run() async {
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       print('Must provide file path');
       return;
     }
-    var filePath = argResults.rest[0];
+    var filePath = argResults!.rest[0];
     var rawData = File(filePath).readAsBytesSync();
 
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var fmt = argResults['type'] as String;
+    var fmt = argResults!['type'] as String;
     var obj = createObject(fmt, rawData);
     GitHash hash;
-    if (argResults['write'] as bool) {
-      hash = await repo.objStorage.writeObject(obj);
+    if (argResults!['write'] as bool) {
+      hash = await repo.objStorage.writeObject(obj!);
     } else {
-      hash = obj.hash;
+      hash = obj!.hash;
     }
     print(hash);
   }

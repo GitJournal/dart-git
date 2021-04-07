@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -16,13 +14,13 @@ class MergeBaseCommand extends Command {
 
   @override
   Future run() async {
-    var args = argResults.rest;
+    var args = argResults!.rest;
     if (args.length != 2) {
       print('Incorrect usage');
       return;
     }
 
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
     var aHash = GitHash(args[0]);
@@ -32,7 +30,7 @@ class MergeBaseCommand extends Command {
     var b = await repo.objStorage.readObjectFromHash(bHash);
 
     if (a == b) {
-      print(a.hash);
+      print(a!.hash);
       return;
     }
   }

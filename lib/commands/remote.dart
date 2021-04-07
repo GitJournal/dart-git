@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -25,13 +23,13 @@ class RemoteCommand extends Command {
 
   @override
   Future run() async {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var verbose = argResults['verbose'] as bool;
+    var verbose = argResults!['verbose'] as bool?;
 
-    if (argResults.command != null) {
-      var result = argResults.command;
+    if (argResults!.command != null) {
+      var result = argResults!.command!;
       if (result.name == 'add') {
         if (result.arguments.length != 2) {
           print('usage: git remote add <name> <url>');
@@ -63,7 +61,7 @@ class RemoteCommand extends Command {
     }
 
     for (var remote in repo.config.remotes) {
-      if (!verbose) {
+      if (!verbose!) {
         print(remote.name);
       } else {
         print('${remote.name}\t${remote.url} (fetch)');

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -19,10 +17,10 @@ class CatFileCommand extends Command {
 
   @override
   Future run() async {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path);
+    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var objectSha1 = argResults.arguments[1];
+    var objectSha1 = argResults!.arguments[1];
     var obj = await repo.objStorage.readObjectFromHash(GitHash(objectSha1));
     if (obj is GitBlob) {
       var s = utf8.decode(obj.blobData);

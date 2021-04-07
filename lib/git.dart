@@ -1,14 +1,12 @@
-// @dart=2.9
-
+import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/config.dart';
-import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/fs.dart';
 import 'package:dart_git/git_hash.dart';
@@ -20,7 +18,10 @@ import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/reference_storage.dart';
-import 'package:dart_git/utils/file_mode.dart';
+
+// export 'commit.dart';
+// export 'checkout.dart';
+export 'merge_base.dart';
 
 // A Git Repo has 5 parts -
 // * Object Store
@@ -29,16 +30,16 @@ import 'package:dart_git/utils/file_mode.dart';
 // * Working Tree
 // * Config
 class GitRepository {
-  String workTree;
-  String gitDir;
+  late String workTree;
+  late String gitDir;
 
-  Config config;
+  late Config config;
 
   FileSystem fs;
-  ReferenceStorage refStorage;
-  ObjectStorage /*!*/ objStorage;
+  late ReferenceStorage refStorage;
+  late ObjectStorage objStorage;
 
-  GitRepository._internal({@required String rootDir, @required this.fs}) {
+  GitRepository._internal({required String rootDir, required this.fs}) {
     workTree = rootDir;
     if (!workTree.endsWith(p.separator)) {
       workTree += p.separator;
@@ -46,7 +47,7 @@ class GitRepository {
     gitDir = p.join(workTree, '.git');
   }
 
-  static String findRootDir(String path, {FileSystem fs}) {
+  static String? findRootDir(String path, {FileSystem? fs}) {
     fs ??= const LocalFileSystemWithChecks();
 
     while (true) {
@@ -64,7 +65,7 @@ class GitRepository {
     return null;
   }
 
-  static Future<GitRepository> load(String gitRootDir, {FileSystem fs}) async {
+  static Future<GitRepository> load(String gitRootDir, {FileSystem? fs}) async {
     fs ??= const LocalFileSystemWithChecks();
 
     if (!(await isValidRepo(gitRootDir, fs: fs))) {
@@ -83,7 +84,7 @@ class GitRepository {
     return repo;
   }
 
-  static Future<bool> isValidRepo(String gitRootDir, {FileSystem fs}) async {
+  static Future<bool> isValidRepo(String gitRootDir, {FileSystem? fs}) async {
     fs ??= const LocalFileSystemWithChecks();
 
     var isDir = await fs.isDirectory(gitRootDir);
@@ -105,7 +106,7 @@ class GitRepository {
     return true;
   }
 
-  static Future<void> init(String path, {FileSystem fs}) async {
+  static Future<void> init(String path, {FileSystem? fs}) async {
     fs ??= const LocalFileSystem();
 
     // FIXME: Check if path has stuff and accordingly return
@@ -143,21 +144,27 @@ class GitRepository {
   Future<List<String>> branches() async {
     var refs = await refStorage.listReferences(refHeadPrefix);
     var refNames = refs.map((r) => r.name);
-    return refNames.map((r) => r.branchName()).toList();
+
+    return refNames.map((r) => r.branchName()!).toList();
   }
 
-  Future<String> currentBranch() async {
+  Future<String?> currentBranch() async {
     var _head = await head();
-    if (_head.isHash) {
+    if (_head == null || _head.isHash) {
       return null;
     }
 
-    return _head.target.branchName();
+    return _head.target!.branchName();
   }
 
-  Future<BranchConfig> setUpstreamTo(
+  Future<BranchConfig?> setUpstreamTo(
       GitRemoteConfig remote, String remoteBranchName) async {
     var branchName = await currentBranch();
+    if (branchName == null) {
+      // FIXME: I don't like this silently returning null
+      //        If this is failing, please give me an error!
+      return null;
+    }
     return setBranchUpstreamTo(branchName, remote, remoteBranchName);
   }
 
@@ -175,12 +182,15 @@ class GitRepository {
     return brConfig;
   }
 
-  Future<GitHash> createBranch(
+  Future<GitHash?> createBranch(
     String name, {
-    GitHash hash,
+    GitHash? hash,
     bool overwrite = false,
   }) async {
     hash ??= await headHash();
+    if (hash == null) {
+      return null;
+    }
 
     var branch = ReferenceName.branch(name);
     var ref = await refStorage.reference(branch);
@@ -201,7 +211,7 @@ class GitRepository {
     return refStorage.listReferences(remoteRefsPrefix);
   }
 
-  Future<Reference> remoteBranch(String remoteName, String branchName) async {
+  Future<Reference?> remoteBranch(String remoteName, String branchName) async {
     if (config.remote(remoteName) == null) {
       throw Exception('remote $remoteName does not exist');
     }
@@ -211,9 +221,8 @@ class GitRepository {
   }
 
   Future<GitRemoteConfig> addRemote(String name, String url) async {
-    var existingRemote = config.remotes.firstWhere(
+    var existingRemote = config.remotes.firstWhereOrNull(
       (r) => r.name == name,
-      orElse: () => null,
     );
     if (existingRemote != null) {
       throw Exception('fatal: remote "$name" already exists.');
@@ -243,7 +252,7 @@ class GitRepository {
     return config.remotes[i];
   }
 
-  Future<GitRemoteConfig> removeRemote(String name) async {
+  Future<GitRemoteConfig?> removeRemote(String name) async {
     var i = config.remotes.indexWhere((r) => r.name == name);
     if (i == -1) {
       return null;
@@ -259,11 +268,11 @@ class GitRepository {
     return remote;
   }
 
-  Future<Reference> head() async {
+  Future<Reference?> head() async {
     return refStorage.reference(ReferenceName('HEAD'));
   }
 
-  Future<GitHash> headHash() async {
+  Future<GitHash?> headHash() async {
     var ref = await refStorage.reference(ReferenceName('HEAD'));
     if (ref == null) {
       return null;
@@ -276,36 +285,38 @@ class GitRepository {
     return ref.hash;
   }
 
-  Future<GitCommit> headCommit() async {
+  Future<GitCommit?> headCommit() async {
     var hash = await headHash();
     if (hash == null) {
       return null;
     }
-    return await objStorage.readObjectFromHash(hash);
+    return await objStorage.readObjectFromHash(hash) as GitCommit?;
   }
 
-  Future<GitTree> headTree() async {
+  Future<GitTree?> headTree() async {
     var commit = await headCommit();
     if (commit == null) {
       return null;
     }
-    return await objStorage.readObjectFromHash(commit.treeHash);
+    return await objStorage.readObjectFromHash(commit.treeHash) as GitTree?;
   }
 
-  Future<Reference> resolveReference(Reference ref,
+  Future<Reference?> resolveReference(Reference ref,
       {bool recursive = true}) async {
     if (ref.type == ReferenceType.Hash) {
       return ref;
     }
 
-    var resolvedRef = await refStorage.reference(ref.target);
+    var resolvedRef = await refStorage.reference(ref.target!);
     if (resolvedRef == null) {
       return null;
     }
-    return recursive ? resolveReference(resolvedRef) : resolvedRef;
+    return recursive
+        ? resolveReference(resolvedRef) as FutureOr<Reference?>
+        : resolvedRef;
   }
 
-  Future<Reference> resolveReferenceName(ReferenceName refName) async {
+  Future<Reference?> resolveReferenceName(ReferenceName refName) async {
     var resolvedRef = await refStorage.reference(refName);
     if (resolvedRef == null) {
       print('resolveReferenceName($refName) failed');
@@ -324,8 +335,10 @@ class GitRepository {
       return false;
     }
 
-    var brConfig = config.branch(head.target.branchName());
-    if (brConfig == null) {
+    var brConfig = config.branch(head.target!.branchName()!);
+    var brConfigMerge = brConfig?.merge;
+    var brConfigRemote = brConfig?.remote;
+    if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
       // FIXME: Maybe we can push other branches!
       return false;
     }
@@ -336,15 +349,17 @@ class GitRepository {
     }
 
     // Construct remote's branch
-    var remoteBranchName = brConfig.merge.branchName();
-    var remoteRef = ReferenceName.remote(brConfig.remote, remoteBranchName);
+    var remoteBranchName = brConfigMerge.branchName()!;
+    var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
+    var remoteRef = await resolveReferenceName(remoteRefName);
+    if (remoteRef == null) {
+      return false;
+    }
 
-    var headHash = resolvedHead.hash;
-    var remoteHash = (await resolveReferenceName(remoteRef)).hash;
-    return headHash != remoteHash;
+    return resolvedHead.hash != remoteRef.hash;
   }
 
-  Future<int> countTillAncestor(GitHash from, GitHash ancestor) async {
+  Future<int?> countTillAncestor(GitHash from, GitHash ancestor) async {
     var seen = <GitHash>{};
     var parents = <GitHash>[];
     parents.add(from);
@@ -356,14 +371,16 @@ class GitRepository {
       parents.removeAt(0);
       seen.add(sha);
 
-      GitObject obj;
+      GitObject? obj;
       try {
         obj = await objStorage.readObjectFromHash(sha);
       } catch (e) {
         print(e);
-        return -1;
+        return null;
       }
-      assert(obj is GitCommit);
+      if (obj == null) {
+        return null;
+      }
       var commit = obj as GitCommit;
 
       for (var p in commit.parents) {
@@ -372,10 +389,10 @@ class GitRepository {
       }
     }
 
-    return parents.isEmpty ? -1 : seen.length;
+    return parents.isEmpty ? null : seen.length;
   }
 
-  Future<Reference> guessRemoteHead(String remoteName) async {
+  Future<Reference?> guessRemoteHead(String remoteName) async {
     // See: https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/25430727#25430727
     //      https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/8841024#8841024
     //
@@ -411,7 +428,8 @@ class GitRepository {
     }
 
     // Return the first alphabetical one
-    branches.sort((a, b) => a.name.branchName().compareTo(b.name.branchName()));
+    branches
+        .sort((a, b) => a.name.branchName()!.compareTo(b.name.branchName()!));
     return branches[0];
   }
 
@@ -421,6 +439,7 @@ class GitRepository {
       return GitIndex(versionNo: 2);
     }
 
+    // FIXME: What if reading this file fails cause of permission issues?
     return GitIndex.decode(await file.readAsBytes());
   }
 
@@ -431,26 +450,33 @@ class GitRepository {
     await file.rename(p.join(gitDir, 'index'));
   }
 
-  Future<int> numChangesToPush() async {
-    var head = await this.head();
-    if (head.isHash) {
-      return 0;
+  Future<int?> numChangesToPush() async {
+    var head = await (this.head() as FutureOr<Reference>);
+    if (head.isHash || head.target == null) {
+      return null;
     }
 
-    var brConfig = config.branch(head.target.branchName());
-    if (brConfig == null) {
-      return 0;
+    var brConfig = config.branch(head.target!.branchName()!);
+    var brConfigMerge = brConfig?.merge;
+    var brConfigRemote = brConfig?.remote;
+    if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
+      return null;
     }
 
     // Construct remote's branch
-    var remoteBranchName = brConfig.merge.branchName();
-    var remoteRef = ReferenceName.remote(brConfig.remote, remoteBranchName);
+    var remoteBranchName = brConfigMerge.branchName()!;
+    var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
 
-    var headHash = (await resolveReference(head)).hash;
-    var remoteHash = (await resolveReferenceName(remoteRef)).hash;
+    var headRef = await resolveReference(head);
+    var remoteRef = await resolveReferenceName(remoteRefName);
+    if (headRef == null || remoteRef == null) {
+      return null;
+    }
+    var headHash = headRef.hash;
+    var remoteHash = headRef.hash;
 
     if (headHash == null || remoteHash == null) {
-      return 0;
+      return null;
     }
     if (headHash == remoteHash) {
       return 0;
@@ -460,7 +486,7 @@ class GitRepository {
     return aheadBy != -1 ? aheadBy : 0;
   }
 
-  Future<GitIndexEntry> addFileToIndex(GitIndex index, String filePath) async {
+  Future<GitIndexEntry?> addFileToIndex(GitIndex index, String filePath) async {
     filePath = _normalizePath(filePath);
 
     var file = fs.file(filePath);
@@ -479,10 +505,7 @@ class GitRepository {
     }
 
     // Add it to the index
-    var entry = index.entries.firstWhere(
-      (e) => e.path == pathSpec,
-      orElse: () => null,
-    );
+    var entry = index.entries.firstWhereOrNull((e) => e.path == pathSpec);
     var stat = await FileStat.stat(filePath);
 
     // Existing file
@@ -521,301 +544,12 @@ class GitRepository {
     }
   }
 
-  Future<GitHash> rmFileFromIndex(GitIndex index, String filePath) async {
+  Future<GitHash?> rmFileFromIndex(GitIndex index, String filePath) async {
     var pathSpec = toPathSpec(_normalizePath(filePath));
     return index.removePath(pathSpec);
   }
 
-  Future<GitCommit> commit({
-    @required String message,
-    @required GitAuthor author,
-    GitAuthor committer,
-    bool addAll = false,
-  }) async {
-    committer ??= author;
-
-    var index = await readIndex();
-
-    if (addAll) {
-      await addDirectoryToIndex(index, workTree, recursive: true);
-      await writeIndex(index);
-    }
-
-    var treeHash = await writeTree(index);
-    var parents = <GitHash>[];
-
-    var headRef = await head();
-    if (headRef != null) {
-      var parentRef = await resolveReference(headRef);
-      if (parentRef != null) {
-        parents.add(parentRef.hash);
-      }
-    }
-
-    var commit = GitCommit.create(
-      author: author,
-      committer: committer,
-      parents: parents,
-      message: message,
-      treeHash: treeHash,
-    );
-    var hash = await objStorage.writeObject(commit);
-
-    // Update the ref of the current branch
-    var branchName = await currentBranch();
-    if (branchName == null) {
-      var h = await head();
-      assert(h.target.isBranch());
-      branchName = h.target.branchName();
-    }
-
-    var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
-
-    await refStorage.saveRef(newRef);
-
-    return commit;
-  }
-
-  Future<GitHash> writeTree(GitIndex index) async {
-    var allTreeDirs = {''};
-    var treeObjects = {'': GitTree.empty()};
-    var treeObjFullPath = <GitTree, String>{};
-
-    index.entries.forEach((entry) {
-      var fullPath = entry.path;
-      var fileName = p.basename(fullPath);
-      var dirName = p.dirname(fullPath);
-
-      // Construct all the tree objects
-      var allDirs = <String>[];
-      while (dirName != '.') {
-        allTreeDirs.add(dirName);
-        allDirs.add(dirName);
-
-        dirName = p.dirname(dirName);
-      }
-
-      allDirs.sort(dirSortFunc);
-
-      for (var dir in allDirs) {
-        if (!treeObjects.containsKey(dir)) {
-          var tree = GitTree.empty();
-          treeObjects[dir] = tree;
-        }
-
-        var parentDir = p.dirname(dir);
-        if (parentDir == '.') parentDir = '';
-
-        var parentTree = treeObjects[parentDir];
-        var folderName = p.basename(dir);
-        treeObjFullPath[parentTree] = parentDir;
-
-        var i = parentTree.entries.indexWhere((e) => e.name == folderName);
-        if (i != -1) {
-          continue;
-        }
-        parentTree.entries.add(GitTreeEntry(
-          mode: GitFileMode.Dir,
-          name: folderName,
-          hash: GitHash.zero(),
-        ));
-      }
-
-      dirName = p.dirname(fullPath);
-      if (dirName == '.') {
-        dirName = '';
-      }
-
-      var leaf = GitTreeEntry(
-        mode: entry.mode,
-        name: fileName,
-        hash: entry.hash,
-      );
-      treeObjects[dirName].entries.add(leaf);
-    });
-    assert(treeObjects.containsKey(''));
-
-    // Write all the tree objects
-    var hashMap = <String, GitHash>{};
-
-    var allDirs = allTreeDirs.toList();
-    allDirs.sort(dirSortFunc);
-
-    for (var dir in allDirs.reversed) {
-      var tree = treeObjects[dir];
-      assert(tree != null);
-
-      for (var i = 0; i < tree.entries.length; i++) {
-        var leaf = tree.entries[i];
-
-        if (leaf.hash.isNotEmpty) {
-          assert(await () async {
-            var leafObj = await objStorage.readObjectFromHash(leaf.hash);
-            return leafObj.formatStr() == 'blob';
-          }());
-          continue;
-        }
-
-        var fullPath = p.join(treeObjFullPath[tree], leaf.name);
-        var hash = hashMap[fullPath];
-        assert(hash != null);
-
-        tree.entries[i] = GitTreeEntry(
-          mode: leaf.mode,
-          name: leaf.name,
-          hash: hash,
-        );
-      }
-
-      for (var leaf in tree.entries) {
-        assert(leaf.hash != null);
-      }
-
-      var hash = await objStorage.writeObject(tree);
-      hashMap[dir] = hash;
-    }
-
-    return hashMap[''];
-  }
-
-  Future<int> checkout(String path) async {
-    path = _normalizePath(path);
-
-    var tree = await headTree();
-
-    var spec = path.substring(workTree.length);
-    var obj = await objStorage.refSpec(tree, spec);
-    if (obj == null) {
-      return null;
-    }
-
-    if (obj is GitBlob) {
-      await fs.directory(p.dirname(path)).create(recursive: true);
-      await fs.file(path).writeAsBytes(obj.blobData);
-      return 1;
-    }
-
-    var index = GitIndex(versionNo: 2);
-    var numFiles = await _checkoutTree(spec, obj as GitTree, index);
-    await writeIndex(index);
-
-    return numFiles;
-  }
-
-  Future<int> _checkoutTree(
-      String relativePath, GitTree tree, GitIndex index) async {
-    assert(!relativePath.startsWith(p.separator));
-
-    var dir = fs.directory(p.join(workTree, relativePath));
-    await dir.create(recursive: true);
-
-    var updated = 0;
-    for (var leaf in tree.entries) {
-      var obj = await objStorage.readObjectFromHash(leaf.hash);
-      assert(obj != null);
-
-      var leafRelativePath = p.join(relativePath, leaf.name);
-      if (obj is GitTree) {
-        await _checkoutTree(leafRelativePath, obj, index);
-        continue;
-      }
-
-      assert(obj is GitBlob);
-
-      var blob = obj as GitBlob;
-      var blobPath = p.join(workTree, leafRelativePath);
-
-      await fs.directory(p.dirname(blobPath)).create(recursive: true);
-      await fs.file(blobPath).writeAsBytes(blob.blobData);
-
-      await addFileToIndex(index, blobPath);
-      updated++;
-    }
-
-    return updated;
-  }
-
-  Future<Reference> checkoutBranch(String branchName) async {
-    var ref = await refStorage.reference(ReferenceName.branch(branchName));
-    if (ref == null) {
-      return null;
-    }
-    assert(ref.isHash);
-
-    var _headCommit = await headCommit();
-
-    if (_headCommit == null) {
-      var obj = await objStorage.readObjectFromHash(ref.hash);
-      var commit = obj as GitCommit;
-      var treeObj = await objStorage.readObjectFromHash(commit.treeHash);
-
-      var index = GitIndex(versionNo: 2);
-      await _checkoutTree('', treeObj, index);
-      await writeIndex(index);
-
-      // Set HEAD to to it
-      var branchRef = ReferenceName.branch(branchName);
-      var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
-      await refStorage.saveRef(headRef);
-
-      return ref;
-    }
-
-    var branchCommit =
-        await objStorage.readObjectFromHash(ref.hash) as GitCommit;
-
-    var blobChanges = await diffCommits(
-      fromCommit: _headCommit,
-      toCommit: branchCommit,
-      objStore: objStorage,
-    );
-    var index = await readIndex();
-
-    for (var change in blobChanges.merged()) {
-      if (change.added || change.modified) {
-        var obj = await objStorage.readObjectFromHash(change.to.hash);
-        var blobObj = obj as GitBlob;
-
-        // FIXME: Add file mode
-        await fs
-            .directory(p.join(workTree, p.dirname(change.path)))
-            .create(recursive: true);
-        await fs
-            .file(p.join(workTree, change.path))
-            .writeAsBytes(blobObj.blobData);
-
-        await index.updatePath(change.to.path, change.to.hash);
-      } else if (change.deleted) {
-        await fs
-            .file(p.join(workTree, change.from.path))
-            .delete(recursive: true);
-
-        // FIXME: What if the parent directory also needs to be removed?
-        var dir = fs.directory(p.join(workTree, p.dirname(change.from.path)));
-        await index.removePath(change.from.path);
-
-        var isEmpty = true;
-        await for (var _ in dir.list()) {
-          isEmpty = false;
-          break;
-        }
-        if (isEmpty) {
-          await dir.delete();
-        }
-      }
-    }
-
-    await writeIndex(index);
-
-    // Set HEAD to to it
-    var branchRef = ReferenceName.branch(branchName);
-    var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
-    await refStorage.saveRef(headRef);
-
-    return ref;
-  }
-
-  Future<GitHash> deleteBranch(String branchName) async {
+  Future<GitHash?> deleteBranch(String branchName) async {
     var refName = ReferenceName.branch(branchName);
     var ref = await refStorage.reference(refName);
     if (ref == null) {
@@ -846,23 +580,4 @@ class GitRepository {
 
     return path;
   }
-}
-
-// Sort allDirs on bfs
-@visibleForTesting
-int dirSortFunc(String a, String b) {
-  var aCnt = '/'.allMatches(a).length;
-  var bCnt = '/'.allMatches(b).length;
-  if (aCnt != bCnt) {
-    if (aCnt < bCnt) return -1;
-    if (aCnt > bCnt) return 1;
-  }
-  if (a.isEmpty && b.isEmpty) return 0;
-  if (a.isEmpty) {
-    return -1;
-  }
-  if (b.isEmpty) {
-    return 1;
-  }
-  return a.compareTo(b);
 }

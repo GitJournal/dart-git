@@ -81,6 +81,7 @@ class ReferenceName {
   bool isRemote() => value.startsWith(refRemotePrefix);
   bool isNote() => value.startsWith(refNotePrefix);
 
+  // is null when isTag or isNote
   String? branchName() {
     assert(isBranch() || isRemote());
     if (isBranch()) {

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/exceptions.dart';
@@ -11,10 +9,13 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:path/path.dart' as p;
 
 extension Checkout on GitRepository {
-  Future<int> checkout(String path) async {
+  Future<int?> checkout(String path) async {
     path = _normalizePath(path);
 
     var tree = await headTree();
+    if (tree == null) {
+      return null;
+    }
 
     var spec = path.substring(workTree.length);
     var obj = await objStorage.refSpec(tree, spec);
@@ -45,11 +46,16 @@ extension Checkout on GitRepository {
     var updated = 0;
     for (var leaf in tree.entries) {
       var obj = await objStorage.readObjectFromHash(leaf.hash);
-      assert(obj != null);
+      if (obj == null) {
+        // FIXME: Shout out an error, this is a problem?
+        //        For now I'm silently continuing
+        continue;
+      }
 
       var leafRelativePath = p.join(relativePath, leaf.name);
       if (obj is GitTree) {
-        await _checkoutTree(leafRelativePath, obj, index);
+        var c = await _checkoutTree(leafRelativePath, obj, index);
+        updated += c;
         continue;
       }
 
@@ -68,22 +74,24 @@ extension Checkout on GitRepository {
     return updated;
   }
 
-  Future<Reference> checkoutBranch(String branchName) async {
+  Future<Reference?> checkoutBranch(String branchName) async {
     var ref = await refStorage.reference(ReferenceName.branch(branchName));
-    if (ref == null) {
+    if (ref == null || ref.isSymbolic) {
       return null;
     }
     assert(ref.isHash);
 
     var _headCommit = await headCommit();
-
     if (_headCommit == null) {
-      var obj = await objStorage.readObjectFromHash(ref.hash);
+      var obj = await objStorage.readObjectFromHash(ref.hash!);
+      if (obj == null) {
+        return null;
+      }
       var commit = obj as GitCommit;
       var treeObj = await objStorage.readObjectFromHash(commit.treeHash);
 
       var index = GitIndex(versionNo: 2);
-      await _checkoutTree('', treeObj, index);
+      await _checkoutTree('', treeObj as GitTree, index);
       await writeIndex(index);
 
       // Set HEAD to to it
@@ -94,8 +102,11 @@ extension Checkout on GitRepository {
       return ref;
     }
 
-    var branchCommit =
-        await objStorage.readObjectFromHash(ref.hash) as GitCommit;
+    var branchCommitObj = await objStorage.readObjectFromHash(ref.hash!);
+    if (branchCommitObj == null) {
+      return null;
+    }
+    var branchCommit = branchCommitObj as GitCommit;
 
     var blobChanges = await diffCommits(
       fromCommit: _headCommit,
@@ -106,26 +117,24 @@ extension Checkout on GitRepository {
 
     for (var change in blobChanges.merged()) {
       if (change.added || change.modified) {
-        var obj = await objStorage.readObjectFromHash(change.to.hash);
+        var to = change.to!;
+        var obj = await objStorage.readObjectFromHash(to.hash);
         var blobObj = obj as GitBlob;
 
         // FIXME: Add file mode
         await fs
-            .directory(p.join(workTree, p.dirname(change.path)))
+            .directory(p.join(workTree, p.dirname(to.path)))
             .create(recursive: true);
-        await fs
-            .file(p.join(workTree, change.path))
-            .writeAsBytes(blobObj.blobData);
+        await fs.file(p.join(workTree, to.path)).writeAsBytes(blobObj.blobData);
 
-        await index.updatePath(change.to.path, change.to.hash);
+        await index.updatePath(to.path, to.hash);
       } else if (change.deleted) {
-        await fs
-            .file(p.join(workTree, change.from.path))
-            .delete(recursive: true);
+        var from = change.from!;
+        await fs.file(p.join(workTree, from.path)).delete(recursive: true);
 
         // FIXME: What if the parent directory also needs to be removed?
-        var dir = fs.directory(p.join(workTree, p.dirname(change.from.path)));
-        await index.removePath(change.from.path);
+        var dir = fs.directory(p.join(workTree, p.dirname(from.path)));
+        await index.removePath(from.path);
 
         var isEmpty = true;
         await for (var _ in dir.list()) {

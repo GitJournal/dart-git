@@ -25,6 +25,7 @@ class ObjectStorage {
   ObjectStorage(this.gitDir, this.fs);
 
   // FIXME: Handle all fs exceptions
+  // TODO: Add convenience functions to fetch a Blob/Commit/etc
   Future<GitObject?> readObjectFromHash(GitHash hash) async {
     var sha = hash.toString();
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));

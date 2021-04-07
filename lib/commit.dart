@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
@@ -12,9 +10,9 @@ import 'package:path/path.dart' as p;
 
 extension Commit on GitRepository {
   Future<GitCommit> commit({
-    @required String message,
-    @required GitAuthor author,
-    GitAuthor committer,
+    required String message,
+    required GitAuthor author,
+    GitAuthor? committer,
     bool addAll = false,
   }) async {
     committer ??= author;
@@ -27,7 +25,10 @@ extension Commit on GitRepository {
     }
 
     var treeHash = await writeTree(index);
-    var parents = <GitHash>[];
+    if (treeHash == null) {
+      throw Exception('WTF, there is nothing to add?');
+    }
+    var parents = <GitHash?>[];
 
     var headRef = await head();
     if (headRef != null) {
@@ -40,7 +41,7 @@ extension Commit on GitRepository {
     var commit = GitCommit.create(
       author: author,
       committer: committer,
-      parents: parents,
+      parents: parents as List<GitHash>,
       message: message,
       treeHash: treeHash,
     );
@@ -50,18 +51,22 @@ extension Commit on GitRepository {
     var branchName = await currentBranch();
     if (branchName == null) {
       var h = await head();
-      assert(h.target.isBranch());
-      branchName = h.target.branchName();
+      if (h == null) {
+        throw Exception('Could not update current branch');
+      }
+      var target = h.target!;
+      assert(target.isBranch());
+      branchName = target.branchName();
     }
 
-    var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
+    var newRef = Reference.hash(ReferenceName.branch(branchName!), hash);
 
     await refStorage.saveRef(newRef);
 
     return commit;
   }
 
-  Future<GitHash> writeTree(GitIndex index) async {
+  Future<GitHash?> writeTree(GitIndex index) async {
     var allTreeDirs = {''};
     var treeObjects = {'': GitTree.empty()};
     var treeObjFullPath = <GitTree, String>{};
@@ -91,7 +96,7 @@ extension Commit on GitRepository {
         var parentDir = p.dirname(dir);
         if (parentDir == '.') parentDir = '';
 
-        var parentTree = treeObjects[parentDir];
+        var parentTree = treeObjects[parentDir]!;
         var folderName = p.basename(dir);
         treeObjFullPath[parentTree] = parentDir;
 
@@ -116,7 +121,7 @@ extension Commit on GitRepository {
         name: fileName,
         hash: entry.hash,
       );
-      treeObjects[dirName].entries.add(leaf);
+      treeObjects[dirName]!.entries.add(leaf);
     });
     assert(treeObjects.containsKey(''));
 
@@ -127,33 +132,34 @@ extension Commit on GitRepository {
     allDirs.sort(dirSortFunc);
 
     for (var dir in allDirs.reversed) {
-      var tree = treeObjects[dir];
-      assert(tree != null);
+      var tree = treeObjects[dir]!;
 
       for (var i = 0; i < tree.entries.length; i++) {
         var leaf = tree.entries[i];
 
         if (leaf.hash.isNotEmpty) {
+          //
+          // Making sure the leaf is a blob
+          //
           assert(await () async {
             var leafObj = await objStorage.readObjectFromHash(leaf.hash);
+            if (leafObj == null) {
+              return false;
+            }
             return leafObj.formatStr() == 'blob';
           }());
+
           continue;
         }
 
-        var fullPath = p.join(treeObjFullPath[tree], leaf.name);
-        var hash = hashMap[fullPath];
-        assert(hash != null);
+        var fullPath = p.join(treeObjFullPath[tree]!, leaf.name);
+        var hash = hashMap[fullPath]!;
 
         tree.entries[i] = GitTreeEntry(
           mode: leaf.mode,
           name: leaf.name,
           hash: hash,
         );
-      }
-
-      for (var leaf in tree.entries) {
-        assert(leaf.hash != null);
       }
 
       var hash = await objStorage.writeObject(tree);

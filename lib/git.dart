@@ -19,8 +19,8 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
-// export 'commit.dart';
-// export 'checkout.dart';
+export 'commit.dart';
+export 'checkout.dart';
 export 'merge_base.dart';
 
 // A Git Repo has 5 parts -

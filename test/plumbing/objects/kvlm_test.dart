@@ -1,6 +1,7 @@
 // @dart=2.9
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dart_git/utils/kvlm.dart';
 import 'package:test/test.dart';
@@ -75,5 +76,11 @@ SDf
     expect(map['author'], 'Vishesh Handa <me@vhanda.in> 1601767396 +0200');
     expect(map['committer'], 'Vishesh Handa <me@vhanda.in> 1601767396 +0200');
     expect(map['_'], 'SDf\n');
+  });
+
+  test('Parse empty', () {
+    var raw = Uint8List(0);
+    var map = kvlmParse(raw);
+    expect(map.length, equals(0));
   });
 }

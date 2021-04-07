@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:dart_git/ascii_helper.dart';
 
-// FIXME: What about empty lists?
 Map<String, dynamic> kvlmParse(Uint8List raw) {
   var dict = <String, dynamic>{};
 
@@ -11,6 +10,10 @@ Map<String, dynamic> kvlmParse(Uint8List raw) {
   while (true) {
     var spaceIndex = raw.indexOf(asciiHelper.space, start);
     var newLineIndex = raw.indexOf(asciiHelper.newLine, start);
+
+    if (spaceIndex == -1 && newLineIndex == -1) {
+      break;
+    }
 
     if (newLineIndex < spaceIndex || spaceIndex == -1) {
       assert(newLineIndex == start);

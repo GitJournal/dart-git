@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/objects/commit.dart';
 
 class MergeBaseCommand extends Command {
   @override
@@ -29,9 +30,13 @@ class MergeBaseCommand extends Command {
     var a = await repo.objStorage.readObjectFromHash(aHash);
     var b = await repo.objStorage.readObjectFromHash(bHash);
 
-    if (a == b) {
-      print(a!.hash);
+    if (a == null || b == null) {
+      print('One of the hashes not found');
       return;
+    }
+    var commits = await repo.mergeBase(a as GitCommit, b as GitCommit);
+    for (var c in commits) {
+      print(c.hash);
     }
   }
 }

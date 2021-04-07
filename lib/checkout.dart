@@ -1,3 +1,5 @@
+import 'package:path/path.dart' as p;
+
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/exceptions.dart';
@@ -6,7 +8,6 @@ import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:path/path.dart' as p;
 
 extension Checkout on GitRepository {
   Future<int?> checkout(String path) async {

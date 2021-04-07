@@ -307,7 +307,7 @@ class GitIndexEntry {
     assert(!path.startsWith('/'));
   }
 
-  GitIndexEntry.fromBytes(
+  static GitIndexEntry fromBytes(
     int versionNo,
     int indexFileSize,
     ByteDataReader reader,
@@ -318,34 +318,34 @@ class GitIndexEntry {
     var ctimeSeconds = reader.readUint32();
     var ctimeNanoSeconds = reader.readUint32();
 
-    cTime = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
+    var cTime = DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
     cTime = cTime.add(Duration(seconds: ctimeSeconds));
     cTime = cTime.add(Duration(microseconds: ctimeNanoSeconds ~/ 1000));
 
     var mtimeSeconds = reader.readUint32();
     var mtimeNanoSeconds = reader.readUint32();
 
-    mTime = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    var mTime = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     mTime = mTime.add(Duration(seconds: mtimeSeconds));
     mTime = mTime.add(Duration(microseconds: mtimeNanoSeconds ~/ 1000));
 
-    dev = reader.readUint32();
-    ino = reader.readUint32();
+    var dev = reader.readUint32();
+    var ino = reader.readUint32();
 
     // Mode
-    mode = GitFileMode(reader.readUint32());
+    var mode = GitFileMode(reader.readUint32());
 
-    uid = reader.readUint32();
-    gid = reader.readUint32();
+    var uid = reader.readUint32();
+    var gid = reader.readUint32();
 
-    fileSize = reader.readUint32();
-    hash = GitHash.fromBytes(reader.read(20));
+    var fileSize = reader.readUint32();
+    var hash = GitHash.fromBytes(reader.read(20));
 
     var flags = reader.readUint16();
-    stage = GitFileStage((flags >> 12) & 0x3);
+    var stage = GitFileStage((flags >> 12) & 0x3);
 
-    intentToAdd = false;
-    skipWorkTree = false;
+    var intentToAdd = false;
+    var skipWorkTree = false;
 
     const hasExtendedFlag = 0x4000;
     if (flags & hasExtendedFlag != 0) {
@@ -363,6 +363,7 @@ class GitIndexEntry {
     }
 
     // Read name
+    var path = '';
     switch (versionNo) {
       case 2:
       case 3:
@@ -386,13 +387,28 @@ class GitIndexEntry {
     }
 
     // Discard Padding
-    if (versionNo == 4) {
-      return;
+    if (versionNo != 4) {
+      var endingBytes = indexFileSize - reader.remainingLength;
+      var entrySize = endingBytes - startingBytes;
+      var padLength = 8 - (entrySize % 8);
+      reader.read(padLength);
     }
-    var endingBytes = indexFileSize - reader.remainingLength;
-    var entrySize = endingBytes - startingBytes;
-    var padLength = 8 - (entrySize % 8);
-    reader.read(padLength);
+
+    return GitIndexEntry(
+      cTime: cTime,
+      mTime: mTime,
+      dev: dev,
+      ino: ino,
+      mode: mode,
+      uid: uid,
+      gid: gid,
+      fileSize: fileSize,
+      hash: hash,
+      stage: stage,
+      path: path,
+      skipWorkTree: skipWorkTree,
+      intentToAdd: intentToAdd,
+    );
   }
 
   Uint8List serialize() {

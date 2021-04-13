@@ -127,7 +127,7 @@ class PackFile {
     //   -> Just use streams?
     //
 
-    var compressedData = BytesBuilder();
+    var compressedData = BytesBuilder(copy: false);
     while (true) {
       // The number 512 is chosen since the block size is generally 512
       // The dart zlib parser doesn't have a way to greedily keep reading
@@ -135,9 +135,7 @@ class PackFile {
       compressedData.add(await file.read(objSize + 512));
       var decodedData = zlib.decode(compressedData.toBytes()) as Uint8List;
 
-      if (decodedData.length >= objSize) {
-        // FIXME: Use sublistView if the zlib encoder doesn't make the object
-        //        too big because we are using + 512
+      if (decodedData.length == objSize) {
         return decodedData.sublist(0, objSize);
       }
     }

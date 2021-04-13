@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -9,11 +7,11 @@ import 'package:test/test.dart';
 import 'lib.dart';
 
 void main() {
-  String clonedGitDir;
-  String tmpDir;
+  late String clonedGitDir;
+  late String tmpDir;
 
-  String /*!*/ realGitDir;
-  String /*!*/ dartGitDir;
+  late String realGitDir;
+  late String dartGitDir;
 
   setUpAll(() async {
     tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;

@@ -118,8 +118,7 @@ class DeltaHeader {
 
     void _encode(int size) {
       opcodes.add(size & 0x7f);
-      // FIXME: Is this correct? It used to be >>>
-      size = size >> 7;
+      size = _zeroFillRightShift(size, 7);
 
       while (size > 0) {
         opcodes[opcodes.length - 1] |= 0x80;
@@ -137,6 +136,83 @@ class DeltaHeader {
   @override
   String toString() =>
       'DeltaHeader{baseBufferSize: $baseBufferSize, targetBufferSize: $targetBufferSize, offset: $offset}';
+}
+
+// FIXME: When >>> is implemented use it - https://github.com/dart-lang/language/issues/120
+int _zeroFillRightShift(int n, int amount) {
+  return (n & 0xffffffffffffffff) >> amount;
+}
+
+// the insert instruction is just the number of bytes to copy from
+// delta buffer(following the opcode) to target buffer.
+// it must be less than 128 since when the MSB is set it will be a
+// copy opcode
+Uint8List emitInsert(Uint8List opcodes, Uint8List buffer, int length) {
+  var i;
+
+  if (length > 127) {
+    // TODO: Implement from the go code
+    throw Exception('invalid insert opcode');
+  }
+
+  opcodes.add(length);
+
+  for (i = 0; i < length; i++) {
+    opcodes.add(buffer[i]);
+  }
+
+  return opcodes;
+}
+
+List<int?> emitCopy(List<int?> opcodes, Uint8List source, int offset, int len) {
+  int code, codeIdx;
+
+  opcodes.add(null);
+  codeIdx = opcodes.length - 1;
+  code = 0x80; // set the MSB
+
+  // offset and length are written using a compact encoding
+  // where the state of 7 lower bits specify the meaning of
+  // the bytes that follow
+  if (offset & 0xff > 0) {
+    opcodes.add(offset & 0xff);
+    code |= 0x01;
+  }
+
+  if (offset & 0xff00 > 0) {
+    opcodes.add(_zeroFillRightShift((offset & 0xff00), 8));
+    code |= 0x02;
+  }
+
+  if (offset & 0xff0000 > 0) {
+    opcodes.add(_zeroFillRightShift((offset & 0xff0000), 16));
+    code |= 0x04;
+  }
+
+  if (offset & 0xff000000 > 0) {
+    opcodes.add(_zeroFillRightShift((offset & 0xff000000), 24));
+    code |= 0x08;
+  }
+
+  if (len & 0xff > 0) {
+    opcodes.add(len & 0xff);
+    code |= 0x10;
+  }
+
+  if (len & 0xff00 > 0) {
+    opcodes.add(_zeroFillRightShift((len & 0xff00), 8));
+    code |= 0x20;
+  }
+
+  if (len & 0xff0000 > 0) {
+    opcodes.add(_zeroFillRightShift((len & 0xff0000), 16));
+    code |= 0x40;
+  }
+
+  // place the code at its position
+  opcodes[codeIdx] = code;
+
+  return opcodes;
 }
 
 // produces a buffer that contains instructions on how to
@@ -159,11 +235,10 @@ class DeltaHeader {
 // this is slow and was added more as a utility for testing
 // 'patchDelta' and documenting git delta encoding format, so it
 // should not be used indiscriminately
-List<int> diffDelta(List<int> base, List<int> target) {
+Uint8List diffDelta(Uint8List base, Uint8List target) {
   return base;
 }
 
-// TODO: Encode insert / size / copy
 /*
 
 func encodeInsertOperation(ibuf, buf *bytes.Buffer) {
@@ -187,24 +262,6 @@ func encodeInsertOperation(ibuf, buf *bytes.Buffer) {
 	buf.Write(b[o : o+s])
 
 	ibuf.Reset()
-}
-
-func deltaEncodeSize(size int) []byte {
-	var ret []byte
-	c := size & 0x7f
-	size >>= 7
-	for {
-		if size == 0 {
-			break
-		}
-
-		ret = append(ret, byte(c|0x80))
-		c = size & 0x7f
-		size >>= 7
-	}
-	ret = append(ret, byte(c))
-
-	return ret
 }
 
 func encodeCopyOperation(offset, length int) []byte {
@@ -301,139 +358,110 @@ function diffDelta(source, target) {
   return new Buffer(opcodes);
 }
 
+*/
+
 // function used to split buffers into blocks(units for matching regions
 // in 'diffDelta')
-function sliceBlock(buffer, pos) {
+List<int> sliceBlock(List<int> buffer, int pos) {
   var j = pos;
 
   // advance until a block boundary is found
-  while (buffer[j] !== 10 && (j - pos < 90) && j < buffer.length) j++;
-  if (buffer[j] === 10) j++; // append the trailing linefeed to the block
+  while (buffer[j] != 10 && (j - pos < 90) && j < buffer.length) {
+    j++;
+  }
+  if (buffer[j] == 10) {
+    j++;
+  } // append the trailing linefeed to the block
 
-  return buffer.slice(pos, j);
+  return buffer.sublist(pos, j);
 }
 
 // given a list of match offsets, this will choose the biggest one
-function chooseMatch(source, sourcePositions, target, targetPos) {
-  var i, len, spos, tpos, rv;
+_Match chooseMatch(List<int> source, List<int> sourcePositions,
+    List<int> target, int targetPos) {
+  int i, len, spos, tpos;
+  int? rvLength;
+  int? rvOffset;
 
-  for (i = 0;i < sourcePositions.length;i++) {
+  for (i = 0; i < sourcePositions.length; i++) {
     len = 0;
     spos = sourcePositions[i];
     tpos = targetPos;
-    if (rv && spos < (rv.offset + rv.length))
+    if (rvLength != null && rvOffset != null && spos < (rvOffset + rvLength)) {
       // this offset is contained in a previous match
       continue;
-    while (source[spos++] === target[tpos]) {
+    }
+
+    while (source[spos++] == target[tpos]) {
       len++;
       tpos++;
     }
-    if (!rv) {
-      rv = {length: len, offset: sourcePositions[i]};
-    } else if (rv.length < len) {
-      rv.length = len;
-      rv.offset = sourcePositions[i];
+
+    if (rvLength == null || rvOffset == null) {
+      rvLength = len;
+      rvOffset = sourcePositions[i];
+    } else if (rvLength < len) {
+      rvLength = len;
+      rvOffset = sourcePositions[i];
     }
-    if (rv.length > Math.floor(source.length / 5))
+    if (rvLength > (source.length / 5).floor()) {
       // don't try to find a match that is bigger than one fifth of
       // the source buffer
       break;
+    }
   }
 
-  return rv;
+  // Fimxe; Return rv
+  return _Match(rvOffset, rvLength);
 }
 
-// the insert instruction is just the number of bytes to copy from
-// delta buffer(following the opcode) to target buffer.
-// it must be less than 128 since when the MSB is set it will be a
-// copy opcode
-function emitInsert(opcodes, buffer, length) {
-  var i;
+class _Match {
+  int? offset;
+  int? length;
 
-  if (length > 127) // TODO remove
-    throw new Error('invalid insert opcode');
-
-  opcodes.push(length);
-
-  for (i = 0; i < length; i++) {
-    opcodes.push(buffer[i]);
-  }
+  _Match(this.offset, this.length);
 }
 
-function emitCopy(opcodes, source, offset, length) {
-  var code, codeIdx;
-
-  opcodes.push(null);
-  codeIdx = opcodes.length - 1;
-  code = 0x80 // set the MSB
-
-  // offset and length are written using a compact encoding
-  // where the state of 7 lower bits specify the meaning of
-  // the bytes that follow
-  if (offset & 0xff) {
-    opcodes.push(offset & 0xff);
-    code |= 0x01;
-  }
-
-  if (offset & 0xff00) {
-    opcodes.push((offset & 0xff00) >>> 8);
-    code |= 0x02;
-  }
-
-  if (offset & 0xff0000) {
-    opcodes.push((offset & 0xff0000) >>> 16);
-    code |= 0x04;
-  }
-
-  if (offset & 0xff000000) {
-    opcodess.push((offset & 0xff000000) >>> 24);
-    code |= 0x08;
-  }
-
-  if (length & 0xff) {
-    opcodes.push(length & 0xff);
-    code |= 0x10;
-  }
-
-  if (length & 0xff00) {
-    opcodes.push((length & 0xff00) >>> 8);
-    code |= 0x20;
-  }
-
-  if (length & 0xff0000) {
-    opcodes.push((length & 0xff0000) >>> 16);
-    code |= 0x40;
-  }
-
-  // place the code at its position
-  opcodes[codeIdx] = code;
-}
-
+/*
 // hashtable to store locations where a block of data appears in
 // the source buffer. keys are Buffer instances(which contain the
 // block data).
-function Blocks(n) {
-  this.array = new Array(n);
-  this.n = n;
+class _Block {
+  var array = <int?>[];
+  int n = 0;
+
+  int? get(List<int> key) {
+    var hashValue = _hash(key);
+    var idx = hashValue % n;
+
+    var a = array[idx];
+    if (a != null) {
+      return a.get(key);
+    }
+
+    return null;
+  }
+
+  void set(List<int> key, int value) {
+    var hashValue = _hash(key);
+    var idx = hashValue % n;
+
+    var obj = array[idx];
+    if (obj != null) {
+      obj.set(key, value);
+    } else {
+      obj[idx] = _Bucket(key, value);
+    }
+  }
 }
 
-Blocks.prototype.get = function(key) {
-  var hashValue = hash(key)
-    , idx = hashValue % this.n;
+class _Bucket {
+  int? key;
+  List<int>? value;
+}
+*/
 
-  if (this.array[idx])
-    return this.array[idx].get(key);
-};
-
-Blocks.prototype.set = function(key, value) {
-  var hashValue = hash(key)
-    , idx = hashValue % this.n;
-
-  if (this.array[idx])
-    this.array[idx].set(key, value);
-  else
-    this.array[idx] = new Bucket(key, value);
-};
+/*
 
 // Bucket node for the above hashtable. it can store more than one
 // value per key(since blocks can be repeated)
@@ -501,3 +529,19 @@ function Delta(source, target) {
   this.target = target;
 }
 */
+
+/*
+int _hash(List<int> buffer) {
+  var w = 1, rv = 0, i = 0, j = buffer.length;
+
+  while (i < j) {
+    w *= 29;
+    w = w & ((2 << 29) - 1);
+    rv += buffer[i++] * w;
+    rv = rv & ((2 << 29) - 1);
+  }
+
+  return rv;
+}
+*/
+// https://stackoverflow.com/questions/9478023/is-the-git-binary-diff-algorithm-delta-storage-standardized

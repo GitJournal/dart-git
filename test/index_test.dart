@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -154,8 +152,8 @@ void main() {
     var index = GitIndex.decode(bytes);
 
     expect(index.versionNo, 2);
-    expect(index.endOfIndexEntry.offset, 716);
-    expect(index.endOfIndexEntry.hash,
+    expect(index.endOfIndexEntry!.offset, 716);
+    expect(index.endOfIndexEntry!.hash,
         GitHash('922e89d9ffd7cefce93a211615b2053c0f42bd78'));
   });
 

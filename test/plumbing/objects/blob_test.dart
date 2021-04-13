@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,7 +12,7 @@ void main() {
     const fs = LocalFileSystem();
     var objStorage = ObjectStorage('', fs);
 
-    var obj = await objStorage.readObjectFromPath('test/data/blob');
+    var obj = (await objStorage.readObjectFromPath('test/data/blob'))!;
 
     expect(obj is GitBlob, equals(true));
     expect(obj.serializeData(), equals(ascii.encode('FOO\n')));

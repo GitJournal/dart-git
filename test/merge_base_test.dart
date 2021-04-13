@@ -182,9 +182,9 @@ void main() {
   });
 }
 
-Future<List<GitCommit>> commitsFromRevs(
+Future<List<GitCommit /*!*/ >> commitsFromRevs(
     GitRepository repo, List<String> revs) async {
-  var commits = <GitCommit>[];
+  var commits = <GitCommit /*!*/ >[];
   for (var rev in revs) {
     var hash = revisionIndex[rev];
     var obj = await repo.objStorage.readObjectFromHash(hash);
@@ -193,6 +193,6 @@ Future<List<GitCommit>> commitsFromRevs(
   return commits;
 }
 
-int sortByHash(GitObject a, GitObject b) {
+int sortByHash(GitObject /*!*/ /*!*/ a, GitObject b) {
   return a.hash.toString().compareTo(b.hash.toString());
 }

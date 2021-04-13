@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:file/local.dart';
@@ -14,6 +12,7 @@ void main() {
     var objStorage = ObjectStorage('', fs);
 
     var obj = await objStorage.readObjectFromPath('test/data/tree');
+    expect(obj != null, true);
 
     expect(obj is GitTree, equals(true));
 

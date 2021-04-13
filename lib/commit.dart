@@ -29,20 +29,20 @@ extension Commit on GitRepository {
     if (treeHash == null) {
       throw Exception('WTF, there is nothing to add?');
     }
-    var parents = <GitHash?>[];
+    var parents = <GitHash>[];
 
     var headRef = await head();
     if (headRef != null) {
       var parentRef = await resolveReference(headRef);
-      if (parentRef != null) {
-        parents.add(parentRef.hash);
+      if (parentRef != null && parentRef.isHash) {
+        parents.add(parentRef.hash!);
       }
     }
 
     var commit = GitCommit.create(
       author: author,
       committer: committer,
-      parents: parents as List<GitHash>,
+      parents: parents,
       message: message,
       treeHash: treeHash,
     );

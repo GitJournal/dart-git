@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:test/test.dart';
 
 import 'package:dart_git/config.dart';
@@ -35,15 +33,15 @@ void main() {
     var config = Config(contents);
     expect(config.branches.length, 2);
 
-    var branch = config.branch('master');
+    var branch = config.branch('master')!;
     expect(branch.name, 'master');
     expect(branch.remote, 'origin');
-    expect(branch.merge.value, 'refs/heads/master');
+    expect(branch.merge!.value, 'refs/heads/master');
 
-    branch = config.branch('foo');
+    branch = config.branch('foo')!;
     expect(branch.name, 'foo');
     expect(branch.remote, 'origin');
-    expect(branch.merge.value, 'refs/heads/master');
+    expect(branch.merge!.value, 'refs/heads/master');
 
     expect(config.remotes.length, 1);
     var remote = config.remotes[0];
@@ -51,8 +49,8 @@ void main() {
     expect(remote.url, 'https://github.com/src-d/go-git.git');
     expect(remote.fetch, '+refs/heads/*:refs/remotes/origin/*');
 
-    expect(config.user.name, 'Mona Lisa');
-    expect(config.user.email, 'mona@lisa.com');
+    expect(config.user!.name, 'Mona Lisa');
+    expect(config.user!.email, 'mona@lisa.com');
   });
 
   test('Config Serialization', () async {

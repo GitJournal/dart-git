@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -33,15 +31,15 @@ Create first draft''';
 
   test('Parses KVLM Properly', () async {
     var raw = utf8.encode(rawStr);
-    var map = kvlmParse(raw);
+    var map = kvlmParse(raw as Uint8List);
 
     expect(map.length, equals(6));
 
     expect(map['tree'], equals('29ff16c9c14e2652b22f8b78bb08a5a07930c147'));
 
     var p = map['parent'];
-    expect(p[0] as String, equals('206941306e8a8af65b66eaaaea388a7ae24d49a0'));
-    expect(p[1] as String, equals('206941306e8a8af65b66eaaaea388a7ae24d49a2'));
+    expect(p[0] as String?, equals('206941306e8a8af65b66eaaaea388a7ae24d49a0'));
+    expect(p[1] as String?, equals('206941306e8a8af65b66eaaaea388a7ae24d49a2'));
 
     expect(map['gpgsig'], equals('''-----BEGIN PGP SIGNATURE-----
 iQIzBAABCAAdFiEExwXquOM8bWb4Q2zVGxM2FxoLkGQFAlsEjZQACgkQGxM2FxoL
@@ -71,7 +69,7 @@ committer Vishesh Handa <me@vhanda.in> 1601767396 +0200
 SDf
 ''');
 
-    var map = kvlmParse(raw);
+    var map = kvlmParse(raw as Uint8List);
     expect(map.length, equals(4));
     expect(map['tree'], equals('bd11e76b46ad288c6e80e4db357dadf676906897'));
     expect(map['author'], 'Vishesh Handa <me@vhanda.in> 1601767396 +0200');

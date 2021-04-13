@@ -176,7 +176,7 @@ class GitIndex {
     endOfIndexEntry = EndOfIndexEntry(offset, hash);
   }
 
-  List<int> serialize() {
+  Uint8List serialize() {
     // Do we support this version of the index?
     if (versionNo != 2) {
       throw Exception(

@@ -1,11 +1,8 @@
 // This file has been adapted from go-git delta_test.go
 
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import 'package:dart_git/plumbing/pack_file_delta.dart';
@@ -36,7 +33,7 @@ class DeltaTest {
   final List<Piece> base;
   final List<Piece> target;
 
-  DeltaTest(this.description, {@required this.base, @required this.target});
+  DeltaTest(this.description, {required this.base, required this.target});
 }
 
 var testData = <DeltaTest>[
@@ -111,7 +108,7 @@ void main() {
       var base = genBytes(t.base);
       var target = genBytes(t.target);
       var delta = diffDelta(base, target);
-      var result = patchDelta(base, delta);
+      var result = patchDelta(base, delta as Uint8List);
 
       expect(result, target);
     }
@@ -124,7 +121,7 @@ void main() {
 
       var delta = diffDelta(base, target);
       delta = delta.sublist(0, delta.length - 2);
-      var result = patchDelta(base, delta);
+      var result = patchDelta(base, delta as Uint8List);
 
       expect(result, null);
     }

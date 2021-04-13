@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -107,11 +105,11 @@ done''';
   var repo1Index = repo1Result.stdout
       .split('\n')
       .where((String e) => e.isNotEmpty)
-      .toSet() as Set<String>;
+      .toSet() as Set<String>?;
   var repo2Index = repo2Result.stdout
       .split('\n')
       .where((String e) => e.isNotEmpty)
-      .toSet() as Set<String>;
+      .toSet() as Set<String>?;
 
   expect(repo1Index, repo2Index);
 

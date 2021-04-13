@@ -1,6 +1,5 @@
-// @dart=2.9
-
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:file/local.dart';
 import 'package:test/test.dart';
@@ -24,7 +23,7 @@ Also add tons of comments
     const fs = LocalFileSystem();
     var objStorage = ObjectStorage('', fs);
 
-    var obj = await objStorage.readObjectFromPath('test/data/commit-object');
+    var obj = (await objStorage.readObjectFromPath('test/data/commit-object'))!;
     var hash = GitHash('57bdd0dbc9868e53aead3c91714c282647265254');
 
     expect(obj is GitCommit, true);
@@ -75,13 +74,13 @@ gpgsig -----BEGIN PGP SIGNATURE-----
 
 Create first draft''';
 
-    var commitObj = GitCommit.parse(utf8.encode(rawStr), null);
+    var commitObj = GitCommit.parse(utf8.encode(rawStr) as Uint8List, null)!;
     expect(utf8.decode(commitObj.serializeData()), rawStr);
   });
 
   test('Author Parse', () {
     var str = 'Vishesh Handa <me@vhanda.in> 1600114796 -0800';
-    var author = GitAuthor.parse(str);
+    var author = GitAuthor.parse(str)!;
 
     expect(author.name, 'Vishesh Handa');
     expect(author.email, 'me@vhanda.in');

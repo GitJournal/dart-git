@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:test/test.dart';
 
 import 'package:dart_git/git_hash.dart';

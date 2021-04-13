@@ -12,8 +12,8 @@ void main() {
   String clonedGitDir;
   String tmpDir;
 
-  String realGitDir;
-  String dartGitDir;
+  String /*!*/ realGitDir;
+  String /*!*/ dartGitDir;
 
   setUpAll(() async {
     tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;

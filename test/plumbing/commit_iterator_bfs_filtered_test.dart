@@ -1,7 +1,5 @@
 // Code Adapated from go-git commit_walker_bfs_filtered_test.go
 
-// @dart=2.9
-
 import 'package:test/test.dart';
 
 import 'package:dart_git/dart_git.dart';
@@ -35,8 +33,8 @@ import '../lib.dart';
 
 void main() {
   String gitDir;
-  ObjectStorage objStorage;
-  GitCommit headCommit;
+  late ObjectStorage objStorage;
+  late GitCommit headCommit;
 
   setUpAll(() async {
     gitDir = await openFixture(
@@ -44,7 +42,7 @@ void main() {
 
     var repo = await GitRepository.load(gitDir);
     objStorage = repo.objStorage;
-    headCommit = await repo.headCommit();
+    headCommit = (await repo.headCommit())!;
   });
 
   /// We should get all commits from the history but,

@@ -473,7 +473,7 @@ class GitRepository {
   }
 
   Future<GitIndexEntry?> addFileToIndex(GitIndex index, String filePath) async {
-    filePath = _normalizePath(filePath);
+    filePath = normalizePath(filePath);
 
     var file = fs.file(filePath);
     if (!file.existsSync()) {
@@ -513,7 +513,7 @@ class GitRepository {
 
   Future<void> addDirectoryToIndex(GitIndex index, String dirPath,
       {bool recursive = false}) async {
-    dirPath = _normalizePath(dirPath);
+    dirPath = normalizePath(dirPath);
 
     var dir = fs.directory(dirPath);
     await for (var fsEntity
@@ -531,7 +531,7 @@ class GitRepository {
   }
 
   Future<GitHash?> rmFileFromIndex(GitIndex index, String filePath) async {
-    var pathSpec = toPathSpec(_normalizePath(filePath));
+    var pathSpec = toPathSpec(normalizePath(filePath));
     return index.removePath(pathSpec);
   }
 
@@ -546,7 +546,7 @@ class GitRepository {
     return ref.hash;
   }
 
-  String _normalizePath(String path) {
+  String normalizePath(String path) {
     if (!path.startsWith('/')) {
       path = path == '.' ? workTree : p.normalize(p.join(workTree, path));
     }

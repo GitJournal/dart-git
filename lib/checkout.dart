@@ -2,7 +2,6 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
-import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
@@ -11,7 +10,7 @@ import 'package:dart_git/plumbing/reference.dart';
 
 extension Checkout on GitRepository {
   Future<int?> checkout(String path) async {
-    path = _normalizePath(path);
+    path = normalizePath(path);
 
     var tree = await headTree();
     if (tree == null) {
@@ -156,15 +155,5 @@ extension Checkout on GitRepository {
     await refStorage.saveRef(headRef);
 
     return ref;
-  }
-
-  String _normalizePath(String path) {
-    if (!path.startsWith('/')) {
-      path = path == '.' ? workTree : p.normalize(p.join(workTree, path));
-    }
-    if (!path.startsWith(workTree)) {
-      throw PathSpecOutsideRepoException(pathSpec: path);
-    }
-    return path;
   }
 }

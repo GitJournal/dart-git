@@ -18,7 +18,7 @@ class AddCommand extends Command {
     var repo = await GitRepository.load(gitRootDir);
 
     var filePath = argResults!.arguments[0];
-    var index = await repo.readIndex();
+    var index = await repo.indexStorage.readIndex();
 
     try {
       await repo.addFileToIndex(index, filePath);
@@ -26,7 +26,7 @@ class AddCommand extends Command {
       print(e);
     }
 
-    await repo.writeIndex(index);
+    await repo.indexStorage.writeIndex(index);
 
     // FIXME: Get proper pathSpec
     // FIXME: Handle glob patterns

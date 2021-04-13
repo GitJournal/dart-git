@@ -32,7 +32,7 @@ extension Checkout on GitRepository {
 
     var index = GitIndex(versionNo: 2);
     var numFiles = await _checkoutTree(spec, obj as GitTree, index);
-    await writeIndex(index);
+    await indexStorage.writeIndex(index);
 
     return numFiles;
   }
@@ -93,7 +93,7 @@ extension Checkout on GitRepository {
 
       var index = GitIndex(versionNo: 2);
       await _checkoutTree('', treeObj as GitTree, index);
-      await writeIndex(index);
+      await indexStorage.writeIndex(index);
 
       // Set HEAD to to it
       var branchRef = ReferenceName.branch(branchName);
@@ -114,7 +114,7 @@ extension Checkout on GitRepository {
       toCommit: branchCommit,
       objStore: objStorage,
     );
-    var index = await readIndex();
+    var index = await indexStorage.readIndex();
 
     for (var change in blobChanges.merged()) {
       if (change.added || change.modified) {
@@ -148,7 +148,7 @@ extension Checkout on GitRepository {
       }
     }
 
-    await writeIndex(index);
+    await indexStorage.writeIndex(index);
 
     // Set HEAD to to it
     var branchRef = ReferenceName.branch(branchName);

@@ -16,6 +16,7 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/storage/index_storage.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
@@ -38,6 +39,7 @@ class GitRepository {
   FileSystem fs;
   late ReferenceStorage refStorage;
   late ObjectStorage objStorage;
+  late IndexStorage indexStorage;
 
   GitRepository._internal({required String rootDir, required this.fs}) {
     workTree = rootDir;
@@ -80,6 +82,7 @@ class GitRepository {
 
     repo.objStorage = ObjectStorage(repo.gitDir, fs);
     repo.refStorage = ReferenceStorage(repo.gitDir, fs);
+    repo.indexStorage = IndexStorage(repo.gitDir, fs);
 
     return repo;
   }
@@ -431,23 +434,6 @@ class GitRepository {
     branches
         .sort((a, b) => a.name.branchName()!.compareTo(b.name.branchName()!));
     return branches[0];
-  }
-
-  Future<GitIndex> readIndex() async {
-    var file = fs.file(p.join(gitDir, 'index'));
-    if (!file.existsSync()) {
-      return GitIndex(versionNo: 2);
-    }
-
-    // FIXME: What if reading this file fails cause of permission issues?
-    return GitIndex.decode(await file.readAsBytes());
-  }
-
-  Future<void> writeIndex(GitIndex index) async {
-    var path = p.join(gitDir, 'index.new');
-    var file = fs.file(path);
-    await file.writeAsBytes(index.serialize());
-    await file.rename(p.join(gitDir, 'index'));
   }
 
   Future<int?> numChangesToPush() async {

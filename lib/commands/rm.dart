@@ -17,7 +17,7 @@ class RmCommand extends Command {
     var repo = await GitRepository.load(gitRootDir);
 
     var filePath = argResults!.arguments[0];
-    var index = await repo.readIndex();
+    var index = await repo.indexStorage.readIndex();
 
     var hash = await repo.rmFileFromIndex(index, filePath);
     if (hash == null) {
@@ -27,7 +27,7 @@ class RmCommand extends Command {
     if (File(filePath).existsSync()) {
       await File(filePath).delete(recursive: true);
     }
-    await repo.writeIndex(index);
+    await repo.indexStorage.writeIndex(index);
 
     print("rm '${repo.toPathSpec(filePath)}'");
 

@@ -132,7 +132,9 @@ class PackFile {
       // The number 512 is chosen since the block size is generally 512
       // The dart zlib parser doesn't have a way to greedily keep reading
       // till it reaches a certain size
-      compressedData.add(await file.read(objSize + 512));
+      var readSize = _roundUp(objSize, 512);
+      compressedData.add(await file.read(readSize));
+      // FIXME: Do not run the zlib parser from scratch each time
       var decodedData = zlib.decode(compressedData.toBytes()) as Uint8List;
 
       if (decodedData.length == objSize) {
@@ -198,4 +200,9 @@ class PackObjectHeader {
   @override
   String toString() =>
       'PackObjectHeader{size: $size, type: $type, offset: $offset}';
+}
+
+int _roundUp(int numToRound, int multiple) {
+  assert(multiple != 0);
+  return ((numToRound + multiple - 1) ~/ multiple) * multiple;
 }

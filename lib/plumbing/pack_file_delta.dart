@@ -6,7 +6,6 @@ bool _isCopyFromSrc(int cmd) => (cmd & 0x80) != 0;
 bool _isCopyFromDelta(int cmd) => (cmd & 0x80) == 0 && cmd != 0;
 
 // FIXME: Write tests
-// FIXME: change List<int> for Uint8List
 
 // produces a buffer that is the result of 'delta' applied to 'base'
 // algorithm taken from 'patch-delta.c' in the git source tree
@@ -93,7 +92,7 @@ class DeltaHeader {
   // gets sizes of the base buffer/target buffer formatted in LEB128 and
   // the delta header length
   // FIXME: What if the buffer is too small?
-  DeltaHeader.decode(List<int> buffer) {
+  DeltaHeader.decode(Uint8List buffer) {
     offset = 0;
 
     int nextSize() {

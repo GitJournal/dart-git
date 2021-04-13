@@ -108,7 +108,7 @@ void main() {
       var base = genBytes(t.base);
       var target = genBytes(t.target);
       var delta = diffDelta(base, target);
-      var result = patchDelta(base, delta as Uint8List);
+      var result = patchDelta(base, delta);
 
       expect(result, target);
     }
@@ -121,7 +121,7 @@ void main() {
 
       var delta = diffDelta(base, target);
       delta = delta.sublist(0, delta.length - 2);
-      var result = patchDelta(base, delta as Uint8List);
+      var result = patchDelta(base, delta);
 
       expect(result, null);
     }

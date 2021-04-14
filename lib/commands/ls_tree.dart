@@ -27,7 +27,7 @@ class LsTreeCommand extends Command {
     if (obj is GitTree) {
       tree = obj;
     } else if (obj is GitCommit) {
-      tree = await repo.objStorage.read(obj.treeHash) as GitTree;
+      tree = (await repo.objStorage.readTree(obj.treeHash)).get();
     } else {
       assert(false);
     }

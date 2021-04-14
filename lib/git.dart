@@ -13,7 +13,6 @@ import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
-import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/storage/index_storage.dart';
@@ -293,8 +292,8 @@ class GitRepository {
     if (hash == null) {
       return null;
     }
-    var res = await objStorage.read(hash);
-    return res.get() as GitCommit?;
+    var res = await objStorage.readCommit(hash);
+    return res.get();
   }
 
   Future<GitTree?> headTree() async {
@@ -303,8 +302,8 @@ class GitRepository {
       return null;
     }
 
-    var res = await objStorage.read(commit.treeHash);
-    return res.get() as GitTree?;
+    var res = await objStorage.readTree(commit.treeHash);
+    return res.get();
   }
 
   Future<Reference?> resolveReference(Reference ref,
@@ -377,15 +376,14 @@ class GitRepository {
       parents.removeAt(0);
       seen.add(sha);
 
-      GitObject? obj;
+      GitCommit? commit;
       try {
-        var res = await objStorage.read(sha);
-        obj = res.get();
+        var res = await objStorage.readCommit(sha);
+        commit = res.get();
       } catch (e) {
         print(e);
         return null;
       }
-      var commit = obj as GitCommit;
 
       for (var p in commit.parents) {
         if (seen.contains(p)) continue;

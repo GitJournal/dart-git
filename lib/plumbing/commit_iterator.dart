@@ -20,9 +20,8 @@ Stream<GitCommit> commitIteratorBFS({
     }
     seen.add(hash);
 
-    var objRes = await objStorage.read(hash);
-    var obj = objRes.get();
-    var commit = obj as GitCommit;
+    var result = await objStorage.readCommit(hash);
+    var commit = result.get();
 
     queue.addAll(commit.parents);
     yield commit;
@@ -52,10 +51,9 @@ Stream<GitCommit> commitIteratorBFSFiltered({
     }
     seen.add(hash);
 
-    var objRes = await objStorage.read(hash);
-    var obj = objRes.get();
+    var result = await objStorage.readCommit(hash);
+    var commit = result.get();
 
-    var commit = obj as GitCommit;
     if (!isLimit(commit)) {
       queue.addAll(commit.parents);
     }
@@ -79,11 +77,8 @@ Stream<GitCommit> commitPreOrderIterator({
     }
     seen.add(hash);
 
-    var objRes = await objStorage.read(hash);
-    var obj = objRes.get();
-    assert(obj is GitCommit);
-
-    var commit = obj as GitCommit;
+    var result = await objStorage.readCommit(hash);
+    var commit = result.get();
 
     stack.addAll(commit.parents.reversed);
     yield commit;

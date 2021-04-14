@@ -2,9 +2,8 @@ class Result<Success> {
   Success? success;
   Exception? error;
 
-  Result._({this.success, this.error});
-  Result(Success s) : this._(success: s);
-  Result.fail(Exception f) : this._(error: f);
+  Result(this.success, {this.error});
+  Result.fail(this.error);
 
   Result.catchAll(Success Function() catchFn) {
     try {

@@ -5,7 +5,6 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
-import 'package:dart_git/plumbing/objects/commit.dart';
 
 class DiffCommand extends Command {
   @override
@@ -33,15 +32,15 @@ class DiffCommand extends Command {
     var fromStr = argResults!.arguments[0];
     var toStr = argResults!.arguments[1];
 
-    var fromCommitRes = await repo.objStorage.read(GitHash(fromStr));
-    var toCommitRes = await repo.objStorage.read(GitHash(toStr));
+    var fromCommitRes = await repo.objStorage.readCommit(GitHash(fromStr));
+    var toCommitRes = await repo.objStorage.readCommit(GitHash(toStr));
 
     var fromCommit = fromCommitRes.get();
     var toCommit = toCommitRes.get();
 
     var changes = await diffCommits(
-      fromCommit: fromCommit as GitCommit,
-      toCommit: toCommit as GitCommit,
+      fromCommit: fromCommit,
+      toCommit: toCommit,
       objStore: repo.objStorage,
     );
 

@@ -9,6 +9,8 @@ import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
+import 'package:dart_git/plumbing/objects/blob.dart';
+import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
@@ -54,6 +56,15 @@ class ObjectStorage {
 
     return GitObjectResult.fail(GitObjectNotFound(hash));
   }
+
+  Future<GitBlobResult> readBlob(GitHash hash) async =>
+      GitBlobResult(await read(hash));
+
+  Future<GitTreeResult> readTree(GitHash hash) async =>
+      GitTreeResult(await read(hash));
+
+  Future<GitCommitResult> readCommit(GitHash hash) async =>
+      GitCommitResult(await read(hash));
 
   Future<void> _loadPackFiles(String packDirPath) async {
     packFiles = [];
@@ -163,7 +174,31 @@ class ObjectStorage {
 }
 
 class GitObjectResult extends Result<GitObject> {
-  GitObjectResult(GitObject s) : super(s);
+  GitObjectResult(GitObject? s, {GitException? error}) : super(s, error: error);
   GitObjectResult.fail(GitException f) : super.fail(f);
   // GitObjectResult.catchAll(GitObject Function() catchFn) : super(catchFn);
+}
+
+class GitBlobResult extends GitObjectResult {
+  GitBlobResult(GitObjectResult res)
+      : super(res.success, error: res.error as GitException?);
+
+  @override
+  GitBlob get() => super.get() as GitBlob;
+}
+
+class GitTreeResult extends GitObjectResult {
+  GitTreeResult(GitObjectResult res)
+      : super(res.success, error: res.error as GitException?);
+
+  @override
+  GitTree get() => super.get() as GitTree;
+}
+
+class GitCommitResult extends GitObjectResult {
+  GitCommitResult(GitObjectResult res)
+      : super(res.success, error: res.error as GitException?);
+
+  @override
+  GitCommit get() => super.get() as GitCommit;
 }

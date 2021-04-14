@@ -4,7 +4,6 @@ import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
-import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
@@ -86,18 +85,17 @@ extension Checkout on GitRepository {
 
     var _headCommit = await headCommit();
     if (_headCommit == null) {
-      var result = await objStorage.read(ref.hash!);
-      var obj = result.get();
+      var result = await objStorage.readCommit(ref.hash!);
+      var commit = result.get();
       /*
       if (obj == null) {
         return null;
       }
       */
-      var commit = obj as GitCommit;
-      var treeObj = await objStorage.read(commit.treeHash);
+      var treeObjRes = await objStorage.readTree(commit.treeHash);
 
       var index = GitIndex(versionNo: 2);
-      await _checkoutTree('', treeObj as GitTree, index);
+      await _checkoutTree('', treeObjRes.get(), index);
       await indexStorage.writeIndex(index);
 
       // Set HEAD to to it
@@ -108,13 +106,12 @@ extension Checkout on GitRepository {
       return ref;
     }
 
-    var res = await objStorage.read(ref.hash!);
-    var branchCommitObj = res.get();
+    var res = await objStorage.readCommit(ref.hash!);
+    var branchCommit = res.get();
     /*
     if (branchCommitObj == null) {
       return null;
     }*/
-    var branchCommit = branchCommitObj as GitCommit;
 
     var blobChanges = await diffCommits(
       fromCommit: _headCommit,
@@ -126,8 +123,8 @@ extension Checkout on GitRepository {
     for (var change in blobChanges.merged()) {
       if (change.added || change.modified) {
         var to = change.to!;
-        var objRes = await objStorage.read(to.hash);
-        var blobObj = objRes.get() as GitBlob;
+        var blobObjRes = await objStorage.readBlob(to.hash);
+        var blobObj = blobObjRes.get();
 
         // FIXME: Add file mode
         await fs

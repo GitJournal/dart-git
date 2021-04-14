@@ -6,7 +6,6 @@ import 'package:dart_git/diff_tree.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
-import 'package:dart_git/plumbing/objects/tree.dart';
 
 class DiffTreeCommand extends Command {
   @override
@@ -41,8 +40,8 @@ class DiffTreeCommand extends Command {
     var tbHash = obj.treeHash;
 
     var results = diffTree(
-      (await repo.objStorage.read(taHash)).get() as GitTree,
-      (await repo.objStorage.read(tbHash)).get() as GitTree,
+      (await repo.objStorage.readTree(taHash)).get(),
+      (await repo.objStorage.readTree(tbHash)).get(),
     );
 
     for (var r in results.merged()) {

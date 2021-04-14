@@ -119,8 +119,7 @@ class ObjectStorage {
     }
 
     var fmtStr = ascii.decode(fmt);
-    // FIXME: Avoid this copy?
-    var rawData = Uint8List.fromList(raw.sublistView(y + 1));
+    var rawData = raw.sublistView(y + 1);
     return createObject(fmtStr, rawData, filePath);
   }
 

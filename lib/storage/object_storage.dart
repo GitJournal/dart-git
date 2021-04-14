@@ -30,7 +30,6 @@ class ObjectStorage {
   ObjectStorage(this.gitDir, this.fs);
 
   // FIXME: Handle all fs exceptions
-  // TODO: Add convenience functions to fetch a Blob/Commit/etc
   Future<GitObjectResult> read(GitHash hash) async {
     var sha = hash.toString();
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
@@ -145,10 +144,11 @@ class ObjectStorage {
     return hash;
   }
 
-  Future<GitObject?> refSpec(GitTree tree, String spec) async {
+  Future<GitObjectResult> refSpec(GitTree tree, String spec) async {
     assert(!spec.startsWith(p.separator));
+
     if (spec.isEmpty) {
-      return tree;
+      return GitObjectResult(tree);
     }
 
     var parts = splitPath(spec);
@@ -158,20 +158,24 @@ class ObjectStorage {
     for (var leaf in tree.entries) {
       if (leaf.name == name) {
         var result = await read(leaf.hash);
-        // FIXME: Do not use .get()
         var obj = result.get();
+
         if (remainingName.isEmpty) {
-          return obj;
+          return GitObjectResult(obj);
         }
 
         if (obj is GitTree) {
           return refSpec(obj, remainingName);
         } else {
-          return null;
+          return GitObjectResult.fail(
+            GitObjectWithRefSpecNotFound(spec),
+          );
         }
       }
     }
-    return null;
+    return GitObjectResult.fail(
+      GitObjectWithRefSpecNotFound(spec),
+    );
   }
 }
 

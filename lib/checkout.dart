@@ -17,10 +17,8 @@ extension Checkout on GitRepository {
     }
 
     var spec = path.substring(workTree.length);
-    var obj = await objStorage.refSpec(tree, spec);
-    if (obj == null) {
-      return null;
-    }
+    var objRes = await objStorage.refSpec(tree, spec);
+    var obj = objRes.get();
 
     if (obj is GitBlob) {
       await fs.directory(p.dirname(path)).create(recursive: true);

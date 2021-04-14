@@ -40,6 +40,14 @@ class GitObjectNotFound implements GitException {
   String toString() => 'GitObjectNotFound: $hash';
 }
 
+class GitObjectWithRefSpecNotFound implements GitException {
+  String refSpec;
+  GitObjectWithRefSpecNotFound(this.refSpec);
+
+  @override
+  String toString() => 'GitObjectWithRefSpecNotFound: $refSpec';
+}
+
 class GitObjectCorruptedMissingType implements GitException {}
 
 class GitObjectCorruptedMissingSize implements GitException {}

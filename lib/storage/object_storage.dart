@@ -28,7 +28,7 @@ class ObjectStorage {
 
   // FIXME: Handle all fs exceptions
   // TODO: Add convenience functions to fetch a Blob/Commit/etc
-  Future<GitObjectResult> readObjectFromHash(GitHash hash) async {
+  Future<GitObjectResult> read(GitHash hash) async {
     var sha = hash.toString();
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
     if (await fs.isFile(path)) {
@@ -144,7 +144,7 @@ class ObjectStorage {
 
     for (var leaf in tree.entries) {
       if (leaf.name == name) {
-        var result = await readObjectFromHash(leaf.hash);
+        var result = await read(leaf.hash);
         // FIXME: Do not use .get()
         var obj = result.get();
         if (remainingName.isEmpty) {

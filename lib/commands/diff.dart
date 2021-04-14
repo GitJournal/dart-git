@@ -33,9 +33,8 @@ class DiffCommand extends Command {
     var fromStr = argResults!.arguments[0];
     var toStr = argResults!.arguments[1];
 
-    var fromCommitRes =
-        await repo.objStorage.readObjectFromHash(GitHash(fromStr));
-    var toCommitRes = await repo.objStorage.readObjectFromHash(GitHash(toStr));
+    var fromCommitRes = await repo.objStorage.read(GitHash(fromStr));
+    var toCommitRes = await repo.objStorage.read(GitHash(toStr));
 
     var fromCommit = fromCommitRes.get();
     var toCommit = toCommitRes.get();

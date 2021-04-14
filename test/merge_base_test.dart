@@ -185,7 +185,7 @@ Future<List<GitCommit>> commitsFromRevs(
   var commits = <GitCommit>[];
   for (var rev in revs) {
     var hash = revisionIndex[rev]!;
-    var objRes = await repo.objStorage.readObjectFromHash(hash);
+    var objRes = await repo.objStorage.read(hash);
     commits.add(objRes.get() as GitCommit);
   }
   return commits;

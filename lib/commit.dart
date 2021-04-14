@@ -143,7 +143,7 @@ extension Commit on GitRepository {
           // Making sure the leaf is a blob
           //
           assert(await () async {
-            var leafObjRes = await objStorage.readObjectFromHash(leaf.hash);
+            var leafObjRes = await objStorage.read(leaf.hash);
             var leafObj = leafObjRes.get();
             return leafObj.formatStr() == 'blob';
           }());

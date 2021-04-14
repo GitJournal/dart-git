@@ -27,8 +27,8 @@ class MergeBaseCommand extends Command {
     var aHash = GitHash(args[0]);
     var bHash = GitHash(args[1]);
 
-    var aRes = await repo.objStorage.readObjectFromHash(aHash);
-    var bRes = await repo.objStorage.readObjectFromHash(bHash);
+    var aRes = await repo.objStorage.read(aHash);
+    var bRes = await repo.objStorage.read(bHash);
 
     var a = aRes.get();
     var b = bRes.get();

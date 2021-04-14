@@ -22,7 +22,7 @@ class DiffTreeCommand extends Command {
     var repo = await GitRepository.load(gitRootDir);
 
     var hash = argResults!.arguments[0];
-    var objRes = await repo.objStorage.readObjectFromHash(GitHash(hash));
+    var objRes = await repo.objStorage.read(GitHash(hash));
     if (objRes.failed) {
       print('fatal: bad object $hash');
       return;
@@ -35,14 +35,14 @@ class DiffTreeCommand extends Command {
     }
     var commit = obj;
     var parentHash = commit.parents.first;
-    var parentObj = await repo.objStorage.readObjectFromHash(parentHash);
+    var parentObj = await repo.objStorage.read(parentHash);
 
     var taHash = (parentObj as GitCommit).treeHash;
     var tbHash = obj.treeHash;
 
     var results = diffTree(
-      await repo.objStorage.readObjectFromHash(taHash) as GitTree,
-      await repo.objStorage.readObjectFromHash(tbHash) as GitTree,
+      (await repo.objStorage.read(taHash)).get() as GitTree,
+      (await repo.objStorage.read(tbHash)).get() as GitTree,
     );
 
     for (var r in results.merged()) {

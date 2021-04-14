@@ -20,7 +20,7 @@ Stream<GitCommit> commitIteratorBFS({
     }
     seen.add(hash);
 
-    var objRes = await objStorage.readObjectFromHash(hash);
+    var objRes = await objStorage.read(hash);
     var obj = objRes.get();
     var commit = obj as GitCommit;
 
@@ -52,7 +52,7 @@ Stream<GitCommit> commitIteratorBFSFiltered({
     }
     seen.add(hash);
 
-    var objRes = await objStorage.readObjectFromHash(hash);
+    var objRes = await objStorage.read(hash);
     var obj = objRes.get();
 
     var commit = obj as GitCommit;
@@ -79,7 +79,7 @@ Stream<GitCommit> commitPreOrderIterator({
     }
     seen.add(hash);
 
-    var objRes = await objStorage.readObjectFromHash(hash);
+    var objRes = await objStorage.read(hash);
     var obj = objRes.get();
     assert(obj is GitCommit);
 

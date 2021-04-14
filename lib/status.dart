@@ -57,8 +57,9 @@ extension Status on GitRepository {
         continue;
       }
 
-      var subTree = await objStorage.readObjectFromHash(entry.hash);
-      var r = await _status(subTree as GitTree, fsEntity.path, result);
+      var subTreeObj = await objStorage.read(entry.hash);
+      var subTree = subTreeObj.get() as GitTree;
+      var r = await _status(subTree, fsEntity.path, result);
       if (r != null) {
         result!.add(r);
       }

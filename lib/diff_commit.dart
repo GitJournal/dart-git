@@ -119,11 +119,11 @@ Future<CommitBlobChanges> diffCommits({
     GitTree? toTree;
 
     if (item.fromTreeHash != null) {
-      var from = await objStore.readObjectFromHash(item.fromTreeHash!);
+      var from = await objStore.read(item.fromTreeHash!);
       fromTree = from.get() as GitTree?;
     }
     if (item.toTreeHash != null) {
-      var to = await objStore.readObjectFromHash(item.toTreeHash!);
+      var to = await objStore.read(item.toTreeHash!);
       toTree = to.get() as GitTree?;
     }
 

@@ -39,7 +39,7 @@ class LogCommand extends Command {
       parents.removeAt(0);
       seen.add(sha);
 
-      var objRes = await repo.objStorage.readObjectFromHash(sha);
+      var objRes = await repo.objStorage.read(sha);
       if (objRes.failed) {
         print('panic: object with sha $sha not found');
         return;

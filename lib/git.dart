@@ -293,7 +293,7 @@ class GitRepository {
     if (hash == null) {
       return null;
     }
-    var res = await objStorage.readObjectFromHash(hash);
+    var res = await objStorage.read(hash);
     return res.get() as GitCommit?;
   }
 
@@ -303,7 +303,7 @@ class GitRepository {
       return null;
     }
 
-    var res = await objStorage.readObjectFromHash(commit.treeHash);
+    var res = await objStorage.read(commit.treeHash);
     return res.get() as GitTree?;
   }
 
@@ -379,7 +379,7 @@ class GitRepository {
 
       GitObject? obj;
       try {
-        var res = await objStorage.readObjectFromHash(sha);
+        var res = await objStorage.read(sha);
         obj = res.get();
       } catch (e) {
         print(e);

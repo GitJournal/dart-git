@@ -45,7 +45,7 @@ extension Checkout on GitRepository {
 
     var updated = 0;
     for (var leaf in tree.entries) {
-      var result = await objStorage.readObjectFromHash(leaf.hash);
+      var result = await objStorage.read(leaf.hash);
       var obj = result.get();
       /*
       if (obj == null) {
@@ -86,7 +86,7 @@ extension Checkout on GitRepository {
 
     var _headCommit = await headCommit();
     if (_headCommit == null) {
-      var result = await objStorage.readObjectFromHash(ref.hash!);
+      var result = await objStorage.read(ref.hash!);
       var obj = result.get();
       /*
       if (obj == null) {
@@ -94,7 +94,7 @@ extension Checkout on GitRepository {
       }
       */
       var commit = obj as GitCommit;
-      var treeObj = await objStorage.readObjectFromHash(commit.treeHash);
+      var treeObj = await objStorage.read(commit.treeHash);
 
       var index = GitIndex(versionNo: 2);
       await _checkoutTree('', treeObj as GitTree, index);
@@ -108,7 +108,7 @@ extension Checkout on GitRepository {
       return ref;
     }
 
-    var res = await objStorage.readObjectFromHash(ref.hash!);
+    var res = await objStorage.read(ref.hash!);
     var branchCommitObj = res.get();
     /*
     if (branchCommitObj == null) {
@@ -126,7 +126,7 @@ extension Checkout on GitRepository {
     for (var change in blobChanges.merged()) {
       if (change.added || change.modified) {
         var to = change.to!;
-        var objRes = await objStorage.readObjectFromHash(to.hash);
+        var objRes = await objStorage.read(to.hash);
         var blobObj = objRes.get() as GitBlob;
 
         // FIXME: Add file mode

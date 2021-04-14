@@ -163,8 +163,7 @@ class ObjectStorage {
 }
 
 class GitObjectResult extends Result<GitObject> {
-  GitObjectResult(GitObject s) : super.success(s);
-  GitObjectResult.fail(GitException f) : super.failure(f);
+  GitObjectResult(GitObject s) : super(s);
+  GitObjectResult.fail(GitException f) : super.fail(f);
   // GitObjectResult.catchAll(GitObject Function() catchFn) : super(catchFn);
-
 }

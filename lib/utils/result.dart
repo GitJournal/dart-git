@@ -3,10 +3,10 @@ class Result<Success> {
   Exception? error;
 
   Result._({this.success, this.error});
-  Result.success(Success s) : this._(success: s);
-  Result.failure(Exception f) : this._(error: f);
+  Result(Success s) : this._(success: s);
+  Result.fail(Exception f) : this._(error: f);
 
-  Result(Success Function() catchFn) {
+  Result.catchAll(Success Function() catchFn) {
     try {
       success = catchFn();
     } on Exception catch (e) {

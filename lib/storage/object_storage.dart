@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file/file.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/ascii_helper.dart';
@@ -20,26 +19,26 @@ import 'package:dart_git/utils/result.dart';
 import 'package:dart_git/utils/uint8list.dart';
 
 class ObjectStorage {
-  final String gitDir;
-  final FileSystem fs;
+  final String _gitDir;
+  final FileSystem _fs;
 
   DateTime? _packDirChanged;
   DateTime? _packDirModified;
-  var packFiles = <PackFile>[];
+  var _packFiles = <PackFile>[];
 
-  ObjectStorage(this.gitDir, this.fs);
+  ObjectStorage(this._gitDir, this._fs);
 
-  // FIXME: Handle all fs exceptions
   Future<GitObjectResult> read(GitHash hash) async {
     var sha = hash.toString();
-    var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    if (await fs.isFile(path)) {
+    var path =
+        p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
+    if (await _fs.isFile(path)) {
       return readObjectFromPath(path);
     }
 
     // Read all the index files
-    var packDirPath = p.join(gitDir, 'objects', 'pack');
-    var stat = await fs.stat(packDirPath);
+    var packDirPath = p.join(_gitDir, 'objects', 'pack');
+    var stat = await _fs.stat(packDirPath);
     if (stat.changed != _packDirChanged || stat.modified != _packDirModified) {
       await _loadPackFiles(packDirPath);
 
@@ -47,7 +46,7 @@ class ObjectStorage {
       _packDirModified = stat.modified;
     }
 
-    for (var packFile in packFiles) {
+    for (var packFile in _packFiles) {
       var obj = await packFile.object(hash);
       if (obj != null) {
         return GitObjectResult(obj);
@@ -67,9 +66,9 @@ class ObjectStorage {
       GitCommitResult(await read(hash));
 
   Future<void> _loadPackFiles(String packDirPath) async {
-    packFiles = [];
+    _packFiles = [];
 
-    var fileStream = fs.directory(packDirPath).list(followLinks: false);
+    var fileStream = _fs.directory(packDirPath).list(followLinks: false);
     await for (var fsEntity in fileStream) {
       var st = await fsEntity.stat();
       if (st.type != FileSystemEntityType.file) {
@@ -79,7 +78,7 @@ class ObjectStorage {
         continue;
       }
 
-      var bytes = await fs.file(fsEntity.path).readAsBytes();
+      var bytes = await _fs.file(fsEntity.path).readAsBytes();
       var idxFile = IdxFile.decode(bytes);
 
       var packFilePath = fsEntity.path;
@@ -87,14 +86,14 @@ class ObjectStorage {
       packFilePath += '.pack';
 
       var packFile = await PackFile.fromFile(idxFile, packFilePath);
-      packFiles.add(packFile);
+      _packFiles.add(packFile);
     }
   }
 
-  @visibleForTesting
+  // FIXME: This method should not be public
   Future<GitObjectResult> readObjectFromPath(String filePath) async {
     // FIXME: Handle zlib and fs exceptions
-    var contents = await fs.file(filePath).readAsBytes();
+    var contents = await _fs.file(filePath).readAsBytes();
     var raw = zlib.decode(contents) as Uint8List;
 
     // Read Object Type
@@ -130,14 +129,15 @@ class ObjectStorage {
     var hash = GitHash.compute(result);
     var sha = hash.toString();
 
-    var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    await fs.directory(p.dirname(path)).create(recursive: true);
+    var path =
+        p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
+    await _fs.directory(p.dirname(path)).create(recursive: true);
 
-    var exists = await fs.isFile(path);
+    var exists = await _fs.isFile(path);
     if (exists) {
       return hash;
     }
-    var file = await fs.file(path).open(mode: FileMode.writeOnly);
+    var file = await _fs.file(path).open(mode: FileMode.writeOnly);
     await file.writeFrom(zlib.encode(result));
     await file.close();
 
@@ -179,32 +179,73 @@ class ObjectStorage {
   }
 }
 
+//
+// FIXME: Once Dart has typedefs for classes, this code can be removed
+//
 class GitObjectResult extends Result<GitObject> {
   GitObjectResult(GitObject? s, {GitException? error}) : super(s, error: error);
-  GitObjectResult.fail(GitException f) : super.fail(f);
-  // GitObjectResult.catchAll(GitObject Function() catchFn) : super(catchFn);
+  GitObjectResult.fail(Exception f) : super.fail(f);
+
+  static Future<GitObjectResult> catchAll(
+      Future<GitObjectResult> Function() catchFn) async {
+    try {
+      return catchFn();
+    } on Exception catch (e) {
+      return GitObjectResult.fail(e);
+    }
+  }
 }
 
 class GitBlobResult extends GitObjectResult {
   GitBlobResult(GitObjectResult res)
       : super(res.success, error: res.error as GitException?);
+  GitBlobResult.fail(Exception f) : super.fail(f);
 
   @override
   GitBlob get() => super.get() as GitBlob;
+
+  static Future<GitBlobResult> catchAll(
+      Future<GitBlobResult> Function() catchFn) async {
+    try {
+      return catchFn();
+    } on Exception catch (e) {
+      return GitBlobResult.fail(e);
+    }
+  }
 }
 
 class GitTreeResult extends GitObjectResult {
   GitTreeResult(GitObjectResult res)
       : super(res.success, error: res.error as GitException?);
+  GitTreeResult.fail(Exception f) : super.fail(f);
 
   @override
   GitTree get() => super.get() as GitTree;
+
+  static Future<GitTreeResult> catchAll(
+      Future<GitTreeResult> Function() catchFn) async {
+    try {
+      return catchFn();
+    } on Exception catch (e) {
+      return GitTreeResult.fail(e);
+    }
+  }
 }
 
 class GitCommitResult extends GitObjectResult {
   GitCommitResult(GitObjectResult res)
       : super(res.success, error: res.error as GitException?);
+  GitCommitResult.fail(Exception f) : super.fail(f);
 
   @override
   GitCommit get() => super.get() as GitCommit;
+
+  static Future<GitCommitResult> catchAll(
+      Future<GitCommitResult> Function() catchFn) async {
+    try {
+      return catchFn();
+    } on Exception catch (e) {
+      return GitCommitResult.fail(e);
+    }
+  }
 }

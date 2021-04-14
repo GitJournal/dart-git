@@ -17,6 +17,7 @@ import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/storage/index_storage.dart';
 import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/storage/object_storage_exception_catcher.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 
 export 'commit.dart';
@@ -79,7 +80,9 @@ class GitRepository {
     var configFileContents = await fs.file(configPath).readAsString();
     repo.config = Config(configFileContents);
 
-    repo.objStorage = ObjectStorage(repo.gitDir, fs);
+    repo.objStorage = ObjectStorageExceptionCatcher(
+      storage: ObjectStorage(repo.gitDir, fs),
+    );
     repo.refStorage = ReferenceStorage(repo.gitDir, fs);
     repo.indexStorage = IndexStorage(repo.gitDir, fs);
 

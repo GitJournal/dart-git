@@ -5,11 +5,11 @@ class Result<Success> {
   Result(this.success, {this.error});
   Result.fail(this.error);
 
-  Result.catchAll(Success Function() catchFn) {
+  static Future<Result> catchAll(Future<Result> Function() catchFn) async {
     try {
-      success = catchFn();
+      return catchFn();
     } on Exception catch (e) {
-      error = e;
+      return Result.fail(e);
     }
   }
 

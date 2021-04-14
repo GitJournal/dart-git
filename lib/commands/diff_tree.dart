@@ -22,11 +22,12 @@ class DiffTreeCommand extends Command {
     var repo = await GitRepository.load(gitRootDir);
 
     var hash = argResults!.arguments[0];
-    var obj = await repo.objStorage.readObjectFromHash(GitHash(hash));
-    if (obj == null) {
+    var objRes = await repo.objStorage.readObjectFromHash(GitHash(hash));
+    if (objRes.failed) {
       print('fatal: bad object $hash');
       return;
     }
+    var obj = objRes.get();
 
     if (obj is! GitCommit) {
       print('error: object $hash is a ${obj.formatStr()}, not a commit');

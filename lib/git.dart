@@ -293,7 +293,8 @@ class GitRepository {
     if (hash == null) {
       return null;
     }
-    return await objStorage.readObjectFromHash(hash) as GitCommit?;
+    var res = await objStorage.readObjectFromHash(hash);
+    return res.get() as GitCommit?;
   }
 
   Future<GitTree?> headTree() async {
@@ -301,7 +302,9 @@ class GitRepository {
     if (commit == null) {
       return null;
     }
-    return await objStorage.readObjectFromHash(commit.treeHash) as GitTree?;
+
+    var res = await objStorage.readObjectFromHash(commit.treeHash);
+    return res.get() as GitTree?;
   }
 
   Future<Reference?> resolveReference(Reference ref,
@@ -376,12 +379,10 @@ class GitRepository {
 
       GitObject? obj;
       try {
-        obj = await objStorage.readObjectFromHash(sha);
+        var res = await objStorage.readObjectFromHash(sha);
+        obj = res.get();
       } catch (e) {
         print(e);
-        return null;
-      }
-      if (obj == null) {
         return null;
       }
       var commit = obj as GitCommit;

@@ -120,19 +120,11 @@ Future<CommitBlobChanges> diffCommits({
 
     if (item.fromTreeHash != null) {
       var from = await objStore.readObjectFromHash(item.fromTreeHash!);
-      if (from == null) {
-        print('Failed to fetch from commit. Ignoring ...');
-        continue;
-      }
-      fromTree = from as GitTree?;
+      fromTree = from.get() as GitTree?;
     }
     if (item.toTreeHash != null) {
       var to = await objStore.readObjectFromHash(item.toTreeHash!);
-      if (to == null) {
-        print('Failed to fetch to commit. Ignoring ...');
-        continue;
-      }
-      toTree = to as GitTree?;
+      toTree = to.get() as GitTree?;
     }
 
     var diffTreeResults = diffTree(fromTree, toTree);

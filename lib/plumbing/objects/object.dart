@@ -4,10 +4,12 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 
 import 'package:dart_git/ascii_helper.dart';
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
+import 'package:dart_git/storage/object_storage.dart';
 
 abstract class GitObject {
   Uint8List serialize() {
@@ -42,16 +44,22 @@ abstract class GitObject {
 
 Function _listEq = const ListEquality().equals;
 
-GitObject? createObject(String fmt, Uint8List rawData, [String? filePath]) {
+GitObjectResult createObject(String fmt, Uint8List rawData,
+    [String? filePath]) {
+  GitObject obj;
+
   if (fmt == GitBlob.fmt) {
-    return GitBlob(rawData, null);
+    obj = GitBlob(rawData, null);
   } else if (fmt == GitCommit.fmt) {
-    return GitCommit.parse(rawData, null);
+    // FIXME: Handle the case of this being null
+    obj = GitCommit.parse(rawData, null)!;
   } else if (fmt == GitTree.fmt) {
-    return GitTree(rawData, null);
+    obj = GitTree(rawData, null);
   } else {
-    throw Exception('Unknown type $fmt for object $filePath');
+    return GitObjectResult.fail(GitObjectInvalidType(fmt));
   }
+
+  return GitObjectResult(obj);
 }
 
 abstract class ObjectTypes {

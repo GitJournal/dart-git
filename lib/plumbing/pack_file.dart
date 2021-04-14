@@ -115,7 +115,7 @@ class PackFile {
     await file.close();
 
     var typeStr = ObjectTypes.getTypeString(objHeader.type);
-    return createObject(typeStr, rawObjData);
+    return createObject(typeStr, rawObjData).get();
   }
 
   Future<Uint8List> _decodeObject(RandomAccessFile file, int objSize) async {
@@ -151,7 +151,7 @@ class PackFile {
     }
     var deltaObj = patchDelta(baseObject.serializeData(), deltaData);
 
-    return createObject(ascii.decode(baseObject.format()), deltaObj);
+    return createObject(ascii.decode(baseObject.format()), deltaObj).get();
   }
 
   Future<GitObject?> _fillRefDeltaObject(
@@ -162,7 +162,7 @@ class PackFile {
     }
     var deltaObj = patchDelta(baseObject.serializeData(), deltaData);
 
-    return createObject(ascii.decode(baseObject.format()), deltaObj);
+    return createObject(ascii.decode(baseObject.format()), deltaObj).get();
   }
 
   Future<Iterable<GitObject>> getAll() async {

@@ -39,11 +39,12 @@ class LogCommand extends Command {
       parents.removeAt(0);
       seen.add(sha);
 
-      var obj = await repo.objStorage.readObjectFromHash(sha);
-      if (obj == null) {
+      var objRes = await repo.objStorage.readObjectFromHash(sha);
+      if (objRes.failed) {
         print('panic: object with sha $sha not found');
         return;
       }
+      var obj = objRes.get();
       assert(obj is GitCommit);
       var commit = obj as GitCommit;
 

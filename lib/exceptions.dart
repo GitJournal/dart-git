@@ -1,3 +1,5 @@
+import 'package:dart_git/git_hash.dart';
+
 class GitException implements Exception {}
 
 class InvalidRepoException implements GitException {
@@ -29,3 +31,27 @@ class GitIndexCorruptedException implements GitFatalException {
 }
 
 class GitHashStringNotHexadecimal implements GitException {}
+
+class GitObjectNotFound implements GitException {
+  GitHash hash;
+  GitObjectNotFound(this.hash);
+
+  @override
+  String toString() => 'GitObjectNotFound: $hash';
+}
+
+class GitObjectCorruptedMissingType implements GitException {}
+
+class GitObjectCorruptedMissingSize implements GitException {}
+
+class GitObjectCorruptedInvalidIntSize implements GitException {}
+
+class GitObjectCorruptedBadSize implements GitException {}
+
+class GitObjectInvalidType implements GitException {
+  String type;
+  GitObjectInvalidType(this.type);
+
+  @override
+  String toString() => 'GitInvalidType: $type';
+}

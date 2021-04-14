@@ -21,7 +21,8 @@ class LsTreeCommand extends Command {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var obj = await repo.objStorage.readObjectFromHash(GitHash(objectSha1));
+    var objRes = await repo.objStorage.readObjectFromHash(GitHash(objectSha1));
+    var obj = objRes.get();
     GitTree? tree;
     if (obj is GitTree) {
       tree = obj;
@@ -32,7 +33,7 @@ class LsTreeCommand extends Command {
     }
 
     for (var leaf in tree!.entries) {
-      var leafObj = (await repo.objStorage.readObjectFromHash(leaf.hash))!;
+      var leafObj = (await repo.objStorage.readObjectFromHash(leaf.hash)).get();
       var type = leafObj.formatStr();
       var mode = leaf.mode.toString().padLeft(6, '0');
       print('$mode $type ${leaf.hash}    ${leaf.name}');

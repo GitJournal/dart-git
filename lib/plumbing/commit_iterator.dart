@@ -20,13 +20,8 @@ Stream<GitCommit> commitIteratorBFS({
     }
     seen.add(hash);
 
-    var obj = await objStorage.readObjectFromHash(hash);
-    assert(obj is GitCommit);
-
-    if (obj == null) {
-      continue;
-    }
-
+    var objRes = await objStorage.readObjectFromHash(hash);
+    var obj = objRes.get();
     var commit = obj as GitCommit;
 
     queue.addAll(commit.parents);
@@ -57,12 +52,8 @@ Stream<GitCommit> commitIteratorBFSFiltered({
     }
     seen.add(hash);
 
-    var obj = await objStorage.readObjectFromHash(hash);
-    assert(obj is GitCommit);
-
-    if (obj == null) {
-      continue;
-    }
+    var objRes = await objStorage.readObjectFromHash(hash);
+    var obj = objRes.get();
 
     var commit = obj as GitCommit;
     if (!isLimit(commit)) {
@@ -88,12 +79,9 @@ Stream<GitCommit> commitPreOrderIterator({
     }
     seen.add(hash);
 
-    var obj = await objStorage.readObjectFromHash(hash);
+    var objRes = await objStorage.readObjectFromHash(hash);
+    var obj = objRes.get();
     assert(obj is GitCommit);
-
-    if (obj == null) {
-      continue;
-    }
 
     var commit = obj as GitCommit;
 

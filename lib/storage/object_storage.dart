@@ -6,12 +6,14 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/ascii_helper.dart';
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
 import 'package:dart_git/utils.dart';
+import 'package:dart_git/utils/result.dart';
 import 'package:dart_git/utils/uint8list.dart';
 
 class ObjectStorage {
@@ -26,7 +28,7 @@ class ObjectStorage {
 
   // FIXME: Handle all fs exceptions
   // TODO: Add convenience functions to fetch a Blob/Commit/etc
-  Future<GitObject?> readObjectFromHash(GitHash hash) async {
+  Future<GitObjectResult> readObjectFromHash(GitHash hash) async {
     var sha = hash.toString();
     var path = p.join(gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
     if (await fs.isFile(path)) {
@@ -46,11 +48,11 @@ class ObjectStorage {
     for (var packFile in packFiles) {
       var obj = await packFile.object(hash);
       if (obj != null) {
-        return obj;
+        return GitObjectResult(obj);
       }
     }
 
-    return null;
+    return GitObjectResult.fail(GitObjectNotFound(hash));
   }
 
   Future<void> _loadPackFiles(String packDirPath) async {
@@ -78,33 +80,31 @@ class ObjectStorage {
     }
   }
 
-  Future<GitObject?> readObjectFromPath(String filePath) async {
+  Future<GitObjectResult> readObjectFromPath(String filePath) async {
+    // FIXME: Handle zlib and fs exceptions
     var contents = await fs.file(filePath).readAsBytes();
     var raw = zlib.decode(contents) as Uint8List;
 
     // Read Object Type
     var x = raw.indexOf(asciiHelper.space);
     if (x == -1) {
-      print('Object Type not found');
-      return null;
+      return GitObjectResult.fail(GitObjectCorruptedMissingType());
     }
     var fmt = raw.sublistView(0, x);
 
     // Read and validate object size
     var y = raw.indexOf(0x0, x);
     if (y == -1) {
-      print('Object size not found');
-      return null;
+      return GitObjectResult.fail(GitObjectCorruptedMissingSize());
     }
 
     var size = int.tryParse(ascii.decode(raw.sublistView(x, y)));
     if (size == null) {
-      print('Could not parse Object size');
-      return null;
+      return GitObjectResult.fail(GitObjectCorruptedInvalidIntSize());
     }
 
     if (size != (raw.length - y - 1)) {
-      throw Exception('Malformed object $filePath: bad length');
+      return GitObjectResult.fail(GitObjectCorruptedBadSize());
     }
 
     var fmtStr = ascii.decode(fmt);
@@ -144,7 +144,9 @@ class ObjectStorage {
 
     for (var leaf in tree.entries) {
       if (leaf.name == name) {
-        var obj = await readObjectFromHash(leaf.hash);
+        var result = await readObjectFromHash(leaf.hash);
+        // FIXME: Do not use .get()
+        var obj = result.get();
         if (remainingName.isEmpty) {
           return obj;
         }
@@ -158,4 +160,11 @@ class ObjectStorage {
     }
     return null;
   }
+}
+
+class GitObjectResult extends Result<GitObject> {
+  GitObjectResult(GitObject s) : super.success(s);
+  GitObjectResult.fail(GitException f) : super.failure(f);
+  // GitObjectResult.catchAll(GitObject Function() catchFn) : super(catchFn);
+
 }

@@ -33,17 +33,12 @@ class DiffCommand extends Command {
     var fromStr = argResults!.arguments[0];
     var toStr = argResults!.arguments[1];
 
-    var fromCommit = await repo.objStorage.readObjectFromHash(GitHash(fromStr));
-    var toCommit = await repo.objStorage.readObjectFromHash(GitHash(toStr));
+    var fromCommitRes =
+        await repo.objStorage.readObjectFromHash(GitHash(fromStr));
+    var toCommitRes = await repo.objStorage.readObjectFromHash(GitHash(toStr));
 
-    if (fromCommit == null) {
-      print('fromCommit not found');
-      return;
-    }
-    if (toCommit == null) {
-      print('toCommit not found');
-      return;
-    }
+    var fromCommit = fromCommitRes.get();
+    var toCommit = toCommitRes.get();
 
     var changes = await diffCommits(
       fromCommit: fromCommit as GitCommit,

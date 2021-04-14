@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file/file.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/ascii_helper.dart';
@@ -91,6 +92,7 @@ class ObjectStorage {
     }
   }
 
+  @visibleForTesting
   Future<GitObjectResult> readObjectFromPath(String filePath) async {
     // FIXME: Handle zlib and fs exceptions
     var contents = await fs.file(filePath).readAsBytes();

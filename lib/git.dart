@@ -609,14 +609,7 @@ class GitRepository {
 
   String normalizePath(String path) {
     if (!path.startsWith('/')) {
-      if (path == '.') {
-        path = fs.currentDirectory.path;
-        if (!path.startsWith(workTree)) {
-          throw PathSpecOutsideRepoException(pathSpec: path);
-        }
-      } else {
-        path = p.normalize(p.join(workTree, path));
-      }
+      path = path == '.' ? workTree : p.normalize(p.join(workTree, path));
     }
     if (!path.startsWith(workTree)) {
       throw PathSpecOutsideRepoException(pathSpec: path);

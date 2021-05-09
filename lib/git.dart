@@ -475,9 +475,7 @@ class GitRepository {
   }
 
   Future<void> add(String pathSpec) async {
-    print(pathSpec);
     pathSpec = normalizePath(pathSpec);
-    print(pathSpec);
 
     var index = await indexStorage.readIndex();
 
@@ -551,9 +549,51 @@ class GitRepository {
     }
   }
 
+  Future<void> rm(String pathSpec, {bool rmFromFs = true}) async {
+    pathSpec = normalizePath(pathSpec);
+
+    var index = await indexStorage.readIndex();
+
+    var stat = await fs.stat(pathSpec);
+    if (stat.type == FileSystemEntityType.file) {
+      await rmFileFromIndex(index, pathSpec);
+      if (rmFromFs) {
+        await fs.file(pathSpec).delete();
+      }
+    } else if (stat.type == FileSystemEntityType.directory) {
+      await rmDirectoryFromIndex(index, pathSpec, recursive: true);
+      if (rmFromFs) {
+        await fs.directory(pathSpec).delete(recursive: true);
+      }
+    } else {
+      throw Exception('Neither file or directory');
+    }
+
+    await indexStorage.writeIndex(index);
+  }
+
   Future<GitHash?> rmFileFromIndex(GitIndex index, String filePath) async {
     var pathSpec = toPathSpec(normalizePath(filePath));
     return index.removePath(pathSpec);
+  }
+
+  Future<void> rmDirectoryFromIndex(GitIndex index, String dirPath,
+      {bool recursive = false}) async {
+    dirPath = normalizePath(dirPath);
+
+    var dir = fs.directory(dirPath);
+    await for (var fsEntity
+        in dir.list(recursive: recursive, followLinks: false)) {
+      if (fsEntity.path.startsWith(gitDir)) {
+        continue;
+      }
+      var stat = await fsEntity.stat();
+      if (stat.type != FileSystemEntityType.file) {
+        continue;
+      }
+
+      await rmFileFromIndex(index, fsEntity.path);
+    }
   }
 
   Future<GitHash?> deleteBranch(String branchName) async {

@@ -474,6 +474,25 @@ class GitRepository {
     return aheadBy != -1 ? aheadBy : 0;
   }
 
+  Future<void> add(String pathSpec) async {
+    print(pathSpec);
+    pathSpec = normalizePath(pathSpec);
+    print(pathSpec);
+
+    var index = await indexStorage.readIndex();
+
+    var stat = await fs.stat(pathSpec);
+    if (stat.type == FileSystemEntityType.file) {
+      await addFileToIndex(index, pathSpec);
+    } else if (stat.type == FileSystemEntityType.directory) {
+      await addDirectoryToIndex(index, pathSpec, recursive: true);
+    } else {
+      throw Exception('Neither file or directory');
+    }
+
+    await indexStorage.writeIndex(index);
+  }
+
   Future<GitIndexEntry?> addFileToIndex(GitIndex index, String filePath) async {
     filePath = normalizePath(filePath);
 

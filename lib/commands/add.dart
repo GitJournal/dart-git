@@ -17,16 +17,8 @@ class AddCommand extends Command {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir);
 
-    var filePath = argResults!.arguments[0];
-    var index = await repo.indexStorage.readIndex();
-
-    try {
-      await repo.addFileToIndex(index, filePath);
-    } catch (e) {
-      print(e);
-    }
-
-    await repo.indexStorage.writeIndex(index);
+    var pathSpec = argResults!.arguments[0];
+    await repo.add(pathSpec);
 
     // FIXME: Get proper pathSpec
     // FIXME: Handle glob patterns

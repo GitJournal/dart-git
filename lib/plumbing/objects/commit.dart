@@ -9,17 +9,19 @@ class GitAuthor {
   String name;
   String email;
   late int timezoneOffset;
-  DateTime date;
+  late DateTime date;
 
   GitAuthor({
     required this.name,
     required this.email,
-    required this.date,
+    DateTime? date,
     int? timezoneOffset,
   }) {
+    this.date = date ?? DateTime.now();
+
     this.timezoneOffset = timezoneOffset ??
-        date.timeZoneOffset.inHours * 100 +
-            (date.timeZoneOffset.inMinutes % 60);
+        this.date.timeZoneOffset.inHours * 100 +
+            (this.date.timeZoneOffset.inMinutes % 60);
   }
 
   static GitAuthor? parse(String input) {

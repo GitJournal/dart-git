@@ -6,6 +6,10 @@
 <p align="center">
   <a href="https://github.com/GitJournal/dart_git/actions"><img alt="Build Status" src="https://github.com/GitJournal/dart_git/workflows/Dart%20CI/badge.svg"/></a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0.html"><img alt="License: AGPL v3" src="https://img.shields.io/badge/License-Apache%20v2-blue.svg"></a>
+  <a href="https://codecov.io/gh/GitJournal/dart-git">
+    <img src="https://codecov.io/gh/GitJournal/dart-git/branch/master/graph/badge.svg?token=3FS2Q7DJIG"/>
+  </a>
+
   </br>
   <a href="http://paypal.me/visheshhanda"><img alt="Donate Paypal" src="https://img.shields.io/badge/Donate-Paypal-%231999de"></a>
   <a href="https://github.com/sponsors/vHanda"><img alt="Sponsor via GitHub" src="https://img.shields.io/badge/Sponsor-Github-%235a353"></a>

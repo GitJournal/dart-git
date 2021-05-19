@@ -1,5 +1,3 @@
-
-
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 

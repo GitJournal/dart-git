@@ -1,7 +1,6 @@
 name: dart_git
 description: A pure dart implementation of Git
 version: 0.0.2
-author: Vishesh Handa <me@vhanda.in>
 homepage: https://gitjournal.io
 
 dependencies:

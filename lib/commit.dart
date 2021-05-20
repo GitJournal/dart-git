@@ -72,7 +72,7 @@ extension Commit on GitRepository {
     var treeObjects = {'': GitTree.empty()};
     var treeObjFullPath = <GitTree, String>{};
 
-    index.entries.forEach((entry) {
+    for (var entry in index.entries) {
       var fullPath = entry.path;
       var fileName = p.basename(fullPath);
       var dirName = p.dirname(fullPath);
@@ -123,7 +123,7 @@ extension Commit on GitRepository {
         hash: entry.hash,
       );
       treeObjects[dirName]!.entries.add(leaf);
-    });
+    }
     assert(treeObjects.containsKey(''));
 
     // Write all the tree objects

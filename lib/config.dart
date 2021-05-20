@@ -347,7 +347,9 @@ class ConfigFile {
   String serialize() {
     var buffer = StringBuffer();
 
-    sections.forEach((s) => s.write(buffer));
+    for (var s in sections) {
+      s.write(buffer);
+    }
     return buffer.toString();
   }
 

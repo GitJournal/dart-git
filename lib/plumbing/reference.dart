@@ -23,14 +23,12 @@ class Reference {
     type = ReferenceType.Hash;
   }
 
-  Reference.hash(this.name, GitHash hash) {
+  Reference.hash(this.name, this.hash) {
     type = ReferenceType.Hash;
-    this.hash = hash;
   }
 
-  Reference.symbolic(this.name, ReferenceName target) {
+  Reference.symbolic(this.name, this.target) {
     type = ReferenceType.Symbolic;
-    this.target = target;
   }
 
   String toDisplayString() {

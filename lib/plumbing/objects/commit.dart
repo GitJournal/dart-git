@@ -96,7 +96,9 @@ class GitCommit extends GitObject {
     if (map.containsKey('parent')) {
       var parent = map['parent'];
       if (parent is List) {
-        parent.forEach((p) => parents.add(GitHash(p as String)));
+        for (var p in parent) {
+          parents.add(GitHash(p as String));
+        }
       } else if (parent is String) {
         parents.add(GitHash(parent));
       } else {

@@ -65,13 +65,13 @@ Uint8List kvlmSerialize(Map<String, dynamic> kvlm) {
       val = [val];
     }
 
-    val.forEach((v) {
+    for (var v in val) {
       bytesBuilder
         ..add(utf8.encode(key))
         ..addByte(asciiHelper.space)
         ..add(utf8.encode(v.replaceAll('\n', '\n ')))
         ..addByte(asciiHelper.newLine);
-    });
+    }
   });
 
   bytesBuilder

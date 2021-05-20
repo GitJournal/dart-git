@@ -148,8 +148,6 @@ int _zeroFillRightShift(int n, int amount) {
 // it must be less than 128 since when the MSB is set it will be a
 // copy opcode
 Uint8List emitInsert(Uint8List opcodes, Uint8List buffer, int length) {
-  var i;
-
   if (length > 127) {
     // TODO: Implement from the go code
     throw Exception('invalid insert opcode');
@@ -157,7 +155,7 @@ Uint8List emitInsert(Uint8List opcodes, Uint8List buffer, int length) {
 
   opcodes.add(length);
 
-  for (i = 0; i < length; i++) {
+  for (var i = 0; i < length; i++) {
     opcodes.add(buffer[i]);
   }
 

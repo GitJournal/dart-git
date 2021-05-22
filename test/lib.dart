@@ -8,8 +8,8 @@ import 'package:process_run/shell.dart' as shell;
 import 'package:test/test.dart';
 
 import 'package:dart_git/config.dart';
-import 'package:dart_git/main.dart' as git;
 import 'package:dart_git/plumbing/objects/commit.dart';
+import '../bin/main.dart' as git;
 
 Future<String> runGitCommand(String command, String dir,
     {Map<String, String> env = const {}}) async {

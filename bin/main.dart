@@ -20,8 +20,8 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
-import 'package:dart_git/commands/commands.dart';
 import 'package:dart_git/exceptions.dart';
+import 'commands/commands.dart';
 
 Future<void> main(List<String> args) async {
   var ret = await mainWithExitCode(args);

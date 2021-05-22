@@ -133,20 +133,10 @@ extension Checkout on GitRepository {
         await index.updatePath(to.path, to.hash);
       } else if (change.deleted) {
         var from = change.from!;
+
         await fs.file(p.join(workTree, from.path)).delete(recursive: true);
-
-        // FIXME: What if the parent directory also needs to be removed?
-        var dir = fs.directory(p.join(workTree, p.dirname(from.path)));
         await index.removePath(from.path);
-
-        var isEmpty = true;
-        await for (var _ in dir.list()) {
-          isEmpty = false;
-          break;
-        }
-        if (isEmpty) {
-          await dir.delete();
-        }
+        await _deleteEmptyDirectories(workTree, from.path);
       }
     }
 
@@ -158,5 +148,23 @@ extension Checkout on GitRepository {
     await refStorage.saveRef(headRef);
 
     return ref;
+  }
+
+  Future<void> _deleteEmptyDirectories(String workTree, String path) async {
+    while (path != '.') {
+      var dirPath = p.join(workTree, p.dirname(path));
+      var dir = fs.directory(dirPath);
+
+      var isEmpty = true;
+      await for (var _ in dir.list()) {
+        isEmpty = false;
+        break;
+      }
+      if (isEmpty) {
+        await dir.delete();
+      }
+
+      path = p.dirname(path);
+    }
   }
 }

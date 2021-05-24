@@ -9,7 +9,7 @@ import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
-import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/utils/result.dart';
 
 abstract class GitObject {
   Uint8List serialize() {
@@ -44,7 +44,7 @@ abstract class GitObject {
 
 Function _listEq = const ListEquality().equals;
 
-GitObjectResult createObject(String fmt, Uint8List rawData,
+Result<GitObject> createObject(String fmt, Uint8List rawData,
     [String? filePath]) {
   GitObject obj;
 
@@ -56,10 +56,10 @@ GitObjectResult createObject(String fmt, Uint8List rawData,
   } else if (fmt == GitTree.fmt) {
     obj = GitTree(rawData, null);
   } else {
-    return GitObjectResult.fail(GitObjectInvalidType(fmt));
+    return Result.fail(GitObjectInvalidType(fmt));
   }
 
-  return GitObjectResult(obj);
+  return Result<GitObject>(obj);
 }
 
 abstract class ObjectTypes {

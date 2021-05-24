@@ -28,7 +28,7 @@ class ObjectStorage {
 
   ObjectStorage(this._gitDir, this._fs);
 
-  Future<GitObjectResult> read(GitHash hash) async {
+  Future<Result<GitObject>> read(GitHash hash) async {
     var sha = hash.toString();
     var path =
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
@@ -49,21 +49,22 @@ class ObjectStorage {
     for (var packFile in _packFiles) {
       var obj = await packFile.object(hash);
       if (obj != null) {
-        return GitObjectResult(obj);
+        return Result<GitObject>(obj);
       }
     }
 
-    return GitObjectResult.fail(GitObjectNotFound(hash));
+    return Result<GitObject>.fail(GitObjectNotFound(hash));
   }
 
-  Future<GitBlobResult> readBlob(GitHash hash) async =>
-      GitBlobResult(await read(hash));
+  // TODO: What happens when we call readBlob on a commit?
+  Future<Result<GitBlob>> readBlob(GitHash hash) async =>
+      downcast(await read(hash));
 
-  Future<GitTreeResult> readTree(GitHash hash) async =>
-      GitTreeResult(await read(hash));
+  Future<Result<GitTree>> readTree(GitHash hash) async =>
+      downcast(await read(hash));
 
-  Future<GitCommitResult> readCommit(GitHash hash) async =>
-      GitCommitResult(await read(hash));
+  Future<Result<GitCommit>> readCommit(GitHash hash) async =>
+      downcast(await read(hash));
 
   Future<void> _loadPackFiles(String packDirPath) async {
     _packFiles = [];
@@ -91,7 +92,7 @@ class ObjectStorage {
   }
 
   // FIXME: This method should not be public
-  Future<GitObjectResult> readObjectFromPath(String filePath) async {
+  Future<Result<GitObject>> readObjectFromPath(String filePath) async {
     // FIXME: Handle zlib and fs exceptions
     var contents = await _fs.file(filePath).readAsBytes();
     var raw = zlib.decode(contents) as Uint8List;
@@ -99,23 +100,23 @@ class ObjectStorage {
     // Read Object Type
     var x = raw.indexOf(asciiHelper.space);
     if (x == -1) {
-      return GitObjectResult.fail(GitObjectCorruptedMissingType());
+      return Result<GitObject>.fail(GitObjectCorruptedMissingType());
     }
     var fmt = raw.sublistView(0, x);
 
     // Read and validate object size
     var y = raw.indexOf(0x0, x);
     if (y == -1) {
-      return GitObjectResult.fail(GitObjectCorruptedMissingSize());
+      return Result<GitObject>.fail(GitObjectCorruptedMissingSize());
     }
 
     var size = int.tryParse(ascii.decode(raw.sublistView(x, y)));
     if (size == null) {
-      return GitObjectResult.fail(GitObjectCorruptedInvalidIntSize());
+      return Result<GitObject>.fail(GitObjectCorruptedInvalidIntSize());
     }
 
     if (size != (raw.length - y - 1)) {
-      return GitObjectResult.fail(GitObjectCorruptedBadSize());
+      return Result<GitObject>.fail(GitObjectCorruptedBadSize());
     }
 
     var fmtStr = ascii.decode(fmt);
@@ -143,11 +144,11 @@ class ObjectStorage {
     return hash;
   }
 
-  Future<GitObjectResult> refSpec(GitTree tree, String spec) async {
+  Future<Result<GitObject>> refSpec(GitTree tree, String spec) async {
     assert(!spec.startsWith(p.separator));
 
     if (spec.isEmpty) {
-      return GitObjectResult(tree);
+      return Result<GitObject>(tree);
     }
 
     var parts = splitPath(spec);
@@ -160,91 +161,18 @@ class ObjectStorage {
         var obj = result.get();
 
         if (remainingName.isEmpty) {
-          return GitObjectResult(obj);
+          return Result<GitObject>(obj);
         }
 
         if (obj is GitTree) {
           return refSpec(obj, remainingName);
         } else {
-          return GitObjectResult.fail(
+          return Result<GitObject>.fail(
             GitObjectWithRefSpecNotFound(spec),
           );
         }
       }
     }
-    return GitObjectResult.fail(
-      GitObjectWithRefSpecNotFound(spec),
-    );
-  }
-}
-
-//
-// FIXME: Once Dart has typedefs for classes, this code can be removed
-//
-class GitObjectResult extends Result<GitObject> {
-  GitObjectResult(GitObject? s, {GitException? error}) : super(s, error: error);
-  GitObjectResult.fail(Exception f) : super.fail(f);
-
-  static Future<GitObjectResult> catchAll(
-      Future<GitObjectResult> Function() catchFn) async {
-    try {
-      return catchFn();
-    } on Exception catch (e) {
-      return GitObjectResult.fail(e);
-    }
-  }
-}
-
-class GitBlobResult extends GitObjectResult {
-  GitBlobResult(GitObjectResult res)
-      : super(res.success, error: res.error as GitException?);
-  GitBlobResult.fail(Exception f) : super.fail(f);
-
-  @override
-  GitBlob get() => super.get() as GitBlob;
-
-  static Future<GitBlobResult> catchAll(
-      Future<GitBlobResult> Function() catchFn) async {
-    try {
-      return catchFn();
-    } on Exception catch (e) {
-      return GitBlobResult.fail(e);
-    }
-  }
-}
-
-class GitTreeResult extends GitObjectResult {
-  GitTreeResult(GitObjectResult res)
-      : super(res.success, error: res.error as GitException?);
-  GitTreeResult.fail(Exception f) : super.fail(f);
-
-  @override
-  GitTree get() => super.get() as GitTree;
-
-  static Future<GitTreeResult> catchAll(
-      Future<GitTreeResult> Function() catchFn) async {
-    try {
-      return catchFn();
-    } on Exception catch (e) {
-      return GitTreeResult.fail(e);
-    }
-  }
-}
-
-class GitCommitResult extends GitObjectResult {
-  GitCommitResult(GitObjectResult res)
-      : super(res.success, error: res.error as GitException?);
-  GitCommitResult.fail(Exception f) : super.fail(f);
-
-  @override
-  GitCommit get() => super.get() as GitCommit;
-
-  static Future<GitCommitResult> catchAll(
-      Future<GitCommitResult> Function() catchFn) async {
-    try {
-      return catchFn();
-    } on Exception catch (e) {
-      return GitCommitResult.fail(e);
-    }
+    return Result<GitObject>.fail(GitObjectWithRefSpecNotFound(spec));
   }
 }

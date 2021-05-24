@@ -1,7 +1,10 @@
+import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/utils/result.dart';
 
 class ObjectStorageExceptionCatcher implements ObjectStorage {
   final ObjectStorage _;
@@ -9,23 +12,23 @@ class ObjectStorageExceptionCatcher implements ObjectStorage {
   ObjectStorageExceptionCatcher({required ObjectStorage storage}) : _ = storage;
 
   @override
-  Future<GitObjectResult> read(GitHash hash) async =>
-      await GitObjectResult.catchAll(() => _.read(hash));
+  Future<Result<GitObject>> read(GitHash hash) async =>
+      catchAll(() => _.read(hash));
 
   @override
-  Future<GitBlobResult> readBlob(GitHash hash) async =>
-      await GitBlobResult.catchAll(() => _.readBlob(hash));
+  Future<Result<GitBlob>> readBlob(GitHash hash) async =>
+      catchAll(() => _.readBlob(hash));
 
   @override
-  Future<GitCommitResult> readCommit(GitHash hash) async =>
-      await GitCommitResult.catchAll(() => _.readCommit(hash));
+  Future<Result<GitCommit>> readCommit(GitHash hash) async =>
+      catchAll(() => _.readCommit(hash));
 
   @override
-  Future<GitTreeResult> readTree(GitHash hash) async =>
-      await GitTreeResult.catchAll(() => _.readTree(hash));
+  Future<Result<GitTree>> readTree(GitHash hash) async =>
+      catchAll(() => _.readTree(hash));
 
   @override
-  Future<GitObjectResult> readObjectFromPath(String filePath) =>
+  Future<Result<GitObject>> readObjectFromPath(String filePath) =>
       _.readObjectFromPath(filePath);
 
   // FIXME: Catch exceptions over here!
@@ -33,6 +36,6 @@ class ObjectStorageExceptionCatcher implements ObjectStorage {
   Future<GitHash> writeObject(GitObject obj) => _.writeObject(obj);
 
   @override
-  Future<GitObjectResult> refSpec(GitTree tree, String spec) async =>
-      await GitObjectResult.catchAll(() => _.refSpec(tree, spec));
+  Future<Result<GitObject>> refSpec(GitTree tree, String spec) async =>
+      await catchAll(() => _.refSpec(tree, spec));
 }

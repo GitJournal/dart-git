@@ -46,24 +46,24 @@ class LogCommand extends Command {
       }
       var commit = objRes.get();
 
-      printCommit(repo, commit, sha);
+      printCommit(commit, sha);
       for (var p in commit.parents) {
         if (seen.contains(p)) continue;
         parents.add(p);
       }
     }
   }
+}
 
-  void printCommit(GitRepository repo, GitCommit commit, GitHash sha) {
-    var author = commit.author;
+void printCommit(GitCommit commit, GitHash sha) {
+  var author = commit.author;
 
-    print('commit $sha');
-    print('Author: ${author.name} <${author.email}>');
-    print('Date:   ${author.date.toIso8601String()}');
-    print('');
-    for (var line in LineSplitter.split(commit.message)) {
-      print('    $line');
-    }
-    print('');
+  print('commit $sha');
+  print('Author: ${author.name} <${author.email}>');
+  print('Date:   ${author.date.toIso8601String()}');
+  print('');
+  for (var line in LineSplitter.split(commit.message)) {
+    print('    $line');
   }
+  print('');
 }

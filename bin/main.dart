@@ -47,6 +47,7 @@ Future<int> mainWithExitCode(List<String> args) async {
     ..addCommand(MergeBaseCommand())
     ..addCommand(DiffTreeCommand())
     ..addCommand(DiffCommand())
+    ..addCommand(ShowCommand())
     ..addCommand(LsTreeCommand());
 
   try {

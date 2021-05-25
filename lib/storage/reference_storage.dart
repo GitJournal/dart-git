@@ -9,13 +9,13 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/result.dart';
 
 class ReferenceStorage {
-  String dotGitDir;
-  FileSystem fs;
+  final String _dotGitDir;
+  final FileSystem _fs;
 
-  ReferenceStorage(this.dotGitDir, this.fs);
+  ReferenceStorage(this._dotGitDir, this._fs);
 
   Future<Result<Reference>> reference(ReferenceName refName) async {
-    var file = fs.file(p.join(dotGitDir, refName.value));
+    var file = _fs.file(p.join(_dotGitDir, refName.value));
     if (file.existsSync()) {
       var contents = await file.readAsString();
       return Result(Reference(refName.value, contents.trimRight()));
@@ -34,10 +34,10 @@ class ReferenceStorage {
     assert(prefix.startsWith(refPrefix));
 
     var refs = <Reference>[];
-    var refLocation = p.join(dotGitDir, prefix);
+    var refLocation = p.join(_dotGitDir, prefix);
     var processedRefNames = <ReferenceName>{};
 
-    var dir = fs.directory(refLocation);
+    var dir = _fs.directory(refLocation);
     if (!dir.existsSync()) {
       return Result(refs);
     }
@@ -52,7 +52,7 @@ class ReferenceStorage {
       }
 
       var refName =
-          ReferenceName(fsEntity.path.substring(dotGitDir.length + 1));
+          ReferenceName(fsEntity.path.substring(_dotGitDir.length + 1));
       var result = await reference(refName);
       if (result.succeeded) {
         var ref = result.get();
@@ -77,8 +77,8 @@ class ReferenceStorage {
   Future<Result<void>> removeReferences(String prefix) async {
     assert(prefix.startsWith(refPrefix));
 
-    var refLocation = p.join(dotGitDir, prefix);
-    var dir = fs.directory(refLocation);
+    var refLocation = p.join(_dotGitDir, prefix);
+    var dir = _fs.directory(refLocation);
     if (!dir.existsSync()) {
       return Result(null);
     }
@@ -88,11 +88,11 @@ class ReferenceStorage {
   }
 
   Future<Result<void>> saveRef(Reference ref) async {
-    var refFileName = p.join(dotGitDir, ref.name.value);
+    var refFileName = p.join(_dotGitDir, ref.name.value);
     var refFileName2 = refFileName + '_';
 
-    await fs.directory(p.dirname(refFileName)).create(recursive: true);
-    var file = fs.file(refFileName2);
+    await _fs.directory(p.dirname(refFileName)).create(recursive: true);
+    var file = _fs.file(refFileName2);
     if (ref.isHash) {
       await file.writeAsString(ref.hash.toString() + '\n', flush: true);
     } else if (ref.isSymbolic) {
@@ -106,7 +106,7 @@ class ReferenceStorage {
 
   // FIXME: Maybe this doesn't need to read each time!
   Future<List<Reference>> _packedRefs() async {
-    var packedRefsFile = fs.file(p.join(dotGitDir, 'packed-refs'));
+    var packedRefsFile = _fs.file(p.join(_dotGitDir, 'packed-refs'));
     if (!packedRefsFile.existsSync()) {
       return [];
     }
@@ -116,8 +116,8 @@ class ReferenceStorage {
   }
 
   Future<Result<void>> deleteReference(ReferenceName refName) async {
-    var refFileName = p.join(dotGitDir, refName.value);
-    await fs.file(refFileName).delete();
+    var refFileName = p.join(_dotGitDir, refName.value);
+    await _fs.file(refFileName).delete();
 
     return Result(null);
     // FIXME: What if the deleted ref is in the packed-refs?

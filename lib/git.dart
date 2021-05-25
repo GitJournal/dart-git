@@ -19,6 +19,7 @@ import 'package:dart_git/storage/index_storage.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/object_storage_exception_catcher.dart';
 import 'package:dart_git/storage/reference_storage.dart';
+import 'package:dart_git/storage/reference_storage_exception_catcher.dart';
 
 export 'commit.dart';
 export 'checkout.dart';
@@ -83,7 +84,9 @@ class GitRepository {
     repo.objStorage = ObjectStorageExceptionCatcher(
       storage: ObjectStorage(repo.gitDir, fs),
     );
-    repo.refStorage = ReferenceStorage(repo.gitDir, fs);
+    repo.refStorage = ReferenceStorageExceptionCatcher(
+      storage: ReferenceStorage(repo.gitDir, fs),
+    );
     repo.indexStorage = IndexStorage(repo.gitDir, fs);
 
     return repo;

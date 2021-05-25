@@ -74,20 +74,20 @@ class ReferenceStorage {
   }
 
   // FIXME: removeRef should also look into packed-ref files?
-  Future<void> removeReferences(String prefix) async {
+  Future<Result<void>> removeReferences(String prefix) async {
     assert(prefix.startsWith(refPrefix));
 
     var refLocation = p.join(dotGitDir, prefix);
     var dir = fs.directory(refLocation);
     if (!dir.existsSync()) {
-      return;
+      return Result(null);
     }
 
     await dir.delete(recursive: true);
-    return;
+    return Result(null);
   }
 
-  Future<void> saveRef(Reference ref) async {
+  Future<Result<void>> saveRef(Reference ref) async {
     var refFileName = p.join(dotGitDir, ref.name.value);
     var refFileName2 = refFileName + '_';
 
@@ -100,6 +100,8 @@ class ReferenceStorage {
       await file.writeAsString(val + '\n', flush: true);
     }
     await file.rename(refFileName);
+
+    return Result(null);
   }
 
   // FIXME: Maybe this doesn't need to read each time!
@@ -113,11 +115,12 @@ class ReferenceStorage {
     return _loadPackedRefs(contents);
   }
 
-  Future<void> deleteReference(ReferenceName refName) async {
+  Future<Result<void>> deleteReference(ReferenceName refName) async {
     var refFileName = p.join(dotGitDir, refName.value);
     await fs.file(refFileName).delete();
 
-    // FIXME: What if it is in the packed-refs?
+    return Result(null);
+    // FIXME: What if the deleted ref is in the packed-refs?
   }
 }
 

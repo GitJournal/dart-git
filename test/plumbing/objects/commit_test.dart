@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/utils/result.dart';
 
 void main() {
   var contents = '''tree 272aca6dd8feabd4affc881c6cad18f396189344
@@ -24,7 +25,7 @@ Also add tons of comments
     var objStorage = ObjectStorage('', fs);
 
     var obj =
-        (await objStorage.readObjectFromPath('test/data/commit-object')).get();
+        await objStorage.readObjectFromPath('test/data/commit-object').get();
     var hash = GitHash('57bdd0dbc9868e53aead3c91714c282647265254');
 
     expect(obj is GitCommit, true);

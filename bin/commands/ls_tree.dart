@@ -6,6 +6,7 @@ import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
+import 'package:dart_git/utils/result.dart';
 
 class LsTreeCommand extends Command {
   @override
@@ -27,13 +28,13 @@ class LsTreeCommand extends Command {
     if (obj is GitTree) {
       tree = obj;
     } else if (obj is GitCommit) {
-      tree = (await repo.objStorage.readTree(obj.treeHash)).get();
+      tree = await repo.objStorage.readTree(obj.treeHash).get();
     } else {
       assert(false);
     }
 
     for (var leaf in tree!.entries) {
-      var leafObj = (await repo.objStorage.read(leaf.hash)).get();
+      var leafObj = await repo.objStorage.read(leaf.hash).get();
       var type = leafObj.formatStr();
       var mode = leaf.mode.toString().padLeft(6, '0');
       print('$mode $type ${leaf.hash}    ${leaf.name}');

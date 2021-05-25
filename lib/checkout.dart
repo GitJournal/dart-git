@@ -6,6 +6,7 @@ import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/utils/result.dart';
 
 extension Checkout on GitRepository {
   Future<int?> checkout(String path) async {
@@ -42,8 +43,7 @@ extension Checkout on GitRepository {
 
     var updated = 0;
     for (var leaf in tree.entries) {
-      var result = await objStorage.read(leaf.hash);
-      var obj = result.get();
+      var obj = await objStorage.read(leaf.hash).get();
       /*
       if (obj == null) {
         // FIXME: Shout out an error, this is a problem?

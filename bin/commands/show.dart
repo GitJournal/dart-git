@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
-
 import 'package:dart_git/git.dart';
 import 'package:dart_git/git_hash.dart';
+import 'log.dart';
+
 // import 'package:fire_line_diff/fire_line_diff.dart';
 
-import 'log.dart';
 
 class ShowCommand extends Command {
   @override

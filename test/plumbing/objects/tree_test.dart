@@ -5,13 +5,14 @@ import 'package:test/test.dart';
 
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/utils/result.dart';
 
 void main() {
   test('Reads the tree file correctly', () async {
     const fs = LocalFileSystem();
     var objStorage = ObjectStorage('', fs);
 
-    var obj = (await objStorage.readObjectFromPath('test/data/tree')).get();
+    var obj = await objStorage.readObjectFromPath('test/data/tree').get();
     expect(obj is GitTree, equals(true));
 
     var tree = obj as GitTree;

@@ -29,3 +29,10 @@ Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
 Result<Base> downcast<Base, Derived>(Result<Derived> other) {
   return Result(other.data as Base?, error: other.error);
 }
+
+extension ResultFuture<T> on Future<Result<T>> {
+  Future<T> get() async {
+    var result = await this;
+    return result.get();
+  }
+}

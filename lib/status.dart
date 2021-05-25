@@ -4,6 +4,7 @@ import 'package:file/file.dart';
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/file_mode.dart';
+import 'package:dart_git/utils/result.dart';
 
 class GitStatusResult {
   var added = <String>[];
@@ -57,8 +58,7 @@ extension Status on GitRepository {
         continue;
       }
 
-      var subTreeObj = await objStorage.readTree(entry.hash);
-      var subTree = subTreeObj.get();
+      var subTree = await objStorage.readTree(entry.hash).get();
       var r = await _status(subTree, fsEntity.path, result);
       if (r != null) {
         result!.add(r);

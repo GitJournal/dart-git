@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/utils/result.dart';
 
 class ReferenceStorage {
   String dotGitDir;
@@ -12,23 +14,23 @@ class ReferenceStorage {
 
   ReferenceStorage(this.dotGitDir, this.fs);
 
-  Future<Reference?> reference(ReferenceName refName) async {
+  Future<Result<Reference>> reference(ReferenceName refName) async {
     var file = fs.file(p.join(dotGitDir, refName.value));
     if (file.existsSync()) {
       var contents = await file.readAsString();
-      return Reference(refName.value, contents.trimRight());
+      return Result(Reference(refName.value, contents.trimRight()));
     }
 
     for (var ref in await _packedRefs()) {
       if (ref.name == refName) {
-        return ref;
+        return Result(ref);
       }
     }
 
-    return null;
+    return Result.fail(GitRefNotFound(refName));
   }
 
-  Future<List<Reference>> listReferences(String prefix) async {
+  Future<Result<List<Reference>>> listReferences(String prefix) async {
     assert(prefix.startsWith(refPrefix));
 
     var refs = <Reference>[];
@@ -37,7 +39,7 @@ class ReferenceStorage {
 
     var dir = fs.directory(refLocation);
     if (!dir.existsSync()) {
-      return refs;
+      return Result(refs);
     }
 
     var stream = dir.list(recursive: true);
@@ -51,8 +53,9 @@ class ReferenceStorage {
 
       var refName =
           ReferenceName(fsEntity.path.substring(dotGitDir.length + 1));
-      var ref = await reference(refName);
-      if (ref != null) {
+      var result = await reference(refName);
+      if (result.succeeded) {
+        var ref = result.get();
         refs.add(ref);
         processedRefNames.add(refName);
       }
@@ -67,9 +70,10 @@ class ReferenceStorage {
       }
     }
 
-    return refs;
+    return Result(refs);
   }
 
+  // FIXME: removeRef should also look into packed-ref files?
   Future<void> removeReferences(String prefix) async {
     assert(prefix.startsWith(refPrefix));
 
@@ -133,4 +137,12 @@ List<Reference> _loadPackedRefs(String raw) {
   }
 
   return refs;
+}
+
+class GitRefNotFound implements GitException {
+  ReferenceName refName;
+  GitRefNotFound(this.refName);
+
+  @override
+  String toString() => 'GitRefNotFound: $refName';
 }

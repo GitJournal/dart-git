@@ -147,8 +147,8 @@ class GitRepository {
   }
 
   Future<List<String>> branches() async {
-    var refs = await refStorage.listReferences(refHeadPrefix);
-    var refNames = refs.map((r) => r.name);
+    var refsResult = await refStorage.listReferences(refHeadPrefix);
+    var refNames = refsResult.get().map((r) => r.name);
 
     return refNames.map((r) => r.branchName()!).toList();
   }
@@ -198,8 +198,8 @@ class GitRepository {
     }
 
     var branch = ReferenceName.branch(name);
-    var ref = await refStorage.reference(branch);
-    if (!overwrite && ref != null) {
+    var refResult = await refStorage.reference(branch);
+    if (!overwrite && refResult.succeeded) {
       return null;
     }
 
@@ -213,7 +213,8 @@ class GitRepository {
     }
 
     var remoteRefsPrefix = '$refRemotePrefix$remoteName/';
-    return refStorage.listReferences(remoteRefsPrefix);
+    var result = await refStorage.listReferences(remoteRefsPrefix);
+    return result.get();
   }
 
   Future<Reference?> remoteBranch(String remoteName, String branchName) async {
@@ -222,7 +223,8 @@ class GitRepository {
     }
 
     var remoteRef = ReferenceName.remote(remoteName, branchName);
-    return refStorage.reference(remoteRef);
+    var result = await refStorage.reference(remoteRef);
+    return result.data;
   }
 
   Future<GitRemoteConfig> addRemote(String name, String url) async {
@@ -274,20 +276,22 @@ class GitRepository {
   }
 
   Future<Reference?> head() async {
-    return refStorage.reference(ReferenceName('HEAD'));
+    var result = await refStorage.reference(ReferenceName('HEAD'));
+    return result.data;
   }
 
   Future<GitHash?> headHash() async {
-    var ref = await refStorage.reference(ReferenceName('HEAD'));
-    if (ref == null) {
+    var result = await refStorage.reference(ReferenceName('HEAD'));
+    if (result.failed) {
       return null;
     }
 
-    ref = await resolveReference(ref);
-    if (ref == null) {
+    var ref = result.get();
+    var ref2 = await resolveReference(ref);
+    if (ref2 == null) {
       return null;
     }
-    return ref.hash;
+    return ref2.hash;
   }
 
   Future<GitCommit?> headCommit() async {
@@ -315,21 +319,22 @@ class GitRepository {
       return ref;
     }
 
-    var resolvedRef = await refStorage.reference(ref.target!);
-    if (resolvedRef == null) {
+    var resolvedRefResult = await refStorage.reference(ref.target!);
+    if (resolvedRefResult.failed) {
       return null;
     }
-    return recursive
-        ? resolveReference(resolvedRef) as FutureOr<Reference?>
-        : resolvedRef;
+
+    var resolvedRef = resolvedRefResult.get();
+    return recursive ? await resolveReference(resolvedRef) : resolvedRef;
   }
 
   Future<Reference?> resolveReferenceName(ReferenceName refName) async {
-    var resolvedRef = await refStorage.reference(refName);
-    if (resolvedRef == null) {
-      print('resolveReferenceName($refName) failed');
+    var resolvedRefResult = await refStorage.reference(refName);
+    if (resolvedRefResult.failed) {
       return null;
     }
+
+    var resolvedRef = resolvedRefResult.get();
     return resolveReference(resolvedRef);
   }
 
@@ -598,13 +603,13 @@ class GitRepository {
 
   Future<GitHash?> deleteBranch(String branchName) async {
     var refName = ReferenceName.branch(branchName);
-    var ref = await refStorage.reference(refName);
-    if (ref == null) {
+    var refResult = await refStorage.reference(refName);
+    if (refResult.failed) {
       return null;
     }
 
     await refStorage.deleteReference(refName);
-    return ref.hash;
+    return refResult.get().hash;
   }
 
   String normalizePath(String path) {

@@ -75,10 +75,11 @@ extension Checkout on GitRepository {
   }
 
   Future<Reference?> checkoutBranch(String branchName) async {
-    var ref = await refStorage.reference(ReferenceName.branch(branchName));
-    if (ref == null || ref.isSymbolic) {
+    var refRes = await refStorage.reference(ReferenceName.branch(branchName));
+    if (refRes.failed || refRes.get().isSymbolic) {
       return null;
     }
+    var ref = refRes.get();
     assert(ref.isHash);
 
     var _headCommit = await headCommit();

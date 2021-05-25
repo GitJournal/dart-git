@@ -53,7 +53,7 @@ class ObjectStorage {
       }
     }
 
-    return Result<GitObject>.fail(GitObjectNotFound(hash));
+    return Result.fail(GitObjectNotFound(hash));
   }
 
   // TODO: What happens when we call readBlob on a commit?
@@ -100,23 +100,23 @@ class ObjectStorage {
     // Read Object Type
     var x = raw.indexOf(asciiHelper.space);
     if (x == -1) {
-      return Result<GitObject>.fail(GitObjectCorruptedMissingType());
+      return Result.fail(GitObjectCorruptedMissingType());
     }
     var fmt = raw.sublistView(0, x);
 
     // Read and validate object size
     var y = raw.indexOf(0x0, x);
     if (y == -1) {
-      return Result<GitObject>.fail(GitObjectCorruptedMissingSize());
+      return Result.fail(GitObjectCorruptedMissingSize());
     }
 
     var size = int.tryParse(ascii.decode(raw.sublistView(x, y)));
     if (size == null) {
-      return Result<GitObject>.fail(GitObjectCorruptedInvalidIntSize());
+      return Result.fail(GitObjectCorruptedInvalidIntSize());
     }
 
     if (size != (raw.length - y - 1)) {
-      return Result<GitObject>.fail(GitObjectCorruptedBadSize());
+      return Result.fail(GitObjectCorruptedBadSize());
     }
 
     var fmtStr = ascii.decode(fmt);
@@ -148,7 +148,7 @@ class ObjectStorage {
     assert(!spec.startsWith(p.separator));
 
     if (spec.isEmpty) {
-      return Result<GitObject>(tree);
+      return Result(tree);
     }
 
     var parts = splitPath(spec);
@@ -161,18 +161,18 @@ class ObjectStorage {
         var obj = result.get();
 
         if (remainingName.isEmpty) {
-          return Result<GitObject>(obj);
+          return Result(obj);
         }
 
         if (obj is GitTree) {
           return refSpec(obj, remainingName);
         } else {
-          return Result<GitObject>.fail(
+          return Result.fail(
             GitObjectWithRefSpecNotFound(spec),
           );
         }
       }
     }
-    return Result<GitObject>.fail(GitObjectWithRefSpecNotFound(spec));
+    return Result.fail(GitObjectWithRefSpecNotFound(spec));
   }
 }

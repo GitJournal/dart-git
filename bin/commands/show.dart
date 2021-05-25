@@ -11,7 +11,6 @@ import 'log.dart';
 
 // import 'package:fire_line_diff/fire_line_diff.dart';
 
-
 class ShowCommand extends Command {
   @override
   final name = 'show';

@@ -12,19 +12,18 @@ class ObjectStorageExceptionCatcher implements ObjectStorage {
   ObjectStorageExceptionCatcher({required ObjectStorage storage}) : _ = storage;
 
   @override
-  Future<Result<GitObject>> read(GitHash hash) async =>
-      catchAll(() => _.read(hash));
+  Future<Result<GitObject>> read(GitHash hash) => catchAll(() => _.read(hash));
 
   @override
-  Future<Result<GitBlob>> readBlob(GitHash hash) async =>
+  Future<Result<GitBlob>> readBlob(GitHash hash) =>
       catchAll(() => _.readBlob(hash));
 
   @override
-  Future<Result<GitCommit>> readCommit(GitHash hash) async =>
+  Future<Result<GitCommit>> readCommit(GitHash hash) =>
       catchAll(() => _.readCommit(hash));
 
   @override
-  Future<Result<GitTree>> readTree(GitHash hash) async =>
+  Future<Result<GitTree>> readTree(GitHash hash) =>
       catchAll(() => _.readTree(hash));
 
   @override
@@ -36,6 +35,6 @@ class ObjectStorageExceptionCatcher implements ObjectStorage {
   Future<GitHash> writeObject(GitObject obj) => _.writeObject(obj);
 
   @override
-  Future<Result<GitObject>> refSpec(GitTree tree, String spec) async =>
-      await catchAll(() => _.refSpec(tree, spec));
+  Future<Result<GitObject>> refSpec(GitTree tree, String spec) =>
+      catchAll(() => _.refSpec(tree, spec));
 }

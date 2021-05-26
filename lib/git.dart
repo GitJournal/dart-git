@@ -122,7 +122,11 @@ class GitRepository {
   }
 
   // FIXME: Handle FS exceptions!
-  static Future<void> init(String path, {FileSystem? fs}) async {
+  static Future<void> init(
+    String path, {
+    FileSystem? fs,
+    String defaultBranch = 'master',
+  }) async {
     fs ??= const LocalFileSystem();
 
     // FIXME: Check if path has stuff and accordingly return
@@ -142,7 +146,7 @@ class GitRepository {
         "Unnamed repository; edit this file 'description' to name the repository.\n");
     await fs
         .file(p.join(gitDir, 'HEAD'))
-        .writeAsString('ref: refs/heads/master\n');
+        .writeAsString('ref: refs/heads/$defaultBranch\n');
 
     var config = Config('');
     var core = config.section('core');

@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
-import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
+import 'package:dart_git/utils/ascii_helper.dart';
 import 'package:dart_git/utils/file_mode.dart';
 import 'package:dart_git/utils/uint8list.dart';
 

@@ -4,7 +4,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/utils.dart';
+import 'package:dart_git/utils/utils.dart';
 
 class BranchCommand extends Command {
   @override

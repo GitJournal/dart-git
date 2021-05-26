@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
-import 'package:dart_git/utils.dart';
+import 'package:dart_git/utils/utils.dart';
 
 class CheckoutCommand extends Command {
   @override

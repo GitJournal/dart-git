@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
@@ -14,9 +13,10 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
-import 'package:dart_git/utils.dart';
+import 'package:dart_git/utils/ascii_helper.dart';
 import 'package:dart_git/utils/result.dart';
 import 'package:dart_git/utils/uint8list.dart';
+import 'package:dart_git/utils/utils.dart';
 
 class ObjectStorage {
   final String _gitDir;

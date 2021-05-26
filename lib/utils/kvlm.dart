@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dart_git/ascii_helper.dart';
+import 'package:dart_git/utils/ascii_helper.dart';
 import 'package:dart_git/utils/uint8list.dart';
 
 Map<String, dynamic> kvlmParse(Uint8List raw) {

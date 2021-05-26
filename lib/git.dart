@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:dart_git/storage/index_storage_exception_catcher.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
@@ -93,7 +94,9 @@ class GitRepository {
     repo.refStorage = ReferenceStorageExceptionCatcher(
       storage: ReferenceStorage(repo.gitDir, fs),
     );
-    repo.indexStorage = IndexStorage(repo.gitDir, fs);
+    repo.indexStorage = IndexStorageExceptionCatcher(
+      storage: IndexStorage(repo.gitDir, fs),
+    );
     repo.configStorage = ConfigStorageExceptionCatcher(
       storage: ConfigStorage(repo.gitDir, fs),
     );

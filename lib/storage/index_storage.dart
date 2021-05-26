@@ -5,13 +5,13 @@ import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/utils/result.dart';
 
 class IndexStorage {
-  final String gitDir;
-  final FileSystem fs;
+  final String _gitDir;
+  final FileSystem _fs;
 
-  IndexStorage(this.gitDir, this.fs);
+  IndexStorage(this._gitDir, this._fs);
 
   Future<Result<GitIndex>> readIndex() async {
-    var file = fs.file(p.join(gitDir, 'index'));
+    var file = _fs.file(p.join(_gitDir, 'index'));
     if (!file.existsSync()) {
       var index = GitIndex(versionNo: 2);
       return Result(index);
@@ -22,10 +22,10 @@ class IndexStorage {
   }
 
   Future<Result<void>> writeIndex(GitIndex index) async {
-    var path = p.join(gitDir, 'index.new');
-    var file = fs.file(path);
+    var path = p.join(_gitDir, 'index.new');
+    var file = _fs.file(path);
     await file.writeAsBytes(index.serialize());
-    await file.rename(p.join(gitDir, 'index'));
+    await file.rename(p.join(_gitDir, 'index'));
 
     return Result(null);
   }

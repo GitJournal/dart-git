@@ -100,7 +100,7 @@ class GitRepository {
 
     var configResult = await repo.configStorage.readConfig();
     if (configResult.failed) {
-      return Result.fail(configResult.error);
+      return fail(configResult);
     }
     repo.config = configResult.get();
 
@@ -173,7 +173,7 @@ class GitRepository {
   Future<Result<List<String>>> branches() async {
     var refsResult = await refStorage.listReferences(refHeadPrefix);
     if (refsResult.failed) {
-      return Result.fail(refsResult.error);
+      return fail(refsResult);
     }
 
     var refs = refsResult.get();
@@ -186,7 +186,7 @@ class GitRepository {
   Future<Result<String>> currentBranch() async {
     var headResult = await head();
     if (headResult.failed) {
-      return Result.fail(headResult.error);
+      return fail(headResult);
     }
 
     var _head = headResult.get();
@@ -205,7 +205,7 @@ class GitRepository {
   ) async {
     var branchNameResult = await currentBranch();
     if (branchNameResult.failed) {
-      return Result.fail(branchNameResult.error);
+      return fail(branchNameResult);
     }
 
     var branchName = branchNameResult.get();
@@ -232,9 +232,12 @@ class GitRepository {
     GitHash? hash,
     bool overwrite = false,
   }) async {
-    hash ??= await headHash();
     if (hash == null) {
-      return null;
+      var headHashResult = await headHash();
+      if (headHashResult.failed) {
+        return null;
+      }
+      hash = headHashResult.get();
     }
 
     var branch = ReferenceName.branch(name);
@@ -318,45 +321,54 @@ class GitRepository {
   Future<Result<Reference>> head() async {
     var result = await refStorage.reference(ReferenceName('HEAD'));
     if (result.failed) {
-      return Result.fail(result.error);
+      return fail(result);
     }
 
     return Result(result.get());
   }
 
-  Future<GitHash?> headHash() async {
+  Future<Result<GitHash>> headHash() async {
     var result = await refStorage.reference(ReferenceName('HEAD'));
     if (result.failed) {
-      return null;
+      return fail(result);
     }
 
     var ref = result.get();
     result = await resolveReference(ref);
     if (result.failed) {
-      return null;
+      return fail(result);
     }
 
     ref = result.get();
-    return ref.hash;
+    return Result(ref.hash!);
   }
 
-  Future<GitCommit?> headCommit() async {
-    var hash = await headHash();
-    if (hash == null) {
-      return null;
+  Future<Result<GitCommit>> headCommit() async {
+    var hashResult = await headHash();
+    if (hashResult.failed) {
+      return fail(hashResult);
     }
-    var res = await objStorage.readCommit(hash);
-    return res.get();
+    var hash = hashResult.get();
+
+    var result = await objStorage.readCommit(hash);
+    if (result.failed) {
+      return fail(result);
+    }
+    return Result(result.get());
   }
 
-  Future<GitTree?> headTree() async {
-    var commit = await headCommit();
-    if (commit == null) {
-      return null;
+  Future<Result<GitTree>> headTree() async {
+    var commitResult = await headCommit();
+    if (commitResult.failed) {
+      return fail(commitResult);
     }
+    var commit = commitResult.get();
 
     var res = await objStorage.readTree(commit.treeHash);
-    return res.get();
+    if (res.failed) {
+      return fail(res);
+    }
+    return Result(res.get());
   }
 
   Future<Result<Reference>> resolveReference(
@@ -369,7 +381,7 @@ class GitRepository {
 
     var resolvedRefResult = await refStorage.reference(ref.target!);
     if (resolvedRefResult.failed) {
-      return Result.fail(resolvedRefResult.error);
+      return fail(resolvedRefResult);
     }
 
     var resolvedRef = resolvedRefResult.get();
@@ -381,7 +393,7 @@ class GitRepository {
   Future<Result<Reference>> resolveReferenceName(ReferenceName refName) async {
     var resolvedRefResult = await refStorage.reference(refName);
     if (resolvedRefResult.failed) {
-      return Result.fail(resolvedRefResult.error);
+      return fail(resolvedRefResult);
     }
 
     var resolvedRef = resolvedRefResult.get();

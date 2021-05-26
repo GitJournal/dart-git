@@ -22,13 +22,13 @@ class GitStatusResult {
 
 extension Status on GitRepository {
   Future<GitStatusResult?> status() async {
-    var rootTree = await headTree();
-    if (rootTree == null) {
+    var rootTreeR = await headTree();
+    if (rootTreeR.failed) {
       return null;
     }
 
     GitStatusResult? result;
-    return _status(rootTree, workTree, result);
+    return _status(rootTreeR.get(), workTree, result);
   }
 
   Future<GitStatusResult?> _status(

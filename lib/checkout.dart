@@ -12,10 +12,11 @@ extension Checkout on GitRepository {
   Future<int?> checkout(String path) async {
     path = normalizePath(path);
 
-    var tree = await headTree();
-    if (tree == null) {
+    var treeR = await headTree();
+    if (treeR.failed) {
       return null;
     }
+    var tree = treeR.get();
 
     var spec = path.substring(workTree.length);
     var objRes = await objStorage.refSpec(tree, spec);
@@ -82,8 +83,8 @@ extension Checkout on GitRepository {
     var ref = refRes.get();
     assert(ref.isHash);
 
-    var _headCommit = await headCommit();
-    if (_headCommit == null) {
+    var headCommitR = await headCommit();
+    if (headCommitR.failed) {
       var result = await objStorage.readCommit(ref.hash!);
       var commit = result.get();
       /*
@@ -104,6 +105,7 @@ extension Checkout on GitRepository {
 
       return ref;
     }
+    var _headCommit = headCommitR.get();
 
     var res = await objStorage.readCommit(ref.hash!);
     var branchCommit = res.get();

@@ -23,11 +23,12 @@ class LogCommand extends Command {
     if (argResults!.rest.isNotEmpty) {
       sha = GitHash(argResults!.rest.first);
     } else {
-      sha = await repo.headHash();
-      if (sha == null) {
+      var result = await repo.headHash();
+      if (result.failed) {
         print('fatal: head hash not found');
         return;
       }
+      sha = result.get();
     }
 
     var seen = <GitHash>{};

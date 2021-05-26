@@ -42,7 +42,7 @@ void main() {
 
     var repo = await GitRepository.load(gitDir).get();
     objStorage = repo.objStorage;
-    headCommit = (await repo.headCommit())!;
+    headCommit = await repo.headCommit().get();
   });
 
   /// We should get all commits from the history but,

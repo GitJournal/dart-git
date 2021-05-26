@@ -39,3 +39,7 @@ extension ResultFuture<T> on Future<Result<T>> {
     return result.get();
   }
 }
+
+Result<A> fail<A, B>(Result<B> result) {
+  return Result<A>.fail(result.error);
+}

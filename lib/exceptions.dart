@@ -67,9 +67,25 @@ class GitObjectInvalidType implements GitException {
 }
 
 class GitBranchAlreadyExists implements GitException {
-  String branchName;
-  GitBranchAlreadyExists(this.branchName);
+  String name;
+  GitBranchAlreadyExists(this.name);
 
   @override
-  String toString() => 'GitBranchExists: $branchName';
+  String toString() => 'GitBranchAlreadyExists: $name';
+}
+
+class GitRemoteAlreadyExists implements GitException {
+  String name;
+  GitRemoteAlreadyExists(this.name);
+
+  @override
+  String toString() => 'GitRemoteAlreadyExists: $name';
+}
+
+class GitRemoteNotFound implements GitException {
+  String name;
+  GitRemoteNotFound(this.name);
+
+  @override
+  String toString() => 'GitRemoteNotFound: $name';
 }

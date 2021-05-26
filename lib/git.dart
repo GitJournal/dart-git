@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:dart_git/storage/index_storage_exception_catcher.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
@@ -19,6 +18,7 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/storage/config_storage.dart';
 import 'package:dart_git/storage/config_storage_exception_catcher.dart';
 import 'package:dart_git/storage/index_storage.dart';
+import 'package:dart_git/storage/index_storage_exception_catcher.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/object_storage_exception_catcher.dart';
 import 'package:dart_git/storage/reference_storage.dart';

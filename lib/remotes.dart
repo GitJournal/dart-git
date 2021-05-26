@@ -1,13 +1,14 @@
+import 'package:collection/collection.dart';
+
 import 'package:dart_git/config.dart';
 import 'package:dart_git/dart_git.dart';
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
-
-import 'package:collection/collection.dart';
 
 extension Remotes on GitRepository {
   Future<List<Reference>> remoteBranches(String remoteName) async {
     if (config.remote(remoteName) == null) {
-      throw Exception('remote $remoteName does not exist');
+      throw GitRemoteNotFound(remoteName);
     }
 
     var remoteRefsPrefix = '$refRemotePrefix$remoteName/';
@@ -17,7 +18,7 @@ extension Remotes on GitRepository {
 
   Future<Reference?> remoteBranch(String remoteName, String branchName) async {
     if (config.remote(remoteName) == null) {
-      throw Exception('remote $remoteName does not exist');
+      throw GitRemoteNotFound(remoteName);
     }
 
     var remoteRef = ReferenceName.remote(remoteName, branchName);
@@ -30,7 +31,7 @@ extension Remotes on GitRepository {
       (r) => r.name == name,
     );
     if (existingRemote != null) {
-      throw Exception('fatal: remote "$name" already exists.');
+      throw GitRemoteAlreadyExists(name);
     }
 
     var remote = GitRemoteConfig.create(name: name, url: url);

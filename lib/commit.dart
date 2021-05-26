@@ -52,7 +52,9 @@ extension Commit on GitRepository {
     var hash = await objStorage.writeObject(commit);
 
     // Update the ref of the current branch
-    var branchName = await currentBranch();
+    var branchNameResult = await currentBranch();
+    // FIXME: What are the acceptable failure conditions over here?
+    var branchName = branchNameResult.data;
     if (branchName == null) {
       var result = await head();
       if (result.failed) {

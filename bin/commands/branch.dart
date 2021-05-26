@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
-import 'package:dart_git/config.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils.dart';
@@ -142,14 +141,9 @@ class BranchCommand extends Command {
       return;
     }
 
-    BranchConfig? localBranch;
-    try {
-      localBranch = await repo.setUpstreamTo(remote, remoteBranchName);
-    } catch (e) {
-      print(e);
-    }
+    var localBranch = await repo.setUpstreamTo(remote, remoteBranchName).get();
 
     print(
-        "Branch '${localBranch!.name}' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
+        "Branch '${localBranch.name}' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
   }
 }

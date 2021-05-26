@@ -56,6 +56,8 @@ class GitObjectCorruptedInvalidIntSize implements GitException {}
 
 class GitObjectCorruptedBadSize implements GitException {}
 
+class GitHeadDetached implements GitException {}
+
 class GitObjectInvalidType implements GitException {
   String type;
   GitObjectInvalidType(this.type);

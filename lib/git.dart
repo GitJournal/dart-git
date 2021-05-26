@@ -174,29 +174,34 @@ class GitRepository {
     return Result(branchNames);
   }
 
-  Future<String?> currentBranch() async {
+  Future<Result<String>> currentBranch() async {
     var headResult = await head();
     if (headResult.failed) {
-      return null;
+      return Result.fail(headResult.error);
     }
 
     var _head = headResult.get();
     if (_head.isHash) {
-      return null;
+      var ex = GitHeadDetached();
+      return Result.fail(ex);
     }
 
-    return _head.target!.branchName();
+    var name = _head.target!.branchName();
+    return Result(name);
   }
 
-  Future<BranchConfig?> setUpstreamTo(
-      GitRemoteConfig remote, String remoteBranchName) async {
-    var branchName = await currentBranch();
-    if (branchName == null) {
-      // FIXME: I don't like this silently returning null
-      //        If this is failing, please give me an error!
-      return null;
+  Future<Result<BranchConfig>> setUpstreamTo(
+    GitRemoteConfig remote,
+    String remoteBranchName,
+  ) async {
+    var branchNameResult = await currentBranch();
+    if (branchNameResult.failed) {
+      return Result.fail(branchNameResult.error);
     }
-    return setBranchUpstreamTo(branchName, remote, remoteBranchName);
+
+    var branchName = branchNameResult.get();
+    var cfg = await setBranchUpstreamTo(branchName, remote, remoteBranchName);
+    return Result(cfg);
   }
 
   Future<BranchConfig> setBranchUpstreamTo(String branchName,

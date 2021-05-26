@@ -440,12 +440,9 @@ class GitRepository {
       return fail(remoteRefResult);
     }
 
-    var headHash = headRefResult.get().hash;
-    var remoteHash = remoteRefResult.get().hash;
+    var headHash = headRefResult.get().hash!;
+    var remoteHash = remoteRefResult.get().hash!;
 
-    if (headHash == null || remoteHash == null) {
-      return Result(0);
-    }
     if (headHash == remoteHash) {
       return Result(0);
     }

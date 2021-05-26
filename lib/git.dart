@@ -15,6 +15,7 @@ import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/storage/config_storage.dart';
 import 'package:dart_git/storage/index_storage.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/object_storage_exception_catcher.dart';
@@ -43,6 +44,7 @@ class GitRepository {
   late ReferenceStorage refStorage;
   late ObjectStorage objStorage;
   late IndexStorage indexStorage;
+  late ConfigStorage configStorage;
 
   GitRepository._internal({required String rootDir, required this.fs}) {
     workTree = rootDir;
@@ -84,10 +86,6 @@ class GitRepository {
 
     var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
 
-    var configPath = p.join(repo.gitDir, 'config');
-    var configFileContents = await fs.file(configPath).readAsString();
-    repo.config = Config(configFileContents);
-
     repo.objStorage = ObjectStorageExceptionCatcher(
       storage: ObjectStorage(repo.gitDir, fs),
     );
@@ -95,6 +93,13 @@ class GitRepository {
       storage: ReferenceStorage(repo.gitDir, fs),
     );
     repo.indexStorage = IndexStorage(repo.gitDir, fs);
+    repo.configStorage = ConfigStorage(repo.gitDir, fs);
+
+    var configResult = await repo.configStorage.readConfig();
+    if (configResult.failed) {
+      return Result.fail(configResult.error);
+    }
+    repo.config = configResult.get();
 
     return Result(repo);
   }
@@ -113,8 +118,9 @@ class GitRepository {
       return false;
     }
 
-    var configPath = p.join(repo.gitDir, 'config');
-    if (!fs.isFileSync(configPath)) {
+    repo.configStorage = ConfigStorage(repo.gitDir, fs);
+    var configExists = await repo.configStorage.exists().get();
+    if (!configExists) {
       return false;
     }
 
@@ -157,8 +163,8 @@ class GitRepository {
     await fs.file(p.join(gitDir, 'config')).writeAsString(config.serialize());
   }
 
-  Future<void> saveConfig() {
-    return fs.file(p.join(gitDir, 'config')).writeAsString(config.serialize());
+  Future<Result<void>> saveConfig() {
+    return configStorage.writeConfig(config);
   }
 
   Future<Result<List<String>>> branches() async {

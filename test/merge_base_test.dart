@@ -135,7 +135,7 @@ void main() {
       test(t.name, () async {
         expect(t.input.length, 2);
 
-        var repo = await GitRepository.load(gitDir);
+        var repo = await GitRepository.load(gitDir).get();
         var commits = await commitsFromRevs(repo, t.input);
         expect(commits.length, 2);
 
@@ -156,7 +156,7 @@ void main() {
   group('Independents', () {
     for (var t in independentData) {
       test(t.name, () async {
-        var repo = await GitRepository.load(gitDir);
+        var repo = await GitRepository.load(gitDir).get();
         var commits = await commitsFromRevs(repo, t.input);
 
         var actual = await repo.independents(commits);
@@ -170,7 +170,7 @@ void main() {
   group('Ancestor', () {
     for (var t in ancestorData) {
       test(t.name, () async {
-        var repo = await GitRepository.load(gitDir);
+        var repo = await GitRepository.load(gitDir).get();
         var commits = await commitsFromRevs(repo, t.input);
 
         var actual = await repo.isAncestor(commits[0], commits[1]);

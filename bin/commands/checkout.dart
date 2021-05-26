@@ -19,7 +19,7 @@ class CheckoutCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir);
+    var repo = await GitRepository.load(gitRootDir).get();
 
     var branchName = argResults!['branch'] as String;
     if (branchName.isNotEmpty) {

@@ -20,10 +20,12 @@ import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/object_storage_exception_catcher.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 import 'package:dart_git/storage/reference_storage_exception_catcher.dart';
+import 'package:dart_git/utils/result.dart';
 
 export 'commit.dart';
 export 'checkout.dart';
 export 'merge_base.dart';
+export 'utils/result.dart';
 
 // A Git Repo has 5 parts -
 // * Object Store
@@ -50,6 +52,7 @@ class GitRepository {
     gitDir = p.join(workTree, '.git');
   }
 
+  // FIXME: The FS operations could throw an error!
   static String? findRootDir(String path, {FileSystem? fs}) {
     fs ??= const LocalFileSystemWithChecks();
 
@@ -68,11 +71,15 @@ class GitRepository {
     return null;
   }
 
-  static Future<GitRepository> load(String gitRootDir, {FileSystem? fs}) async {
+  static Future<Result<GitRepository>> load(
+    String gitRootDir, {
+    FileSystem? fs,
+  }) async {
     fs ??= const LocalFileSystemWithChecks();
 
     if (!(await isValidRepo(gitRootDir, fs: fs))) {
-      throw InvalidRepoException(gitRootDir);
+      var ex = InvalidRepoException(gitRootDir);
+      return Result.fail(ex);
     }
 
     var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
@@ -89,7 +96,7 @@ class GitRepository {
     );
     repo.indexStorage = IndexStorage(repo.gitDir, fs);
 
-    return repo;
+    return Result(repo);
   }
 
   static Future<bool> isValidRepo(String gitRootDir, {FileSystem? fs}) async {
@@ -114,6 +121,7 @@ class GitRepository {
     return true;
   }
 
+  // FIXME: Handle FS exceptions!
   static Future<void> init(String path, {FileSystem? fs}) async {
     fs ??= const LocalFileSystem();
 

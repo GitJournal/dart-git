@@ -14,7 +14,7 @@ class WriteTreeCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir);
+    var repo = await GitRepository.load(gitRootDir).get();
 
     var index = await repo.indexStorage.readIndex();
     var hash = await repo.writeTree(index);

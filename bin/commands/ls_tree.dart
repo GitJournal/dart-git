@@ -20,7 +20,7 @@ class LsTreeCommand extends Command {
     var objectSha1 = argResults!.rest.first;
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir);
+    var repo = await GitRepository.load(gitRootDir).get();
 
     var objRes = await repo.objStorage.read(GitHash(objectSha1));
     var obj = objRes.get();

@@ -21,7 +21,7 @@ class MergeBaseCommand extends Command {
     }
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir);
+    var repo = await GitRepository.load(gitRootDir).get();
 
     var aHash = GitHash(args[0]);
     var bHash = GitHash(args[1]);

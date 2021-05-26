@@ -27,7 +27,7 @@ class DiffCommand extends Command {
     }
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir);
+    var repo = await GitRepository.load(gitRootDir).get();
 
     var fromStr = argResults!.arguments[0];
     var toStr = argResults!.arguments[1];

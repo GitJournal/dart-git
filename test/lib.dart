@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
+import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
 import 'package:process_run/process_run.dart';
 import 'package:process_run/shell.dart' as shell;
@@ -11,15 +12,21 @@ import 'package:dart_git/config.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import '../bin/main.dart' as git;
 
+var silenceShellOutput = true;
+
 Future<String> runGitCommand(String command, String dir,
     {Map<String, String> env = const {}}) async {
+  var sink = NullStreamSink<List<int>>();
+
   var results = await shell.run(
     'git $command',
     workingDirectory: dir,
     includeParentEnvironment: false,
-    commandVerbose: true,
     environment: env,
-    throwOnError: false,
+    // silence
+    throwOnError: !silenceShellOutput,
+    stdout: silenceShellOutput ? sink : null,
+    stderr: silenceShellOutput ? sink : null,
   );
 
   var stdout = results.map((e) => e.stdout).join('\n').trim();
@@ -171,7 +178,10 @@ Future<List<String>> runDartGitCommand(
     String command, String workingDir) async {
   var printLog = <String>[];
 
-  print('dartgit>\$ git $command');
+  if (!silenceShellOutput) {
+    print('dartgit>\$ git $command');
+  }
+
   var spec = ZoneSpecification(print: (_, __, ___, String msg) {
     printLog.add(msg);
   });
@@ -187,8 +197,11 @@ Future<List<String>> runDartGitCommand(
     }
     Directory.current = prev;
   });
-  for (var log in printLog) {
-    print('dartgit>  $log');
+
+  if (!silenceShellOutput) {
+    for (var log in printLog) {
+      print('dartgit>  $log');
+    }
   }
   return printLog;
 }

@@ -11,8 +11,10 @@ void main() {
     var tmpDir1 = (await Directory.systemTemp.createTemp('_git_real_')).path;
     var tmpDir2 = (await Directory.systemTemp.createTemp('_git_dart_')).path;
 
-    print('Real Git: $tmpDir1');
-    print('Dart Git: $tmpDir2');
+    if (!silenceShellOutput) {
+      print('Real Git: $tmpDir1');
+      print('Dart Git: $tmpDir2');
+    }
 
     await runGitCommand('init .', tmpDir1);
     await GitRepository.init(tmpDir2);

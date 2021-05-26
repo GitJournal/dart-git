@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
 import 'package:process_run/shell.dart' as shell;
 import 'package:test/test.dart';
@@ -30,8 +32,10 @@ Future<GitCommandSetupResult> gitCommandTestSetupAll() async {
   result.realGitDir = p.join(result.tmpDir, '${repoName}_git');
   result.dartGitDir = p.join(result.tmpDir, '${repoName}_dart');
 
-  print('RealGitDir: ${result.realGitDir}');
-  print('DartGitDir: ${result.dartGitDir}');
+  if (!silenceShellOutput) {
+    print('RealGitDir: ${result.realGitDir}');
+    print('DartGitDir: ${result.dartGitDir}');
+  }
 
   return result;
 }
@@ -99,16 +103,26 @@ Future<void> testCommands(
       c = c.substring('git '.length);
       await testGitCommand(s, c, ignoreOutput: ignoreOutput);
     } else {
+      var sink = NullStreamSink<List<int>>();
+
       await shell.run(
         c,
         workingDirectory: s.dartGitDir,
         includeParentEnvironment: false,
+        // silence
+        throwOnError: !silenceShellOutput,
+        stdout: silenceShellOutput ? sink : null,
+        stderr: silenceShellOutput ? sink : null,
       );
 
       await shell.run(
         c,
         workingDirectory: s.realGitDir,
         includeParentEnvironment: false,
+        // silence
+        throwOnError: !silenceShellOutput,
+        stdout: silenceShellOutput ? sink : null,
+        stderr: silenceShellOutput ? sink : null,
       );
     }
   }

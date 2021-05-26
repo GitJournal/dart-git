@@ -2,6 +2,7 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/plumbing/index.dart';
+import 'package:dart_git/utils/result.dart';
 
 class IndexStorage {
   final String gitDir;
@@ -9,21 +10,24 @@ class IndexStorage {
 
   IndexStorage(this.gitDir, this.fs);
 
-  Future<GitIndex> readIndex() async {
+  Future<Result<GitIndex>> readIndex() async {
     var file = fs.file(p.join(gitDir, 'index'));
     if (!file.existsSync()) {
-      return GitIndex(versionNo: 2);
+      var index = GitIndex(versionNo: 2);
+      return Result(index);
     }
 
-    // FIXME: What if reading this file fails cause of permission issues?
-    return GitIndex.decode(await file.readAsBytes());
+    var index = GitIndex.decode(await file.readAsBytes());
+    return Result(index);
   }
 
-  Future<void> writeIndex(GitIndex index) async {
+  Future<Result<void>> writeIndex(GitIndex index) async {
     var path = p.join(gitDir, 'index.new');
     var file = fs.file(path);
     await file.writeAsBytes(index.serialize());
     await file.rename(p.join(gitDir, 'index'));
+
+    return Result(null);
   }
 }
 

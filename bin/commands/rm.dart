@@ -17,7 +17,7 @@ class RmCommand extends Command {
     var repo = await GitRepository.load(gitRootDir).get();
 
     var filePath = argResults!.arguments[0];
-    var index = await repo.indexStorage.readIndex();
+    var index = await repo.indexStorage.readIndex().get();
 
     var hash = await repo.rmFileFromIndex(index, filePath);
     if (hash == null) {

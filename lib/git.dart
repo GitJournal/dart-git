@@ -209,11 +209,10 @@ class GitRepository {
     }
 
     var branchName = branchNameResult.get();
-    var cfg = await setBranchUpstreamTo(branchName, remote, remoteBranchName);
-    return Result(cfg);
+    return setBranchUpstreamTo(branchName, remote, remoteBranchName);
   }
 
-  Future<BranchConfig> setBranchUpstreamTo(String branchName,
+  Future<Result<BranchConfig>> setBranchUpstreamTo(String branchName,
       GitRemoteConfig remote, String remoteBranchName) async {
     var brConfig = config.branch(branchName);
     if (brConfig == null) {
@@ -223,8 +222,11 @@ class GitRepository {
     brConfig.remote = remote.name;
     brConfig.merge = ReferenceName.branch(remoteBranchName);
 
-    await saveConfig();
-    return brConfig;
+    var saveR = await saveConfig();
+    if (saveR.failed) {
+      return fail(saveR);
+    }
+    return Result(brConfig);
   }
 
   Future<GitHash?> createBranch(
@@ -551,7 +553,7 @@ class GitRepository {
   Future<void> add(String pathSpec) async {
     pathSpec = normalizePath(pathSpec);
 
-    var index = await indexStorage.readIndex();
+    var index = await indexStorage.readIndex().get();
 
     var stat = await fs.stat(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
@@ -626,7 +628,7 @@ class GitRepository {
   Future<void> rm(String pathSpec, {bool rmFromFs = true}) async {
     pathSpec = normalizePath(pathSpec);
 
-    var index = await indexStorage.readIndex();
+    var index = await indexStorage.readIndex().get();
 
     var stat = await fs.stat(pathSpec);
     if (stat.type == FileSystemEntityType.file) {

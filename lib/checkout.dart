@@ -119,7 +119,7 @@ extension Checkout on GitRepository {
       toCommit: branchCommit,
       objStore: objStorage,
     );
-    var index = await indexStorage.readIndex();
+    var index = await indexStorage.readIndex().get();
 
     for (var change in blobChanges.merged()) {
       if (change.added || change.modified) {

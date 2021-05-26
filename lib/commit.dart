@@ -18,7 +18,7 @@ extension Commit on GitRepository {
   }) async {
     committer ??= author;
 
-    var index = await indexStorage.readIndex();
+    var index = await indexStorage.readIndex().get();
 
     if (addAll) {
       await addDirectoryToIndex(index, workTree, recursive: true);

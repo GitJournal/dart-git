@@ -32,6 +32,8 @@ Result<Base> downcast<Base, Derived>(Result<Derived> other) {
 }
 
 extension ResultFuture<T> on Future<Result<T>> {
+  /// Convenience method to have to avoid putting parenthesis around the
+  /// await expression
   Future<T> get() async {
     var result = await this;
     return result.get();

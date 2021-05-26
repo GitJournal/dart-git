@@ -16,6 +16,7 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/storage/config_storage.dart';
+import 'package:dart_git/storage/config_storage_exception_catcher.dart';
 import 'package:dart_git/storage/index_storage.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/object_storage_exception_catcher.dart';
@@ -93,7 +94,9 @@ class GitRepository {
       storage: ReferenceStorage(repo.gitDir, fs),
     );
     repo.indexStorage = IndexStorage(repo.gitDir, fs);
-    repo.configStorage = ConfigStorage(repo.gitDir, fs);
+    repo.configStorage = ConfigStorageExceptionCatcher(
+      storage: ConfigStorage(repo.gitDir, fs),
+    );
 
     var configResult = await repo.configStorage.readConfig();
     if (configResult.failed) {

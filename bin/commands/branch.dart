@@ -91,11 +91,13 @@ class BranchCommand extends Command {
           var branchName = rest.first;
 
           var refName = ReferenceName.remote(remoteName, remoteBranchName);
-          var ref = await repo.resolveReferenceName(refName);
-          if (ref == null) {
+          var refResult = await repo.resolveReferenceName(refName);
+          if (refResult.failed) {
             print('fatal');
             return;
           }
+
+          var ref = refResult.get();
           assert(ref.isHash);
           await repo.createBranch(branchName, hash: ref.hash);
 

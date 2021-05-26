@@ -313,11 +313,13 @@ class GitRepository {
     }
 
     var ref = result.get();
-    var ref2 = await resolveReference(ref);
-    if (ref2 == null) {
+    result = await resolveReference(ref);
+    if (result.failed) {
       return null;
     }
-    return ref2.hash;
+
+    ref = result.get();
+    return ref.hash;
   }
 
   Future<GitCommit?> headCommit() async {
@@ -339,25 +341,29 @@ class GitRepository {
     return res.get();
   }
 
-  Future<Reference?> resolveReference(Reference ref,
-      {bool recursive = true}) async {
+  Future<Result<Reference>> resolveReference(
+    Reference ref, {
+    bool recursive = true,
+  }) async {
     if (ref.type == ReferenceType.Hash) {
-      return ref;
+      return Result(ref);
     }
 
     var resolvedRefResult = await refStorage.reference(ref.target!);
     if (resolvedRefResult.failed) {
-      return null;
+      return Result.fail(resolvedRefResult.error);
     }
 
     var resolvedRef = resolvedRefResult.get();
-    return recursive ? await resolveReference(resolvedRef) : resolvedRef;
+    return recursive
+        ? await resolveReference(resolvedRef)
+        : Result(resolvedRef);
   }
 
-  Future<Reference?> resolveReferenceName(ReferenceName refName) async {
+  Future<Result<Reference>> resolveReferenceName(ReferenceName refName) async {
     var resolvedRefResult = await refStorage.reference(refName);
     if (resolvedRefResult.failed) {
-      return null;
+      return Result.fail(resolvedRefResult.error);
     }
 
     var resolvedRef = resolvedRefResult.get();
@@ -387,18 +393,20 @@ class GitRepository {
       return false;
     }
 
-    var resolvedHead = await resolveReference(_head);
-    if (resolvedHead == null) {
+    var resolvedHeadResult = await resolveReference(_head);
+    if (resolvedHeadResult.failed) {
       return false;
     }
+    var resolvedHead = resolvedHeadResult.get();
 
     // Construct remote's branch
     var remoteBranchName = brConfigMerge.branchName()!;
     var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
-    var remoteRef = await resolveReferenceName(remoteRefName);
-    if (remoteRef == null) {
+    var remoteRefResult = await resolveReferenceName(remoteRefName);
+    if (remoteRefResult.failed) {
       return false;
     }
+    var remoteRef = remoteRefResult.get();
 
     return resolvedHead.hash != remoteRef.hash;
   }
@@ -449,7 +457,7 @@ class GitRepository {
       var remoteHead = branches[i];
       assert(remoteHead.isSymbolic);
 
-      return resolveReference(remoteHead);
+      return resolveReference(remoteHead).get();
     } else {
       branches = branches.where((b) => b.name.branchName() != 'HEAD').toList();
     }
@@ -491,13 +499,13 @@ class GitRepository {
     var remoteBranchName = brConfigMerge.branchName()!;
     var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
 
-    var headRef = await resolveReference(head);
-    var remoteRef = await resolveReferenceName(remoteRefName);
-    if (headRef == null || remoteRef == null) {
+    var headRefResult = await resolveReference(head);
+    var remoteRefResult = await resolveReferenceName(remoteRefName);
+    if (headRefResult.failed || remoteRefResult.failed) {
       return null;
     }
-    var headHash = headRef.hash;
-    var remoteHash = headRef.hash;
+    var headHash = headRefResult.get().hash;
+    var remoteHash = remoteRefResult.get().hash;
 
     if (headHash == null || remoteHash == null) {
       return null;

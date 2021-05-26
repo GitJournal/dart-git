@@ -35,8 +35,9 @@ extension Commit on GitRepository {
     // FIXME: Make sure it failed because it doesn't exist.
     if (headRefResult.failed) {
       var headRef = headRefResult.get();
-      var parentRef = await resolveReference(headRef);
-      if (parentRef != null && parentRef.isHash) {
+      var parentRefResult = await resolveReference(headRef);
+      if (parentRefResult.succeeded && parentRefResult.get().isHash) {
+        var parentRef = parentRefResult.get();
         parents.add(parentRef.hash!);
       }
     }

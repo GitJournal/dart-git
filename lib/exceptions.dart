@@ -65,3 +65,11 @@ class GitObjectInvalidType implements GitException {
   @override
   String toString() => 'GitInvalidType: $type';
 }
+
+class GitBranchAlreadyExists implements GitException {
+  String branchName;
+  GitBranchAlreadyExists(this.branchName);
+
+  @override
+  String toString() => 'GitBranchExists: $branchName';
+}

@@ -79,8 +79,8 @@ class BranchCommand extends Command {
 
         if (rest.length == 1) {
           var name = argResults!.rest.first;
-          var hash = await repo.createBranch(name);
-          if (hash == null) {
+          var hashR = await repo.createBranch(name);
+          if (hashR.failed) {
             print("fatal: A branch named '$name' already exists.");
           }
         } else {

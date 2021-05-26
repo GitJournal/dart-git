@@ -54,7 +54,7 @@ class BranchCommand extends Command {
 
         if (showAll!) {
           for (var remote in repo.config.remotes) {
-            var refs = await repo.remoteBranches(remote.name);
+            var refs = await repo.remoteBranches(remote.name).get();
             refs.sort((a, b) {
               return a.name.branchName()!.compareTo(b.name.branchName()!);
             });

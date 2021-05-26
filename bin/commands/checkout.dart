@@ -40,11 +40,12 @@ class CheckoutCommand extends Command {
       var remoteName = splitPath(remoteFullBranchName).item1;
       var remoteBranchName = splitPath(remoteFullBranchName).item2;
 
-      var remoteRef = await repo.remoteBranch(remoteName, remoteBranchName);
-      if (remoteRef == null) {
+      var remoteRefR = await repo.remoteBranch(remoteName, remoteBranchName);
+      if (remoteRefR.failed) {
         print('fatal: remote $remoteName branch $remoteBranchName not found');
         return;
       }
+      var remoteRef = remoteRefR.get();
 
       await repo.createBranch(branchName, hash: remoteRef.hash);
       await repo.checkout('.');

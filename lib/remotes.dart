@@ -6,43 +6,51 @@ import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
 extension Remotes on GitRepository {
-  Future<List<Reference>> remoteBranches(String remoteName) async {
+  Future<Result<List<Reference>>> remoteBranches(String remoteName) async {
     if (config.remote(remoteName) == null) {
-      throw GitRemoteNotFound(remoteName);
+      var ex = GitRemoteNotFound(remoteName);
+      return Result.fail(ex);
     }
 
     var remoteRefsPrefix = '$refRemotePrefix$remoteName/';
-    var result = await refStorage.listReferences(remoteRefsPrefix);
-    return result.get();
+    return refStorage.listReferences(remoteRefsPrefix);
   }
 
-  Future<Reference?> remoteBranch(String remoteName, String branchName) async {
+  Future<Result<Reference>> remoteBranch(
+    String remoteName,
+    String branchName,
+  ) async {
     if (config.remote(remoteName) == null) {
-      throw GitRemoteNotFound(remoteName);
+      var ex = GitRemoteNotFound(remoteName);
+      return Result.fail(ex);
     }
 
     var remoteRef = ReferenceName.remote(remoteName, branchName);
-    var result = await refStorage.reference(remoteRef);
-    return result.data;
+    return refStorage.reference(remoteRef);
   }
 
-  Future<GitRemoteConfig> addRemote(String name, String url) async {
-    var existingRemote = config.remotes.firstWhereOrNull(
-      (r) => r.name == name,
-    );
+  Future<Result<GitRemoteConfig>> addRemote(String name, String url) async {
+    var existingRemote = config.remotes.firstWhereOrNull((r) => r.name == name);
     if (existingRemote != null) {
-      throw GitRemoteAlreadyExists(name);
+      var ex = GitRemoteAlreadyExists(name);
+      return Result.fail(ex);
     }
 
     var remote = GitRemoteConfig.create(name: name, url: url);
     config.remotes.add(remote);
 
-    await saveConfig();
+    var result = await saveConfig();
+    if (result.failed) {
+      return fail(result);
+    }
 
-    return remote;
+    return Result(remote);
   }
 
-  Future<GitRemoteConfig> addOrUpdateRemote(String name, String url) async {
+  Future<Result<GitRemoteConfig>> addOrUpdateRemote(
+    String name,
+    String url,
+  ) async {
     var i = config.remotes.indexWhere((r) => r.name == name);
     if (i == -1) {
       return addRemote(name, url);
@@ -53,25 +61,35 @@ extension Remotes on GitRepository {
       fetch: config.remotes[i].fetch,
       url: url,
     );
-    await saveConfig();
+    var result = await saveConfig();
+    if (result.failed) {
+      return fail(result);
+    }
 
-    return config.remotes[i];
+    return Result(config.remotes[i]);
   }
 
-  Future<GitRemoteConfig?> removeRemote(String name) async {
+  Future<Result<GitRemoteConfig>> removeRemote(String name) async {
     var i = config.remotes.indexWhere((r) => r.name == name);
     if (i == -1) {
-      return null;
+      var ex = GitRemoteNotFound(name);
+      return Result.fail(ex);
     }
 
     var remote = config.remotes[i];
     config.remotes.removeAt(i);
-    await saveConfig();
+    var cfgResult = await saveConfig();
+    if (cfgResult.failed) {
+      return fail(cfgResult);
+    }
 
-    await refStorage.removeReferences(refRemotePrefix + name);
+    var result = await refStorage.removeReferences(refRemotePrefix + name);
+    if (result.failed) {
+      return fail(result);
+    }
     // TODO: Remote the objects from that remote?
 
-    return remote;
+    return Result(remote);
   }
 
   Future<Reference?> guessRemoteHead(String remoteName) async {
@@ -80,7 +98,7 @@ extension Remotes on GitRepository {
     //
     // The ideal way is to use https://libgit2.org/libgit2/#HEAD/group/remote/git_remote_default_branch
     //
-    var branches = await remoteBranches(remoteName);
+    var branches = await remoteBranches(remoteName).get();
     if (branches.isEmpty) {
       return null;
     }

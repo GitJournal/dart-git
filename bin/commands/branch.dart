@@ -31,16 +31,18 @@ class BranchCommand extends Command {
     var hasNoArgs = argResults!['set-upstream-to'] == null && delete == false;
     if (hasNoArgs) {
       if (argResults!.rest.isEmpty) {
-        var head = await repo.head();
-        if (head == null) {
+        var headResult = await repo.head();
+        if (headResult.failed) {
           print('fatal: no head');
           return;
         }
+
+        var head = headResult.get();
         if (head.isHash) {
           print('* (HEAD detached at ${head.hash!.toOid()})');
         }
 
-        var branches = await repo.branches();
+        var branches = await repo.branches().get();
         branches.sort();
 
         for (var branch in branches) {

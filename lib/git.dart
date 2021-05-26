@@ -157,16 +157,27 @@ class GitRepository {
     return fs.file(p.join(gitDir, 'config')).writeAsString(config.serialize());
   }
 
-  Future<List<String>> branches() async {
+  Future<Result<List<String>>> branches() async {
     var refsResult = await refStorage.listReferences(refHeadPrefix);
-    var refNames = refsResult.get().map((r) => r.name);
+    if (refsResult.failed) {
+      return Result.fail(refsResult.error);
+    }
 
-    return refNames.map((r) => r.branchName()!).toList();
+    var refs = refsResult.get();
+    var refNames = refs.map((r) => r.name);
+    var branchNames = refNames.map((r) => r.branchName()!).toList();
+
+    return Result(branchNames);
   }
 
   Future<String?> currentBranch() async {
-    var _head = await head();
-    if (_head == null || _head.isHash) {
+    var headResult = await head();
+    if (headResult.failed) {
+      return null;
+    }
+
+    var _head = headResult.get();
+    if (_head.isHash) {
       return null;
     }
 
@@ -286,9 +297,13 @@ class GitRepository {
     return remote;
   }
 
-  Future<Reference?> head() async {
+  Future<Result<Reference>> head() async {
     var result = await refStorage.reference(ReferenceName('HEAD'));
-    return result.data;
+    if (result.failed) {
+      return Result.fail(result.error);
+    }
+
+    return Result(result.get());
   }
 
   Future<GitHash?> headHash() async {
@@ -354,12 +369,17 @@ class GitRepository {
       return false;
     }
 
-    var head = await this.head();
-    if (head == null || head.isHash) {
+    var headResult = await head();
+    if (headResult.failed) {
       return false;
     }
 
-    var brConfig = config.branch(head.target!.branchName()!);
+    var _head = headResult.get();
+    if (_head.isHash) {
+      return false;
+    }
+
+    var brConfig = config.branch(_head.target!.branchName()!);
     var brConfigMerge = brConfig?.merge;
     var brConfigRemote = brConfig?.remote;
     if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
@@ -367,7 +387,7 @@ class GitRepository {
       return false;
     }
 
-    var resolvedHead = await resolveReference(head);
+    var resolvedHead = await resolveReference(_head);
     if (resolvedHead == null) {
       return false;
     }

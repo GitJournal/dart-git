@@ -31,8 +31,10 @@ extension Commit on GitRepository {
     }
     var parents = <GitHash>[];
 
-    var headRef = await head();
-    if (headRef != null) {
+    var headRefResult = await head();
+    // FIXME: Make sure it failed because it doesn't exist.
+    if (headRefResult.failed) {
+      var headRef = headRefResult.get();
       var parentRef = await resolveReference(headRef);
       if (parentRef != null && parentRef.isHash) {
         parents.add(parentRef.hash!);
@@ -51,10 +53,11 @@ extension Commit on GitRepository {
     // Update the ref of the current branch
     var branchName = await currentBranch();
     if (branchName == null) {
-      var h = await head();
-      if (h == null) {
+      var result = await head();
+      if (result.failed) {
         throw Exception('Could not update current branch');
       }
+      var h = result.get();
       var target = h.target!;
       assert(target.isBranch());
       branchName = target.branchName();

@@ -17,11 +17,13 @@ class StatusCommand extends Command {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir).get();
 
-    var head = await repo.head();
-    if (head == null) {
+    var headResult = await repo.head();
+    if (headResult.failed) {
       print('fatal: no head found');
       return;
     }
+
+    var head = headResult.get();
     if (head.isHash) {
       print('HEAD detached at ${head.hash}');
     } else {

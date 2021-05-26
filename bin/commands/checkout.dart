@@ -27,7 +27,7 @@ class CheckoutCommand extends Command {
       if (argResults!.rest.isNotEmpty) {
         remoteFullBranchName = argResults!.rest[0];
       } else {
-        var branches = await repo.branches();
+        var branches = await repo.branches().get();
         if (branches.contains(branchName)) {
           await repo.checkoutBranch(branchName);
           return;
@@ -53,11 +53,13 @@ class CheckoutCommand extends Command {
       print(
           "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
 
-      var headRef = await repo.head();
-      if (headRef == null) {
+      var headRefResult = await repo.head();
+      if (headRefResult.failed) {
         print('fatal: head not found');
         return;
       }
+
+      var headRef = headRefResult.get();
       if (headRef.target!.branchName() == branchName) {
         print("Already on '$branchName'");
       }
@@ -71,7 +73,7 @@ class CheckoutCommand extends Command {
     }
 
     var pathSpec = argResults!.arguments[0];
-    var branches = await repo.branches();
+    var branches = await repo.branches().get();
     if (branches.contains(pathSpec)) {
       await repo.checkoutBranch(pathSpec);
       return;

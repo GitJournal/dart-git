@@ -386,7 +386,8 @@ class GitRepository {
     return resolvedHead.hash != remoteRef.hash;
   }
 
-  Future<int?> countTillAncestor(GitHash from, GitHash ancestor) async {
+  /// Returns -1 if unreachable
+  Future<Result<int>> countTillAncestor(GitHash from, GitHash ancestor) async {
     var seen = <GitHash>{};
     var parents = <GitHash>[];
     parents.add(from);
@@ -398,14 +399,11 @@ class GitRepository {
       parents.removeAt(0);
       seen.add(sha);
 
-      GitCommit? commit;
-      try {
-        var res = await objStorage.readCommit(sha);
-        commit = res.get();
-      } catch (e) {
-        print(e);
-        return null;
+      var commitR = await objStorage.readCommit(sha);
+      if (commitR.failed) {
+        return fail(commitR);
       }
+      var commit = commitR.get();
 
       for (var p in commit.parents) {
         if (seen.contains(p)) continue;
@@ -413,20 +411,20 @@ class GitRepository {
       }
     }
 
-    return parents.isEmpty ? null : seen.length;
+    return Result(parents.isEmpty ? -1 : seen.length);
   }
 
-  Future<int?> numChangesToPush() async {
+  Future<Result<int>> numChangesToPush() async {
     var head = await (this.head() as FutureOr<Reference>);
     if (head.isHash || head.target == null) {
-      return null;
+      return Result(0);
     }
 
     var brConfig = config.branch(head.target!.branchName()!);
     var brConfigMerge = brConfig?.merge;
     var brConfigRemote = brConfig?.remote;
     if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
-      return null;
+      return Result(0);
     }
 
     // Construct remote's branch
@@ -435,21 +433,30 @@ class GitRepository {
 
     var headRefResult = await resolveReference(head);
     var remoteRefResult = await resolveReferenceName(remoteRefName);
-    if (headRefResult.failed || remoteRefResult.failed) {
-      return null;
+    if (headRefResult.failed) {
+      return fail(headRefResult);
     }
+    if (remoteRefResult.failed) {
+      return fail(remoteRefResult);
+    }
+
     var headHash = headRefResult.get().hash;
     var remoteHash = remoteRefResult.get().hash;
 
     if (headHash == null || remoteHash == null) {
-      return null;
+      return Result(0);
     }
     if (headHash == remoteHash) {
-      return 0;
+      return Result(0);
     }
 
-    var aheadBy = await countTillAncestor(headHash, remoteHash);
-    return aheadBy != -1 ? aheadBy : 0;
+    var aheadByResult = await countTillAncestor(headHash, remoteHash);
+    if (aheadByResult.failed) {
+      return fail(aheadByResult);
+    }
+    var aheadBy = aheadByResult.get();
+
+    return Result(aheadBy != -1 ? aheadBy : 0);
   }
 
   Future<void> add(String pathSpec) async {

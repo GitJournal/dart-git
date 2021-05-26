@@ -45,11 +45,11 @@ class StatusCommand extends Command {
 
     var remoteStr = '${branch.remote}/$remoteBranchName';
     if (headHash != remoteHash) {
-      var aheadBy = await repo.countTillAncestor(headHash!, remoteHash!);
+      var aheadBy = await repo.countTillAncestor(headHash!, remoteHash!).get();
       if (aheadBy != -1) {
         print('Your branch is ahead of $remoteStr by $aheadBy commits');
       } else {
-        var behindBy = await repo.countTillAncestor(remoteHash, headHash);
+        var behindBy = await repo.countTillAncestor(remoteHash, headHash).get();
         if (behindBy != -1) {
           print('Your branch is behind $remoteStr by $behindBy commits');
         } else {

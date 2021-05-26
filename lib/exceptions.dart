@@ -1,4 +1,4 @@
-import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 
 class GitException implements Exception {}
 

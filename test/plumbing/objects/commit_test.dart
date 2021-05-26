@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:file/local.dart';
 import 'package:test/test.dart';
 
-import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/utils/result.dart';

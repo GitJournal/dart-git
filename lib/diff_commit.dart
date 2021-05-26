@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/diff_tree.dart';
-import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/storage/object_storage.dart';

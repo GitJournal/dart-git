@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/exceptions.dart';
-import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';

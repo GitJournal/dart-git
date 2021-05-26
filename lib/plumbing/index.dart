@@ -9,7 +9,7 @@ import 'package:quiver/core.dart';
 
 import 'package:dart_git/ascii_helper.dart';
 import 'package:dart_git/exceptions.dart';
-import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/utils/bytes_data_reader.dart';
 import 'package:dart_git/utils/file_mode.dart';
 import 'package:dart_git/utils/uint8list.dart';

@@ -3,8 +3,8 @@
 import 'package:test/test.dart';
 
 import 'package:dart_git/dart_git.dart';
-import 'package:dart_git/git_hash.dart';
 import 'package:dart_git/plumbing/commit_iterator.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import '../lib.dart';

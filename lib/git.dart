@@ -9,7 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:dart_git/config.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/fs.dart';
-import 'package:dart_git/git_hash.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';

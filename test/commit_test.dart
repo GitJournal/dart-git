@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'lib.dart';
@@ -36,7 +37,7 @@ void main() {
     });
 
     var repo = await GitRepository.load(tmpDir2).get();
-    await repo.commit(
+    var result = await repo.commit(
       message: 'Message\n',
       author: GitAuthor(
         name: 'Vishesh Handa',
@@ -45,9 +46,22 @@ void main() {
       ),
       addAll: true,
     );
+    expect(result.succeeded, isTrue);
 
     // Do a comparison
     await testRepoEquals(tmpDir2, tmpDir1);
+
+    // Make sure we cannot do empty commits
+    result = await repo.commit(
+      message: 'Message\n',
+      author: GitAuthor(
+        name: 'Vishesh Handa',
+        email: 'random@gmail.com',
+        date: date,
+      ),
+      addAll: true,
+    );
+    expect(result.error, isA<GitEmptyCommit>());
   });
 
   test('Sort directories', () {

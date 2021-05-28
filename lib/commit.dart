@@ -30,12 +30,6 @@ extension Commit on GitRepository {
       return fail(treeHashR);
     }
     var treeHash = treeHashR.get();
-    // FIXME: Check if empty commits are still not allowed!
-    /*
-    if (treeHash == null) {
-      throw Exception('WTF, there is nothing to add?');
-    }
-    */
     var parents = <GitHash>[];
 
     var headRefResult = await head();
@@ -49,6 +43,18 @@ extension Commit on GitRepository {
       if (parentRefResult.succeeded) {
         var parentRef = parentRefResult.get();
         parents.add(parentRef.hash!);
+      }
+    }
+
+    for (var parent in parents) {
+      var parentCommitR = await objStorage.read(parent);
+      if (parentCommitR.failed) {
+        return fail(parentCommitR);
+      }
+      var parentCommit = parentCommitR.get() as GitCommit;
+      if (parentCommit.treeHash == treeHash) {
+        var ex = GitEmptyCommit();
+        return Result.fail(ex);
       }
     }
 

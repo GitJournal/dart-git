@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show zlib;
 import 'dart:typed_data';
 
 import 'package:file/file.dart';
@@ -86,7 +86,7 @@ class ObjectStorage {
       packFilePath = packFilePath.substring(0, packFilePath.lastIndexOf('.'));
       packFilePath += '.pack';
 
-      var packFile = await PackFile.fromFile(idxFile, packFilePath);
+      var packFile = await PackFile.fromFile(idxFile, packFilePath, _fs);
       _packFiles.add(packFile);
     }
   }

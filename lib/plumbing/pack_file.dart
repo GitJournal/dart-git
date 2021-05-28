@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show zlib;
 import 'dart:typed_data';
 
 import 'package:buffer/buffer.dart';
+import 'package:file/file.dart';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
@@ -14,11 +15,17 @@ class PackFile {
   int numObjects = 0;
   IdxFile idx;
   String filePath;
+  FileSystem fs;
 
   static final int _headerSize = 16;
 
   // FIXME: BytesDataReader can throw a range error!
-  PackFile.decode(this.idx, this.filePath, Uint8List headerBytes) {
+  PackFile.decode({
+    required this.idx,
+    required this.filePath,
+    required Uint8List headerBytes,
+    required this.fs,
+  }) {
     assert(headerBytes.length == _headerSize);
 
     var reader = ByteDataReader(endian: Endian.big, copy: false);
@@ -44,12 +51,21 @@ class PackFile {
     numObjects = reader.readUint32();
   }
 
-  static Future<PackFile> fromFile(IdxFile idxFile, String filePath) async {
-    var file = await File(filePath).open(mode: FileMode.read);
+  static Future<PackFile> fromFile(
+    IdxFile idxFile,
+    String filePath,
+    FileSystem fs,
+  ) async {
+    var file = await fs.file(filePath).open(mode: FileMode.read);
     var bytes = await file.read(_headerSize);
     await file.close();
 
-    return PackFile.decode(idxFile, filePath, bytes);
+    return PackFile.decode(
+      idx: idxFile,
+      filePath: filePath,
+      headerBytes: bytes,
+      fs: fs,
+    );
   }
 
   // FIXME: Check the packFile hash from the idx?
@@ -67,7 +83,7 @@ class PackFile {
   }
 
   Future<GitObject?> _getObject(int offset) async {
-    var file = await File(filePath).open(mode: FileMode.read);
+    var file = await fs.file(filePath).open(mode: FileMode.read);
     await file.setPosition(offset);
 
     var headByte = await file.readByte();

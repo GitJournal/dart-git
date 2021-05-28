@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:file/local.dart';
 import 'package:test/test.dart';
 
 import 'package:dart_git/plumbing/git_hash.dart';
@@ -15,8 +16,9 @@ void main() {
     var idxFileBytes = File('$basePath/$packFileName.idx').readAsBytesSync();
     var idxFile = IdxFile.decode(idxFileBytes);
 
+    var fs = LocalFileSystem();
     var packfile =
-        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack');
+        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack', fs);
 
     var expectedHashes = [
       '350bac933de33894c7691a7225886810da7d7ec9',
@@ -42,8 +44,9 @@ void main() {
     var idxFileBytes = await File('$basePath/$packFileName.idx').readAsBytes();
     var idxFile = IdxFile.decode(idxFileBytes);
 
+    var fs = LocalFileSystem();
     var packfile =
-        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack');
+        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack', fs);
 
     var expectedHashes = [
       'eb853bd24cb29c1be6d4210200122e27b19fa7ce',
@@ -75,8 +78,9 @@ void main() {
     var idxFileBytes = await File('$basePath/$packFileName.idx').readAsBytes();
     var idxFile = IdxFile.decode(idxFileBytes);
 
+    var fs = LocalFileSystem();
     var packfile =
-        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack');
+        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack', fs);
 
     var obj = await packfile
         .object(GitHash('0d2a7502772ce4d1afdec4ed380181acd7ea91f0'));
@@ -93,8 +97,9 @@ void main() {
     var idxFileBytes = await File('$basePath/$packFileName.idx').readAsBytes();
     var idxFile = IdxFile.decode(idxFileBytes);
 
+    var fs = LocalFileSystem();
     var packfile =
-        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack');
+        await PackFile.fromFile(idxFile, '$basePath/$packFileName.pack', fs);
 
     var obj = await packfile
         .object(GitHash('6ecf0ef2c2dffb796033e5a02219af86ec6584e5'));

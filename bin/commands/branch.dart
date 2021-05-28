@@ -116,11 +116,12 @@ class BranchCommand extends Command {
         return;
       }
       var branchName = argResults!.rest.first;
-      var hash = await repo.deleteBranch(branchName);
-      if (hash == null) {
+      var hashR = await repo.deleteBranch(branchName);
+      if (hashR.failed) {
         print("error: branch '$branchName' not found.");
         return;
       }
+      var hash = hashR.get();
       print('Deleted branch $branchName (was ${hash.toOid()}).');
       return;
     }

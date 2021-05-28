@@ -89,3 +89,19 @@ class GitRemoteNotFound implements GitException {
   @override
   String toString() => 'GitRemoteNotFound: $name';
 }
+
+class InvalidFileType implements GitException {
+  final String filePath;
+  InvalidFileType(this.filePath);
+
+  @override
+  String toString() => 'InvalidFileType: $filePath';
+}
+
+class GitFileNotFound implements GitException {
+  String filePath;
+  GitFileNotFound(this.filePath);
+
+  @override
+  String toString() => 'GitFileNotFound: $filePath';
+}

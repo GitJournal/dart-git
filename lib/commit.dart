@@ -49,7 +49,11 @@ extension Commit on GitRepository {
       message: message,
       treeHash: treeHash,
     );
-    var hash = await objStorage.writeObject(commit);
+    var hashR = await objStorage.writeObject(commit);
+    if (hashR.failed) {
+      throw hashR.error!;
+    }
+    var hash = hashR.get();
 
     // Update the ref of the current branch
     var branchNameResult = await currentBranch();
@@ -167,8 +171,11 @@ extension Commit on GitRepository {
         );
       }
 
-      var hash = await objStorage.writeObject(tree);
-      hashMap[dir] = hash;
+      var hashR = await objStorage.writeObject(tree);
+      if (hashR.failed) {
+        throw hashR.error!;
+      }
+      hashMap[dir] = hashR.get();
     }
 
     return hashMap[''];

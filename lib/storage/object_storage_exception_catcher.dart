@@ -30,9 +30,8 @@ class ObjectStorageExceptionCatcher implements ObjectStorage {
   Future<Result<GitObject>> readObjectFromPath(String filePath) =>
       _.readObjectFromPath(filePath);
 
-  // FIXME: Catch exceptions over here!
   @override
-  Future<GitHash> writeObject(GitObject obj) => _.writeObject(obj);
+  Future<Result<GitHash>> writeObject(GitObject obj) => _.writeObject(obj);
 
   @override
   Future<Result<GitObject>> refSpec(GitTree tree, String spec) =>

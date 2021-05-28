@@ -124,7 +124,7 @@ class ObjectStorage {
     return createObject(fmtStr, rawData);
   }
 
-  Future<GitHash> writeObject(GitObject obj) async {
+  Future<Result<GitHash>> writeObject(GitObject obj) async {
     var result = obj.serialize();
     var hash = GitHash.compute(result);
     var sha = hash.toString();
@@ -135,13 +135,13 @@ class ObjectStorage {
 
     var exists = await _fs.isFile(path);
     if (exists) {
-      return hash;
+      return Result(hash);
     }
     var file = await _fs.file(path).open(mode: FileMode.writeOnly);
     await file.writeFrom(zlib.encode(result));
     await file.close();
 
-    return hash;
+    return Result(hash);
   }
 
   Future<Result<GitObject>> refSpec(GitTree tree, String spec) async {

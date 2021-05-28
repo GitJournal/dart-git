@@ -2,8 +2,8 @@ class Result<DataType> {
   DataType? data;
   Exception? error;
 
-  Result(this.data, {this.error});
-  Result.fail(this.error);
+  Result(DataType data, {this.error}) : data = data;
+  Result.fail(Exception error) : error = error;
 
   DataType get() {
     assert(data != null || error != null);
@@ -28,7 +28,7 @@ Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
 }
 
 Result<Base> downcast<Base, Derived>(Result<Derived> other) {
-  return Result(other.data as Base?, error: other.error);
+  return Result(other.data as Base, error: other.error);
 }
 
 extension ResultFuture<T> on Future<Result<T>> {
@@ -41,5 +41,6 @@ extension ResultFuture<T> on Future<Result<T>> {
 }
 
 Result<A> fail<A, B>(Result<B> result) {
-  return Result<A>.fail(result.error);
+  assert(result.error != null);
+  return Result<A>.fail(result.error!);
 }

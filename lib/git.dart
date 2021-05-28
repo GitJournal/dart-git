@@ -199,7 +199,8 @@ class GitRepository {
       return Result.fail(ex);
     }
 
-    var name = _head.target!.branchName();
+    // FIXE: Am I sure this will never throw an error?
+    var name = _head.target!.branchName()!;
     return Result(name);
   }
 
@@ -261,6 +262,22 @@ class GitRepository {
       return fail(result);
     }
     return Result(hash);
+  }
+
+  Future<Result<GitHash>> deleteBranch(String branchName) async {
+    var refName = ReferenceName.branch(branchName);
+    var refResult = await refStorage.reference(refName);
+    if (refResult.failed) {
+      return fail(refResult);
+    }
+    var ref = refResult.get();
+
+    var res = await refStorage.deleteReference(refName);
+    if (res.failed) {
+      return fail(res);
+    }
+
+    return Result(ref.hash!);
   }
 
   Future<Result<Reference>> head() async {
@@ -456,10 +473,14 @@ class GitRepository {
     return Result(aheadBy != -1 ? aheadBy : 0);
   }
 
-  Future<void> add(String pathSpec) async {
+  Future<Result<void>> add(String pathSpec) async {
     pathSpec = normalizePath(pathSpec);
 
-    var index = await indexStorage.readIndex().get();
+    var indexR = await indexStorage.readIndex();
+    if (indexR.failed) {
+      return fail(indexR);
+    }
+    var index = indexR.get();
 
     var stat = await fs.stat(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
@@ -467,24 +488,33 @@ class GitRepository {
     } else if (stat.type == FileSystemEntityType.directory) {
       await addDirectoryToIndex(index, pathSpec, recursive: true);
     } else {
-      throw Exception('Neither file or directory');
+      var ex = InvalidFileType(pathSpec);
+      return Result.fail(ex);
     }
 
-    await indexStorage.writeIndex(index);
+    return indexStorage.writeIndex(index);
   }
 
-  Future<GitIndexEntry?> addFileToIndex(GitIndex index, String filePath) async {
+  Future<Result<GitIndexEntry>> addFileToIndex(
+    GitIndex index,
+    String filePath,
+  ) async {
     filePath = normalizePath(filePath);
 
     var file = fs.file(filePath);
     if (!file.existsSync()) {
-      return null;
+      var ex = GitFileNotFound(filePath);
+      return Result.fail(ex);
     }
 
     // Save that file as a blob
     var data = await file.readAsBytes();
     var blob = GitBlob(data, null);
-    var hash = await objStorage.writeObject(blob);
+    var hashR = await objStorage.writeObject(blob);
+    if (hashR.failed) {
+      return fail(hashR);
+    }
+    var hash = hashR.get();
 
     var pathSpec = filePath;
     if (pathSpec.startsWith(workTree)) {
@@ -503,13 +533,13 @@ class GitRepository {
 
       entry.cTime = stat.changed;
       entry.mTime = stat.modified;
-      return entry;
+      return Result(entry);
     }
 
     // New file
     entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
     index.entries.add(entry);
-    return entry;
+    return Result(entry);
   }
 
   Future<void> addDirectoryToIndex(GitIndex index, String dirPath,
@@ -576,17 +606,6 @@ class GitRepository {
 
       await rmFileFromIndex(index, fsEntity.path);
     }
-  }
-
-  Future<GitHash?> deleteBranch(String branchName) async {
-    var refName = ReferenceName.branch(branchName);
-    var refResult = await refStorage.reference(refName);
-    if (refResult.failed) {
-      return null;
-    }
-
-    await refStorage.deleteReference(refName);
-    return refResult.get().hash;
   }
 
   String normalizePath(String path) {

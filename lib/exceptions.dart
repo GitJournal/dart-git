@@ -2,6 +2,8 @@ import 'package:dart_git/plumbing/git_hash.dart';
 
 class GitException implements Exception {}
 
+class GitNotFound implements GitException {}
+
 class InvalidRepoException implements GitException {
   String path;
   InvalidRepoException(this.path);
@@ -40,7 +42,7 @@ class GitObjectNotFound implements GitException {
   String toString() => 'GitObjectNotFound: $hash';
 }
 
-class GitObjectWithRefSpecNotFound implements GitException {
+class GitObjectWithRefSpecNotFound implements GitNotFound {
   String refSpec;
   GitObjectWithRefSpecNotFound(this.refSpec);
 
@@ -82,7 +84,7 @@ class GitRemoteAlreadyExists implements GitException {
   String toString() => 'GitRemoteAlreadyExists: $name';
 }
 
-class GitRemoteNotFound implements GitException {
+class GitRemoteNotFound implements GitNotFound {
   String name;
   GitRemoteNotFound(this.name);
 
@@ -98,7 +100,7 @@ class InvalidFileType implements GitException {
   String toString() => 'InvalidFileType: $filePath';
 }
 
-class GitFileNotFound implements GitException {
+class GitFileNotFound implements GitNotFound {
   String filePath;
   GitFileNotFound(this.filePath);
 

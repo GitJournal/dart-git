@@ -138,7 +138,7 @@ extension Checkout on GitRepository {
         var from = change.from!;
 
         await fs.file(p.join(workTree, from.path)).delete(recursive: true);
-        await index.removePath(from.path);
+        index.removePath(from.path);
         await _deleteEmptyDirectories(workTree, from.path);
       }
     }

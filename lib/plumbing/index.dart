@@ -204,6 +204,7 @@ class GitIndex {
   static final _listEq = const ListEquality().equals;
 
   Future<void> addPath(String path, GitHash hash) async {
+    // FIXME: Do not use FS operations over here!
     var stat = await FileStat.stat(path);
     var entry = GitIndexEntry.fromFS(path, stat, hash);
     entries.add(entry);
@@ -212,6 +213,7 @@ class GitIndex {
   Future<void> updatePath(String path, GitHash hash) async {
     var entry = entries.firstWhereOrNull((e) => e.path == path);
     if (entry == null) {
+      // FIXME: Do not use FS operations over here!
       var stat = await FileStat.stat(path);
       var entry = GitIndexEntry.fromFS(path, stat, hash);
       entries.add(entry);
@@ -228,7 +230,7 @@ class GitIndex {
     entry.mTime = stat.modified;
   }
 
-  Future<GitHash?> removePath(String pathSpec) async {
+  GitHash? removePath(String pathSpec) {
     var i = entries.indexWhere((e) => e.path == pathSpec);
     if (i == -1) {
       return null;

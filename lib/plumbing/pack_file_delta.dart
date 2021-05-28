@@ -178,17 +178,17 @@ List<int?> emitCopy(List<int?> opcodes, Uint8List source, int offset, int len) {
   }
 
   if (offset & 0xff00 > 0) {
-    opcodes.add(_zeroFillRightShift((offset & 0xff00), 8));
+    opcodes.add(_zeroFillRightShift(offset & 0xff00, 8));
     code |= 0x02;
   }
 
   if (offset & 0xff0000 > 0) {
-    opcodes.add(_zeroFillRightShift((offset & 0xff0000), 16));
+    opcodes.add(_zeroFillRightShift(offset & 0xff0000, 16));
     code |= 0x04;
   }
 
   if (offset & 0xff000000 > 0) {
-    opcodes.add(_zeroFillRightShift((offset & 0xff000000), 24));
+    opcodes.add(_zeroFillRightShift(offset & 0xff000000, 24));
     code |= 0x08;
   }
 
@@ -198,12 +198,12 @@ List<int?> emitCopy(List<int?> opcodes, Uint8List source, int offset, int len) {
   }
 
   if (len & 0xff00 > 0) {
-    opcodes.add(_zeroFillRightShift((len & 0xff00), 8));
+    opcodes.add(_zeroFillRightShift(len & 0xff00, 8));
     code |= 0x20;
   }
 
   if (len & 0xff0000 > 0) {
-    opcodes.add(_zeroFillRightShift((len & 0xff0000), 16));
+    opcodes.add(_zeroFillRightShift(len & 0xff0000, 16));
     code |= 0x40;
   }
 

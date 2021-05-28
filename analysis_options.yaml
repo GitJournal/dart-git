@@ -5,6 +5,10 @@ linter:
     - avoid_slow_async_io
     - unnecessary_brace_in_string_interps
     #- hash_and_equals
+    - unnecessary_await_in_return
+    - unnecessary_const
+    - unnecessary_parenthesis
+    - use_string_buffers
 
 analyzer:
   strong-mode:

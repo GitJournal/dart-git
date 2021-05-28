@@ -58,7 +58,7 @@ class DateTimeWithTzOffset implements DateTime {
   }
 
   @override
-  int get hashCode => (_native.hashCode ^ offset.hashCode);
+  int get hashCode => _native.hashCode ^ offset.hashCode;
 
   @override
   DateTime toLocal() {

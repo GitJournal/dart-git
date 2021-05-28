@@ -77,14 +77,14 @@ class PackFile {
 
     // the length is codified in the last 4 bits of the first byte and in
     // the last 7 bits of subsequent bytes.  Last byte has a 0 MSB.
-    var size = (headByte & 0xf);
+    var size = headByte & 0xf;
     var bitsToShift = 4;
 
     while (needMore) {
       var headByte = await file.readByte();
 
       needMore = (0x80 & headByte) > 0;
-      size += ((headByte & 0x7f) << bitsToShift);
+      size += (headByte & 0x7f) << bitsToShift;
       bitsToShift += 7;
     }
 

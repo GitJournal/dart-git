@@ -44,8 +44,7 @@ abstract class GitObject {
 
 Function _listEq = const ListEquality().equals;
 
-Result<GitObject> createObject(String fmt, Uint8List rawData,
-    [String? filePath]) {
+Result<GitObject> createObject(String fmt, Uint8List rawData) {
   GitObject obj;
 
   if (fmt == GitBlob.fmt) {

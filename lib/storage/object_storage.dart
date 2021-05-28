@@ -121,7 +121,7 @@ class ObjectStorage {
 
     var fmtStr = ascii.decode(fmt);
     var rawData = raw.sublistView(y + 1);
-    return createObject(fmtStr, rawData, filePath);
+    return createObject(fmtStr, rawData);
   }
 
   Future<GitHash> writeObject(GitObject obj) async {
@@ -164,13 +164,9 @@ class ObjectStorage {
           return Result(obj);
         }
 
-        if (obj is GitTree) {
-          return refSpec(obj, remainingName);
-        } else {
-          return Result.fail(
-            GitObjectWithRefSpecNotFound(spec),
-          );
-        }
+        return obj is GitTree
+            ? await refSpec(obj, remainingName)
+            : Result.fail(GitObjectWithRefSpecNotFound(spec));
       }
     }
     return Result.fail(GitObjectWithRefSpecNotFound(spec));

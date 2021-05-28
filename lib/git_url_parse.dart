@@ -68,11 +68,7 @@ GitUrlParseResult? gitUrlParse(String url) {
 
   var protocol = uri.scheme;
   if (!uri.hasScheme) {
-    if (isSshUrl(url)) {
-      protocol = 'ssh';
-    } else {
-      protocol = 'file';
-    }
+    protocol = isSshUrl(url) ? 'ssh' : 'file';
   }
 
   // Remove trailing / if ends with .git

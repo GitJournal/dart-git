@@ -14,5 +14,17 @@ analyzer:
     missing_required_param: error
     missing_return: error
     todo: ignore
-  # enable-experiment:
-  # - non-nullable
+  plugins:
+    - dart_code_metrics
+
+dart_code_metrics:
+  metrics:
+    cyclomatic-complexity: 25
+  rules:
+    # - avoid-unused-parameters
+    - double-literal-format
+    - no-boolean-literal-compare
+    # - no-equal-arguments
+    # - no-magic-number
+    - no-object-declaration
+    - prefer-conditional-expressions

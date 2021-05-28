@@ -92,7 +92,3 @@ class CheckoutCommand extends Command {
     print('Updated $objectsUpdated path from the index');
   }
 }
-
-Future<void> checkoutPathSpec(GitRepository repo, String pathSpec) async {}
-Future<void> checkoutBranch(GitRepository repo, String branch) async {}
-Future<void> checkoutRemoteBranch(GitRepository repo, String branch) async {}

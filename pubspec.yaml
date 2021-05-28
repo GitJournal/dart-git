@@ -24,6 +24,7 @@ dev_dependencies:
   archive: ^3.1.2
   freezed: ^0.14.1+2
   build_runner:
+  dart_code_metrics: ^3.3.0
 
 environment:
   sdk: ">=2.12.0 <3.0.0"

@@ -455,11 +455,7 @@ class GitIndexEntry {
     const nameMask = 0xfff;
 
     var pathUtf8 = utf8.encode(path);
-    if (pathUtf8.length < nameMask) {
-      flags |= pathUtf8.length;
-    } else {
-      flags |= nameMask;
-    }
+    flags |= pathUtf8.length < nameMask ? pathUtf8.length : nameMask;
 
     writer.writeUint16(flags);
     writer.write(pathUtf8); // This is a problem!

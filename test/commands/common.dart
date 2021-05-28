@@ -64,13 +64,10 @@ Future<void> testGitCommand(
   bool containsMatch = false,
   bool ignoreOutput = false,
 }) async {
-  var outputL = <String>[];
   // hack: Untill we implement git fetch
-  if (command.startsWith('fetch')) {
-    outputL = (await runGitCommand(command, s.dartGitDir)).split('\n');
-  } else {
-    outputL = await runDartGitCommand(command, s.dartGitDir);
-  }
+  var outputL = command.startsWith('fetch')
+      ? (await runGitCommand(command, s.dartGitDir)).split('\n')
+      : await runDartGitCommand(command, s.dartGitDir);
   var output = outputL.join('\n').trim();
   var expectedOutput = await runGitCommand(command, s.realGitDir);
 

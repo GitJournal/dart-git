@@ -27,8 +27,10 @@ analyzer:
     - dart_code_metrics
 
 dart_code_metrics:
-  metrics:
-    cyclomatic-complexity: 25
+  metrics-exclude:
+    - bin/**
+    - lib/**
+    - test/**
   rules:
     # - avoid-unused-parameters
     - double-literal-format

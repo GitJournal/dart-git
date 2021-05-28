@@ -6,7 +6,6 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/config.dart';
 import 'package:dart_git/exceptions.dart';
-import 'package:dart_git/fs.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
@@ -19,6 +18,7 @@ import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/storage/object_storage_exception_catcher.dart';
 import 'package:dart_git/storage/reference_storage.dart';
 import 'package:dart_git/storage/reference_storage_exception_catcher.dart';
+import 'package:dart_git/utils/local_fs_with_checks.dart';
 import 'package:dart_git/utils/result.dart';
 
 export 'commit.dart';

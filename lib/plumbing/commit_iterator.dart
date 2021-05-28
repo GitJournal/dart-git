@@ -3,10 +3,11 @@ import 'dart:collection';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/utils/result.dart';
 
 // FIXME: How to deal with missing objects?
 
-Stream<GitCommit> commitIteratorBFS({
+Stream<Result<GitCommit>> commitIteratorBFS({
   required ObjectStorage objStorage,
   required GitCommit from,
 }) async* {
@@ -21,10 +22,14 @@ Stream<GitCommit> commitIteratorBFS({
     seen.add(hash);
 
     var result = await objStorage.readCommit(hash);
+    if (result.failed) {
+      yield fail(result);
+      continue;
+    }
     var commit = result.get();
 
     queue.addAll(commit.parents);
-    yield commit;
+    yield Result(commit);
   }
 }
 
@@ -32,7 +37,7 @@ typedef CommitFilter = bool Function(GitCommit commit);
 final _allCommitsValidFilter = (GitCommit _) => true;
 final _allCommitsNotValidFilter = (GitCommit _) => false;
 
-Stream<GitCommit> commitIteratorBFSFiltered({
+Stream<Result<GitCommit>> commitIteratorBFSFiltered({
   required ObjectStorage objStorage,
   required GitCommit from,
   CommitFilter? isValid,
@@ -52,18 +57,22 @@ Stream<GitCommit> commitIteratorBFSFiltered({
     seen.add(hash);
 
     var result = await objStorage.readCommit(hash);
+    if (result.failed) {
+      yield fail(result);
+      continue;
+    }
     var commit = result.get();
 
     if (!isLimit(commit)) {
       queue.addAll(commit.parents);
     }
     if (isValid(commit)) {
-      yield commit;
+      yield Result(commit);
     }
   }
 }
 
-Stream<GitCommit> commitPreOrderIterator({
+Stream<Result<GitCommit>> commitPreOrderIterator({
   required ObjectStorage objStorage,
   required GitCommit from,
 }) async* {
@@ -78,9 +87,13 @@ Stream<GitCommit> commitPreOrderIterator({
     seen.add(hash);
 
     var result = await objStorage.readCommit(hash);
+    if (result.failed) {
+      yield fail(result);
+      continue;
+    }
     var commit = result.get();
 
     stack.addAll(commit.parents.reversed);
-    yield commit;
+    yield Result(commit);
   }
 }

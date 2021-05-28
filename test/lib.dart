@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
-import 'package:async/async.dart';
+import 'package:async/async.dart' show NullStreamSink;
 import 'package:path/path.dart' as p;
 import 'package:process_run/process_run.dart';
 import 'package:process_run/shell.dart' as shell;
@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 
 import 'package:dart_git/config.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
+import 'package:dart_git/utils/result.dart';
 import '../bin/main.dart' as git;
 
 var silenceShellOutput = true;
@@ -242,10 +243,11 @@ Future<String> openFixture(String filePath) async {
   return gitDir;
 }
 
-extension GitStream on Stream<GitCommit> {
+extension GitStream on Stream<Result<GitCommit>> {
   Future<List<String>> asHashStrings() async {
     var list = <String>[];
-    await for (var commit in this) {
+    await for (var commitR in this) {
+      var commit = commitR.get();
       var hash = commit.hash.toString();
       list.add(hash);
     }

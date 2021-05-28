@@ -18,12 +18,11 @@ extension Commit on GitRepository {
   }) async {
     committer ??= author;
 
-    var index = await indexStorage.readIndex().get();
-
     if (addAll) {
-      await addDirectoryToIndex(index, workTree, recursive: true);
-      await indexStorage.writeIndex(index);
+      await add(workTree);
     }
+
+    var index = await indexStorage.readIndex().get();
 
     var treeHash = await writeTree(index);
     if (treeHash == null) {

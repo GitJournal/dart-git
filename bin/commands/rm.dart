@@ -19,6 +19,7 @@ class RmCommand extends Command {
     var filePath = argResults!.arguments[0];
     var index = await repo.indexStorage.readIndex().get();
 
+    // FIXME: Use rm method, do we ever need to read the index?
     var hashR = await repo.rmFileFromIndex(index, filePath);
     if (hashR.failed) {
       print("fatal: pathspec '$filePath' did not match any files");

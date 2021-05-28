@@ -19,9 +19,6 @@ linter:
     - sort_pub_dependencies
 
 analyzer:
-  strong-mode:
-    implicit-casts: true
-    implicit-dynamic: true
   errors:
     missing_required_param: error
     missing_return: error

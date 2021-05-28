@@ -2,6 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/dart_git.dart';
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
@@ -10,7 +11,7 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Commit on GitRepository {
-  Future<GitCommit> commit({
+  Future<Result<GitCommit>> commit({
     required String message,
     required GitAuthor author,
     GitAuthor? committer,
@@ -24,18 +25,28 @@ extension Commit on GitRepository {
 
     var index = await indexStorage.readIndex().get();
 
-    var treeHash = await writeTree(index);
+    var treeHashR = await writeTree(index);
+    if (treeHashR.failed) {
+      return fail(treeHashR);
+    }
+    var treeHash = treeHashR.get();
+    // FIXME: Check if empty commits are still not allowed!
+    /*
     if (treeHash == null) {
       throw Exception('WTF, there is nothing to add?');
     }
+    */
     var parents = <GitHash>[];
 
     var headRefResult = await head();
-    // FIXME: Make sure it failed because it doesn't exist.
     if (headRefResult.failed) {
+      if (headRefResult.error is! GitRefNotFound) {
+        return fail(headRefResult);
+      }
+    } else {
       var headRef = headRefResult.get();
       var parentRefResult = await resolveReference(headRef);
-      if (parentRefResult.succeeded && parentRefResult.get().isHash) {
+      if (parentRefResult.succeeded) {
         var parentRef = parentRefResult.get();
         parents.add(parentRef.hash!);
       }
@@ -50,33 +61,42 @@ extension Commit on GitRepository {
     );
     var hashR = await objStorage.writeObject(commit);
     if (hashR.failed) {
-      throw hashR.error!;
+      return fail(hashR);
     }
     var hash = hashR.get();
 
     // Update the ref of the current branch
+    late String branchName;
+
     var branchNameResult = await currentBranch();
-    // FIXME: What are the acceptable failure conditions over here?
-    var branchName = branchNameResult.data;
-    if (branchName == null) {
-      var result = await head();
-      if (result.failed) {
-        throw Exception('Could not update current branch');
+    if (branchNameResult.failed) {
+      if (branchNameResult.error is GitHeadDetached) {
+        var result = await head();
+        if (result.failed) {
+          return fail(result);
+        }
+
+        var h = result.get();
+        var target = h.target!;
+        assert(target.isBranch());
+        branchName = target.branchName()!;
+      } else {
+        return fail(branchNameResult);
       }
-      var h = result.get();
-      var target = h.target!;
-      assert(target.isBranch());
-      branchName = target.branchName();
+    } else {
+      branchName = branchNameResult.get();
     }
 
-    var newRef = Reference.hash(ReferenceName.branch(branchName!), hash);
+    var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
+    var saveRefResult = await refStorage.saveRef(newRef);
+    if (saveRefResult.failed) {
+      return fail(saveRefResult);
+    }
 
-    await refStorage.saveRef(newRef);
-
-    return commit;
+    return Result(commit);
   }
 
-  Future<GitHash?> writeTree(GitIndex index) async {
+  Future<Result<GitHash>> writeTree(GitIndex index) async {
     var allTreeDirs = {''};
     var treeObjects = {'': GitTree.empty()};
     var treeObjFullPath = <GitTree, String>{};
@@ -172,12 +192,12 @@ extension Commit on GitRepository {
 
       var hashR = await objStorage.writeObject(tree);
       if (hashR.failed) {
-        throw hashR.error!;
+        return fail(hashR);
       }
       hashMap[dir] = hashR.get();
     }
 
-    return hashMap[''];
+    return Result(hashMap['']!);
   }
 }
 

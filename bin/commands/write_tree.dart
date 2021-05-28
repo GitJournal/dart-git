@@ -17,7 +17,7 @@ class WriteTreeCommand extends Command {
     var repo = await GitRepository.load(gitRootDir).get();
 
     var index = await repo.indexStorage.readIndex().get();
-    var hash = await repo.writeTree(index);
+    var hash = await repo.writeTree(index).get();
     print(hash);
   }
 }

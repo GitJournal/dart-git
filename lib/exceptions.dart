@@ -1,4 +1,5 @@
 import 'package:dart_git/plumbing/git_hash.dart';
+import 'package:dart_git/plumbing/reference.dart';
 
 class GitException implements Exception {}
 
@@ -82,6 +83,14 @@ class GitRemoteAlreadyExists implements GitException {
 
   @override
   String toString() => 'GitRemoteAlreadyExists: $name';
+}
+
+class GitRefNotFound implements GitNotFound {
+  ReferenceName refName;
+  GitRefNotFound(this.refName);
+
+  @override
+  String toString() => 'GitRefNotFound: $refName';
 }
 
 class GitRemoteNotFound implements GitNotFound {

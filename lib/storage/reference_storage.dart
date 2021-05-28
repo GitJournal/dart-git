@@ -140,11 +140,3 @@ List<Reference> _loadPackedRefs(String raw) {
 
   return refs;
 }
-
-class GitRefNotFound implements GitException {
-  ReferenceName refName;
-  GitRefNotFound(this.refName);
-
-  @override
-  String toString() => 'GitRefNotFound: $refName';
-}

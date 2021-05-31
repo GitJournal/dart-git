@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
+import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
@@ -9,34 +10,46 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/result.dart';
 
 extension Checkout on GitRepository {
-  Future<int?> checkout(String path) async {
+  Future<Result<int>> checkout(String path) async {
     path = normalizePath(path);
 
     var treeR = await headTree();
     if (treeR.failed) {
-      return null;
+      return fail(treeR);
     }
     var tree = treeR.get();
 
     var spec = path.substring(workTree.length);
     var objRes = await objStorage.refSpec(tree, spec);
+    if (objRes.failed) {
+      return fail(objRes);
+    }
     var obj = objRes.get();
 
     if (obj is GitBlob) {
       await fs.directory(p.dirname(path)).create(recursive: true);
       await fs.file(path).writeAsBytes(obj.blobData);
-      return 1;
+      return Result(1);
     }
 
     var index = GitIndex(versionNo: 2);
-    var numFiles = await _checkoutTree(spec, obj as GitTree, index);
-    await indexStorage.writeIndex(index);
+    var numFilesResult = await _checkoutTree(spec, obj as GitTree, index);
+    if (numFilesResult.failed) {
+      return fail(numFilesResult);
+    }
+    var result = await indexStorage.writeIndex(index);
+    if (result.failed) {
+      return fail(result);
+    }
 
-    return numFiles;
+    return numFilesResult;
   }
 
-  Future<int> _checkoutTree(
-      String relativePath, GitTree tree, GitIndex index) async {
+  Future<Result<int>> _checkoutTree(
+    String relativePath,
+    GitTree tree,
+    GitIndex index,
+  ) async {
     assert(!relativePath.startsWith(p.separator));
 
     var dir = fs.directory(p.join(workTree, relativePath));
@@ -44,19 +57,19 @@ extension Checkout on GitRepository {
 
     var updated = 0;
     for (var leaf in tree.entries) {
-      var obj = await objStorage.read(leaf.hash).get();
-      /*
-      if (obj == null) {
-        // FIXME: Shout out an error, this is a problem?
-        //        For now I'm silently continuing
-        continue;
+      var objR = await objStorage.read(leaf.hash);
+      if (objR.failed) {
+        return fail(objR);
       }
-      */
+      var obj = objR.get();
 
       var leafRelativePath = p.join(relativePath, leaf.name);
       if (obj is GitTree) {
-        var c = await _checkoutTree(leafRelativePath, obj, index);
-        updated += c;
+        var res = await _checkoutTree(leafRelativePath, obj, index);
+        if (res.failed) {
+          return fail(res);
+        }
+        updated += res.get();
         continue;
       }
 
@@ -68,58 +81,81 @@ extension Checkout on GitRepository {
       await fs.directory(p.dirname(blobPath)).create(recursive: true);
       await fs.file(blobPath).writeAsBytes(blob.blobData);
 
-      await addFileToIndex(index, blobPath);
+      var res = await addFileToIndex(index, blobPath);
+      if (res.failed) {
+        return fail(res);
+      }
       updated++;
     }
 
-    return updated;
+    return Result(updated);
   }
 
-  Future<Reference?> checkoutBranch(String branchName) async {
+  Future<Result<Reference>> checkoutBranch(String branchName) async {
     var refRes = await refStorage.reference(ReferenceName.branch(branchName));
-    if (refRes.failed || refRes.get().isSymbolic) {
-      return null;
+    if (refRes.failed) {
+      return fail(refRes);
     }
     var ref = refRes.get();
     assert(ref.isHash);
 
     var headCommitR = await headCommit();
     if (headCommitR.failed) {
-      var result = await objStorage.readCommit(ref.hash!);
-      var commit = result.get();
-      /*
-      if (obj == null) {
-        return null;
+      if (headCommitR.error is! GitRefNotFound) {
+        return fail(headCommitR);
       }
-      */
+
+      var commitR = await objStorage.readCommit(ref.hash!);
+      if (commitR.failed) {
+        return fail(commitR);
+      }
+      var commit = commitR.get();
+
       var treeObjRes = await objStorage.readTree(commit.treeHash);
+      if (treeObjRes.failed) {
+        return fail(treeObjRes);
+      }
+      var treeObj = treeObjRes.get();
 
       var index = GitIndex(versionNo: 2);
-      await _checkoutTree('', treeObjRes.get(), index);
-      await indexStorage.writeIndex(index);
+      var checkoutR = await _checkoutTree('', treeObj, index);
+      if (checkoutR.failed) {
+        return fail(checkoutR);
+      }
+
+      var writeR = await indexStorage.writeIndex(index);
+      if (writeR.failed) {
+        return fail(writeR);
+      }
 
       // Set HEAD to to it
       var branchRef = ReferenceName.branch(branchName);
       var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
-      await refStorage.saveRef(headRef);
+      var saveRefR = await refStorage.saveRef(headRef);
+      if (saveRefR.failed) {
+        return fail(saveRefR);
+      }
 
-      return ref;
+      return Result(ref);
     }
     var _headCommit = headCommitR.get();
 
     var res = await objStorage.readCommit(ref.hash!);
+    if (res.failed) {
+      return fail(res);
+    }
     var branchCommit = res.get();
-    /*
-    if (branchCommitObj == null) {
-      return null;
-    }*/
 
     var blobChanges = await diffCommits(
       fromCommit: _headCommit,
       toCommit: branchCommit,
       objStore: objStorage,
     );
-    var index = await indexStorage.readIndex().get();
+    var indexR = await indexStorage.readIndex();
+    if (indexR.failed) {
+      return fail(indexR);
+    }
+    var index = indexR.get();
 
     for (var change in blobChanges.merged()) {
       if (change.added || change.modified) {
@@ -150,7 +186,7 @@ extension Checkout on GitRepository {
     var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
     await refStorage.saveRef(headRef);
 
-    return ref;
+    return Result(ref);
   }
 
   Future<void> _deleteEmptyDirectories(String workTree, String path) async {

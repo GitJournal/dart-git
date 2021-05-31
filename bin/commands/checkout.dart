@@ -82,13 +82,14 @@ class CheckoutCommand extends Command {
 
     // TODO: Check if one of the remotes contains this branch
 
-    var objectsUpdated = await repo.checkout(pathSpec);
+    var objectsUpdatedR = await repo.checkout(pathSpec);
 
-    if (objectsUpdated == null) {
+    if (objectsUpdatedR.failed) {
       print(
           "error: pathspec '$pathSpec' did not match any file(s) known to git");
       exit(1);
     }
+    var objectsUpdated = objectsUpdatedR.get();
     print('Updated $objectsUpdated path from the index');
   }
 }

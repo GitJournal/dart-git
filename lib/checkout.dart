@@ -171,12 +171,19 @@ extension Checkout on GitRepository {
       }
     }
 
-    await indexStorage.writeIndex(index);
+    var writeR = await indexStorage.writeIndex(index);
+    if (writeR.failed) {
+      return fail(writeR);
+    }
 
     // Set HEAD to to it
     var branchRef = ReferenceName.branch(branchName);
     var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
-    await refStorage.saveRef(headRef);
+
+    var saveRefR = await refStorage.saveRef(headRef);
+    if (saveRefR.failed) {
+      return fail(saveRefR);
+    }
 
     return Result(ref);
   }

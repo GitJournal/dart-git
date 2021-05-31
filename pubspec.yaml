@@ -21,7 +21,7 @@ dev_dependencies:
   build_runner:
   dart_code_metrics: ^3.3.0
   freezed: ^0.14.1+2
-  import_sorter: ^4.5.1
+  import_sorter: ^4.6.0
   pedantic: ^1.11.0
   process_run: ^0.12.1
   test: ^1.17.5

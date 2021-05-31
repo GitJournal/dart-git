@@ -13,36 +13,28 @@ extension Checkout on GitRepository {
   Future<Result<int>> checkout(String path) async {
     path = normalizePath(path);
 
-    var treeR = await headTree();
-    if (treeR.failed) {
-      return fail(treeR);
-    }
-    var tree = treeR.get();
+    try {
+      var tree = await headTree().get();
+      var spec = path.substring(workTree.length);
+      var obj = await objStorage.refSpec(tree, spec).get();
 
-    var spec = path.substring(workTree.length);
-    var objRes = await objStorage.refSpec(tree, spec);
-    if (objRes.failed) {
-      return fail(objRes);
-    }
-    var obj = objRes.get();
+      if (obj is GitBlob) {
+        await fs.directory(p.dirname(path)).create(recursive: true);
+        await fs.file(path).writeAsBytes(obj.blobData);
+        return Result(1);
+      }
 
-    if (obj is GitBlob) {
-      await fs.directory(p.dirname(path)).create(recursive: true);
-      await fs.file(path).writeAsBytes(obj.blobData);
-      return Result(1);
-    }
+      var index = GitIndex(versionNo: 2);
+      var numFiles = await _checkoutTree(spec, obj as GitTree, index).get();
+      var result = await indexStorage.writeIndex(index);
+      if (result.failed) {
+        return fail(result);
+      }
 
-    var index = GitIndex(versionNo: 2);
-    var numFilesResult = await _checkoutTree(spec, obj as GitTree, index);
-    if (numFilesResult.failed) {
-      return fail(numFilesResult);
+      return Result(numFiles);
+    } catch (ex) {
+      return Result.fail(ex as Exception);
     }
-    var result = await indexStorage.writeIndex(index);
-    if (result.failed) {
-      return fail(result);
-    }
-
-    return numFilesResult;
   }
 
   Future<Result<int>> _checkoutTree(

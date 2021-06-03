@@ -10,32 +10,27 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/result.dart';
 
 extension Checkout on GitRepository {
-  Future<Result<int>> checkout(String path) async {
+  Future<Result<int>> checkout(String path) => catchAll(() => _checkout(path));
+
+  Future<Result<int>> _checkout(String path) async {
     path = normalizePath(path);
 
-    try {
-      var tree = await headTree().getOrThrow();
-      var spec = path.substring(workTree.length);
-      var obj = await objStorage.refSpec(tree, spec).getOrThrow();
+    var tree = await headTree().getOrThrow();
+    var spec = path.substring(workTree.length);
+    var obj = await objStorage.refSpec(tree, spec).getOrThrow();
 
-      if (obj is GitBlob) {
-        await fs.directory(p.dirname(path)).create(recursive: true);
-        await fs.file(path).writeAsBytes(obj.blobData);
-        return Result(1);
-      }
-
-      var index = GitIndex(versionNo: 2);
-      var numFiles =
-          await _checkoutTree(spec, obj as GitTree, index).getOrThrow();
-      var result = await indexStorage.writeIndex(index);
-      if (result.isFailure) {
-        return fail(result);
-      }
-
-      return Result(numFiles);
-    } catch (ex) {
-      return Result.fail(ex as Exception);
+    if (obj is GitBlob) {
+      await fs.directory(p.dirname(path)).create(recursive: true);
+      await fs.file(path).writeAsBytes(obj.blobData);
+      return Result(1);
     }
+
+    var index = GitIndex(versionNo: 2);
+    var numFiles =
+        await _checkoutTree(spec, obj as GitTree, index).getOrThrow();
+    await indexStorage.writeIndex(index).throwOnError();
+
+    return Result(numFiles);
   }
 
   Future<Result<int>> _checkoutTree(
@@ -84,12 +79,13 @@ extension Checkout on GitRepository {
     return Result(updated);
   }
 
-  Future<Result<Reference>> checkoutBranch(String branchName) async {
-    var refRes = await refStorage.reference(ReferenceName.branch(branchName));
-    if (refRes.isFailure) {
-      return fail(refRes);
-    }
-    var ref = refRes.getOrThrow();
+  Future<Result<Reference>> checkoutBranch(String branchName) async =>
+      catchAll(() => _checkoutBranch(branchName));
+
+  Future<Result<Reference>> _checkoutBranch(String branchName) async {
+    var ref = await refStorage
+        .reference(ReferenceName.branch(branchName))
+        .getOrThrow();
     assert(ref.isHash);
 
     var headCommitR = await headCommit();
@@ -98,63 +94,35 @@ extension Checkout on GitRepository {
         return fail(headCommitR);
       }
 
-      var commitR = await objStorage.readCommit(ref.hash!);
-      if (commitR.isFailure) {
-        return fail(commitR);
-      }
-      var commit = commitR.getOrThrow();
-
-      var treeObjRes = await objStorage.readTree(commit.treeHash);
-      if (treeObjRes.isFailure) {
-        return fail(treeObjRes);
-      }
-      var treeObj = treeObjRes.getOrThrow();
+      var commit = await objStorage.readCommit(ref.hash!).getOrThrow();
+      var treeObj = await objStorage.readTree(commit.treeHash).getOrThrow();
 
       var index = GitIndex(versionNo: 2);
-      var checkoutR = await _checkoutTree('', treeObj, index);
-      if (checkoutR.isFailure) {
-        return fail(checkoutR);
-      }
-
-      var writeR = await indexStorage.writeIndex(index);
-      if (writeR.isFailure) {
-        return fail(writeR);
-      }
+      await _checkoutTree('', treeObj, index).throwOnError();
+      await indexStorage.writeIndex(index).throwOnError();
 
       // Set HEAD to to it
       var branchRef = ReferenceName.branch(branchName);
       var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
-      var saveRefR = await refStorage.saveRef(headRef);
-      if (saveRefR.isFailure) {
-        return fail(saveRefR);
-      }
+      await refStorage.saveRef(headRef).throwOnError();
 
       return Result(ref);
     }
     var _headCommit = headCommitR.getOrThrow();
 
-    var res = await objStorage.readCommit(ref.hash!);
-    if (res.isFailure) {
-      return fail(res);
-    }
-    var branchCommit = res.getOrThrow();
+    var branchCommit = await objStorage.readCommit(ref.hash!).getOrThrow();
 
     var blobChanges = await diffCommits(
       fromCommit: _headCommit,
       toCommit: branchCommit,
       objStore: objStorage,
     );
-    var indexR = await indexStorage.readIndex();
-    if (indexR.isFailure) {
-      return fail(indexR);
-    }
-    var index = indexR.getOrThrow();
+    var index = await indexStorage.readIndex().getOrThrow();
 
     for (var change in blobChanges.merged()) {
       if (change.added || change.modified) {
         var to = change.to!;
-        var blobObjRes = await objStorage.readBlob(to.hash);
-        var blobObj = blobObjRes.getOrThrow();
+        var blobObj = await objStorage.readBlob(to.hash).getOrThrow();
 
         // FIXME: Add file mode
         await fs
@@ -172,19 +140,12 @@ extension Checkout on GitRepository {
       }
     }
 
-    var writeR = await indexStorage.writeIndex(index);
-    if (writeR.isFailure) {
-      return fail(writeR);
-    }
+    await indexStorage.writeIndex(index).throwOnError();
 
     // Set HEAD to to it
     var branchRef = ReferenceName.branch(branchName);
     var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
-
-    var saveRefR = await refStorage.saveRef(headRef);
-    if (saveRefR.isFailure) {
-      return fail(saveRefR);
-    }
+    await refStorage.saveRef(headRef).throwOnError();
 
     return Result(ref);
   }

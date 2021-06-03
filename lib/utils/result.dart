@@ -1,3 +1,4 @@
+/// See https://github.com/michaelbull/kotlin-result
 class Result<DataType> {
   DataType? data;
   Exception? error;
@@ -11,6 +12,12 @@ class Result<DataType> {
     if (data != null) {
       return data!;
     } else {
+      throw error!;
+    }
+  }
+
+  void throwOnError() {
+    if (isFailure) {
       throw error!;
     }
   }
@@ -37,6 +44,11 @@ extension ResultFuture<T> on Future<Result<T>> {
   Future<T> getOrThrow() async {
     var result = await this;
     return result.getOrThrow();
+  }
+
+  Future<void> throwOnError() async {
+    var result = await this;
+    result.throwOnError();
   }
 }
 

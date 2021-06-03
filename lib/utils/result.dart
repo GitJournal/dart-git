@@ -44,3 +44,9 @@ Result<A> fail<A, B>(Result<B> result) {
   assert(result.error != null);
   return Result<A>.fail(result.error!);
 }
+
+/// Rust style try? operator.
+Future<A> tryR<A>(Future<Result<A>> resultFuture) async {
+  var result = await resultFuture;
+  return result.get();
+}

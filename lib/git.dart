@@ -359,19 +359,22 @@ class GitRepository {
     return resolveReference(resolvedRef);
   }
 
-  Future<bool> canPush() async {
+  Future<Result<bool>> canPush() async {
     if (config.remotes.isEmpty) {
-      return false;
+      return Result(false);
     }
 
     var headResult = await head();
     if (headResult.isFailure) {
-      return false;
+      if (headResult.error is! GitRefNotFound) {
+        return fail(headResult);
+      }
+      return Result(false);
     }
 
     var _head = headResult.getOrThrow();
     if (_head.isHash) {
-      return false;
+      return Result(false);
     }
 
     var brConfig = config.branch(_head.target!.branchName()!);
@@ -379,12 +382,12 @@ class GitRepository {
     var brConfigRemote = brConfig?.remote;
     if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
       // FIXME: Maybe we can push other branches!
-      return false;
+      return Result(false);
     }
 
     var resolvedHeadResult = await resolveReference(_head);
     if (resolvedHeadResult.isFailure) {
-      return false;
+      return fail(resolvedHeadResult);
     }
     var resolvedHead = resolvedHeadResult.getOrThrow();
 
@@ -393,11 +396,11 @@ class GitRepository {
     var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
     var remoteRefResult = await resolveReferenceName(remoteRefName);
     if (remoteRefResult.isFailure) {
-      return false;
+      return fail(remoteRefResult);
     }
     var remoteRef = remoteRefResult.getOrThrow();
 
-    return resolvedHead.hash != remoteRef.hash;
+    return Result(resolvedHead.hash != remoteRef.hash);
   }
 
   /// Returns -1 if unreachable

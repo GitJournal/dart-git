@@ -24,8 +24,8 @@ Future<String> runGitCommand(String command, String dir,
     workingDirectory: dir,
     includeParentEnvironment: false,
     environment: env,
+    throwOnError: false,
     // silence
-    throwOnError: !silenceShellOutput,
     stdout: silenceShellOutput ? sink : null,
     stderr: silenceShellOutput ? sink : null,
   );

@@ -20,20 +20,22 @@ class GitStatusResult {
   }
 }
 
-// FIXME: do me - use Result
 extension Status on GitRepository {
-  Future<GitStatusResult?> status() async {
+  Future<Result<GitStatusResult>> status() async {
     var rootTreeR = await headTree();
     if (rootTreeR.isFailure) {
-      return null;
+      return fail(rootTreeR);
     }
 
-    GitStatusResult? result;
-    return _status(rootTreeR.getOrThrow(), workTree, result);
+    var result = GitStatusResult();
+    return catchAll(() => _status(rootTreeR.getOrThrow(), workTree, result));
   }
 
-  Future<GitStatusResult?> _status(
-      GitTree tree, String? treePath, GitStatusResult? result) async {
+  Future<Result<GitStatusResult>> _status(
+    GitTree tree,
+    String? treePath,
+    GitStatusResult result,
+  ) async {
     var dirContents = await fs.directory(treePath).list().toList();
     var newFilesAdded = dirContents.map((e) => e.path).toSet();
 
@@ -42,7 +44,7 @@ extension Status on GitRepository {
         (e) => e.basename == entry.name,
       );
       if (fsEntity == null) {
-        result!.removed.add(fsEntity!.path);
+        result.removed.add(fsEntity!.path);
         continue;
       }
 
@@ -54,20 +56,18 @@ extension Status on GitRepository {
 
       if (entry.mode != GitFileMode.Dir) {
         if (_fileModified(fsEntity, entry)) {
-          result!.modified.add(fsEntity.path);
+          result.modified.add(fsEntity.path);
         }
         continue;
       }
 
       var subTree = await objStorage.readTree(entry.hash).getOrThrow();
-      var r = await _status(subTree, fsEntity.path, result);
-      if (r != null) {
-        result!.add(r);
-      }
+      var r = await _status(subTree, fsEntity.path, result).getOrThrow();
+      result.add(r);
     }
 
-    result!.added.addAll(newFilesAdded);
-    return result;
+    result.added.addAll(newFilesAdded);
+    return Result(result);
   }
 
   bool _fileModified(FileSystemEntity fsEntity, GitTreeEntry treeEntry) {

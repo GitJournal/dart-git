@@ -106,8 +106,8 @@ Future<void> testCommands(
         c,
         workingDirectory: s.dartGitDir,
         includeParentEnvironment: false,
+        throwOnError: false,
         // silence
-        throwOnError: !silenceShellOutput,
         stdout: silenceShellOutput ? sink : null,
         stderr: silenceShellOutput ? sink : null,
       );
@@ -116,8 +116,8 @@ Future<void> testCommands(
         c,
         workingDirectory: s.realGitDir,
         includeParentEnvironment: false,
+        throwOnError: false,
         // silence
-        throwOnError: !silenceShellOutput,
         stdout: silenceShellOutput ? sink : null,
         stderr: silenceShellOutput ? sink : null,
       );

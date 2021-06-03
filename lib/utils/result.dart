@@ -5,7 +5,7 @@ class Result<DataType> {
   Result(DataType data, {this.error}) : data = data;
   Result.fail(Exception error) : error = error;
 
-  DataType get() {
+  DataType getOrThrow() {
     assert(data != null || error != null);
 
     if (data != null) {
@@ -34,9 +34,9 @@ Result<Base> downcast<Base, Derived>(Result<Derived> other) {
 extension ResultFuture<T> on Future<Result<T>> {
   /// Convenience method to have to avoid putting parenthesis around the
   /// await expression
-  Future<T> get() async {
+  Future<T> getOrThrow() async {
     var result = await this;
-    return result.get();
+    return result.getOrThrow();
   }
 }
 
@@ -48,5 +48,5 @@ Result<A> fail<A, B>(Result<B> result) {
 /// Rust style try? operator.
 Future<A> tryR<A>(Future<Result<A>> resultFuture) async {
   var result = await resultFuture;
-  return result.get();
+  return result.getOrThrow();
 }

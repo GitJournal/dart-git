@@ -40,9 +40,9 @@ void main() {
     gitDir = await openFixture(
         'test/data/git-7a725350b88b05ca03541b59dd0649fda7f521f2.tgz');
 
-    var repo = await GitRepository.load(gitDir).get();
+    var repo = await GitRepository.load(gitDir).getOrThrow();
     objStorage = repo.objStorage;
-    headCommit = await repo.headCommit().get();
+    headCommit = await repo.headCommit().getOrThrow();
   });
 
   /// We should get all commits from the history but,

@@ -15,7 +15,7 @@ class AddCommand extends Command {
   Future run() async {
     // FIXME: if gitRootDir is not valid give an error!
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var pathSpec = argResults!.arguments[0];
     await repo.add(pathSpec);

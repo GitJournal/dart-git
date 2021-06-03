@@ -23,13 +23,13 @@ extension Commit on GitRepository {
       await add(workTree);
     }
 
-    var index = await indexStorage.readIndex().get();
+    var index = await indexStorage.readIndex().getOrThrow();
 
     var treeHashR = await writeTree(index);
     if (treeHashR.isFailure) {
       return fail(treeHashR);
     }
-    var treeHash = treeHashR.get();
+    var treeHash = treeHashR.getOrThrow();
     var parents = <GitHash>[];
 
     var headRefResult = await head();
@@ -38,10 +38,10 @@ extension Commit on GitRepository {
         return fail(headRefResult);
       }
     } else {
-      var headRef = headRefResult.get();
+      var headRef = headRefResult.getOrThrow();
       var parentRefResult = await resolveReference(headRef);
       if (parentRefResult.isSuccess) {
-        var parentRef = parentRefResult.get();
+        var parentRef = parentRefResult.getOrThrow();
         parents.add(parentRef.hash!);
       }
     }
@@ -51,7 +51,7 @@ extension Commit on GitRepository {
       if (parentCommitR.isFailure) {
         return fail(parentCommitR);
       }
-      var parentCommit = parentCommitR.get() as GitCommit;
+      var parentCommit = parentCommitR.getOrThrow() as GitCommit;
       if (parentCommit.treeHash == treeHash) {
         var ex = GitEmptyCommit();
         return Result.fail(ex);
@@ -69,7 +69,7 @@ extension Commit on GitRepository {
     if (hashR.isFailure) {
       return fail(hashR);
     }
-    var hash = hashR.get();
+    var hash = hashR.getOrThrow();
 
     // Update the ref of the current branch
     late String branchName;
@@ -82,7 +82,7 @@ extension Commit on GitRepository {
           return fail(result);
         }
 
-        var h = result.get();
+        var h = result.getOrThrow();
         var target = h.target!;
         assert(target.isBranch());
         branchName = target.branchName()!;
@@ -90,7 +90,7 @@ extension Commit on GitRepository {
         return fail(branchNameResult);
       }
     } else {
-      branchName = branchNameResult.get();
+      branchName = branchNameResult.getOrThrow();
     }
 
     var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
@@ -179,7 +179,7 @@ extension Commit on GitRepository {
           //
           assert(await () async {
             var leafObjRes = await objStorage.read(leaf.hash);
-            var leafObj = leafObjRes.get();
+            var leafObj = leafObjRes.getOrThrow();
             return leafObj.formatStr() == 'blob';
           }());
 
@@ -200,7 +200,7 @@ extension Commit on GitRepository {
       if (hashR.isFailure) {
         return fail(hashR);
       }
-      hashMap[dir] = hashR.get();
+      hashMap[dir] = hashR.getOrThrow();
     }
 
     return Result(hashMap['']!);

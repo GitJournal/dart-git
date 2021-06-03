@@ -22,7 +22,7 @@ class BranchCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var showAll = argResults!['all'] as bool?;
     var delete = argResults!['delete'] as bool?;
@@ -36,12 +36,12 @@ class BranchCommand extends Command {
           return;
         }
 
-        var head = headResult.get();
+        var head = headResult.getOrThrow();
         if (head.isHash) {
           print('* (HEAD detached at ${head.hash!.toOid()})');
         }
 
-        var branches = await repo.branches().get();
+        var branches = await repo.branches().getOrThrow();
         branches.sort();
 
         for (var branch in branches) {
@@ -54,7 +54,7 @@ class BranchCommand extends Command {
 
         if (showAll!) {
           for (var remote in repo.config.remotes) {
-            var refs = await repo.remoteBranches(remote.name).get();
+            var refs = await repo.remoteBranches(remote.name).getOrThrow();
             refs.sort((a, b) {
               return a.name.branchName()!.compareTo(b.name.branchName()!);
             });
@@ -96,7 +96,7 @@ class BranchCommand extends Command {
             return;
           }
 
-          var ref = refResult.get();
+          var ref = refResult.getOrThrow();
           assert(ref.isHash);
           await repo.createBranch(branchName, hash: ref.hash);
 
@@ -121,7 +121,7 @@ class BranchCommand extends Command {
         print("error: branch '$branchName' not found.");
         return;
       }
-      var hash = hashR.get();
+      var hash = hashR.getOrThrow();
       print('Deleted branch $branchName (was ${hash.toOid()}).');
       return;
     }
@@ -142,7 +142,8 @@ class BranchCommand extends Command {
       return;
     }
 
-    var localBranch = await repo.setUpstreamTo(remote, remoteBranchName).get();
+    var localBranch =
+        await repo.setUpstreamTo(remote, remoteBranchName).getOrThrow();
 
     print(
         "Branch '${localBranch.name}' set up to track remote branch '$remoteBranchName' from '$remoteName'.");

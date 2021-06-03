@@ -39,11 +39,11 @@ class HashObjectCommand extends Command {
     var rawData = File(filePath).readAsBytesSync();
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var fmt = argResults!['type'] as String;
     var objRes = createObject(fmt, rawData);
-    var obj = objRes.get();
+    var obj = objRes.getOrThrow();
     var shouldWrite = argResults!['write'] as bool;
     var hash = shouldWrite ? await repo.objStorage.writeObject(obj) : obj.hash;
 

@@ -29,7 +29,7 @@ extension MergeBase on GitRepository {
       isLimit: inNewerHistory,
     );
     await for (var r in iter) {
-      var commit = r.get();
+      var commit = r.getOrThrow();
       results.add(commit);
     }
 
@@ -45,7 +45,7 @@ extension MergeBase on GitRepository {
     var all = <GitHash>{};
     var iter = commitIteratorBFS(objStorage: objStorage, from: start);
     await for (var commitR in iter) {
-      var commit = commitR.get();
+      var commit = commitR.getOrThrow();
       if (commit.hash == shouldNotContain.hash) {
         return null;
       }
@@ -62,7 +62,7 @@ extension MergeBase on GitRepository {
   Future<bool> isAncestor(GitCommit ancestor, GitCommit child) async {
     var iter = commitPreOrderIterator(objStorage: objStorage, from: child);
     await for (var commitR in iter) {
-      var commit = commitR.get();
+      var commit = commitR.getOrThrow();
       if (commit.hash == ancestor.hash) {
         return true;
       }
@@ -97,7 +97,7 @@ extension MergeBase on GitRepository {
       );
 
       await for (var fromAncestorR in fromHistoryIter) {
-        var fromAncestor = fromAncestorR.get();
+        var fromAncestor = fromAncestorR.getOrThrow();
         others.removeWhere((other) {
           if (fromAncestor.hash == other.hash) {
             commits.remove(other);

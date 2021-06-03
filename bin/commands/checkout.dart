@@ -19,7 +19,7 @@ class CheckoutCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var branchName = argResults!['branch'] as String;
     if (branchName.isNotEmpty) {
@@ -27,7 +27,7 @@ class CheckoutCommand extends Command {
       if (argResults!.rest.isNotEmpty) {
         remoteFullBranchName = argResults!.rest[0];
       } else {
-        var branches = await repo.branches().get();
+        var branches = await repo.branches().getOrThrow();
         if (branches.contains(branchName)) {
           await repo.checkoutBranch(branchName);
           return;
@@ -45,7 +45,7 @@ class CheckoutCommand extends Command {
         print('fatal: remote $remoteName branch $remoteBranchName not found');
         return;
       }
-      var remoteRef = remoteRefR.get();
+      var remoteRef = remoteRefR.getOrThrow();
 
       await repo.createBranch(branchName, hash: remoteRef.hash);
       await repo.checkout('.');
@@ -60,7 +60,7 @@ class CheckoutCommand extends Command {
         return;
       }
 
-      var headRef = headRefResult.get();
+      var headRef = headRefResult.getOrThrow();
       if (headRef.target!.branchName() == branchName) {
         print("Already on '$branchName'");
       }
@@ -74,7 +74,7 @@ class CheckoutCommand extends Command {
     }
 
     var pathSpec = argResults!.arguments[0];
-    var branches = await repo.branches().get();
+    var branches = await repo.branches().getOrThrow();
     if (branches.contains(pathSpec)) {
       await repo.checkoutBranch(pathSpec);
       return;
@@ -89,7 +89,7 @@ class CheckoutCommand extends Command {
           "error: pathspec '$pathSpec' did not match any file(s) known to git");
       exit(1);
     }
-    var objectsUpdated = objectsUpdatedR.get();
+    var objectsUpdated = objectsUpdatedR.getOrThrow();
     print('Updated $objectsUpdated path from the index');
   }
 }

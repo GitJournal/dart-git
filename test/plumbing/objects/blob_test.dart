@@ -13,7 +13,8 @@ void main() {
     const fs = LocalFileSystem();
     var objStorage = ObjectStorage('', fs);
 
-    var obj = await objStorage.readObjectFromPath('test/data/blob').get();
+    var obj =
+        await objStorage.readObjectFromPath('test/data/blob').getOrThrow();
 
     expect(obj is GitBlob, equals(true));
     expect(obj.serializeData(), equals(ascii.encode('FOO\n')));

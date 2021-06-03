@@ -98,7 +98,7 @@ extension Remotes on GitRepository {
     //
     // The ideal way is to use https://libgit2.org/libgit2/#HEAD/group/remote/git_remote_default_branch
     //
-    var branches = await remoteBranches(remoteName).get();
+    var branches = await remoteBranches(remoteName).getOrThrow();
     if (branches.isEmpty) {
       return null;
     }
@@ -108,7 +108,7 @@ extension Remotes on GitRepository {
       var remoteHead = branches[i];
       assert(remoteHead.isSymbolic);
 
-      return resolveReference(remoteHead).get();
+      return resolveReference(remoteHead).getOrThrow();
     } else {
       branches = branches.where((b) => b.name.branchName() != 'HEAD').toList();
     }

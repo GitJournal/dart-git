@@ -15,7 +15,7 @@ class StatusCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var headResult = await repo.head();
     if (headResult.isFailure) {
@@ -23,7 +23,7 @@ class StatusCommand extends Command {
       return;
     }
 
-    var head = headResult.get();
+    var head = headResult.getOrThrow();
     if (head.isHash) {
       print('HEAD detached at ${head.hash}');
     } else {
@@ -40,16 +40,19 @@ class StatusCommand extends Command {
     var remoteBranchName = branch.merge!.branchName()!;
     var remoteRef = ReferenceName.remote(branch.remote!, remoteBranchName);
 
-    var headHash = (await repo.resolveReference(head)).get().hash;
-    var remoteHash = (await repo.resolveReferenceName(remoteRef)).get().hash;
+    var headHash = (await repo.resolveReference(head)).getOrThrow().hash;
+    var remoteHash =
+        (await repo.resolveReferenceName(remoteRef)).getOrThrow().hash;
 
     var remoteStr = '${branch.remote}/$remoteBranchName';
     if (headHash != remoteHash) {
-      var aheadBy = await repo.countTillAncestor(headHash!, remoteHash!).get();
+      var aheadBy =
+          await repo.countTillAncestor(headHash!, remoteHash!).getOrThrow();
       if (aheadBy != -1) {
         print('Your branch is ahead of $remoteStr by $aheadBy commits');
       } else {
-        var behindBy = await repo.countTillAncestor(remoteHash, headHash).get();
+        var behindBy =
+            await repo.countTillAncestor(remoteHash, headHash).getOrThrow();
         if (behindBy != -1) {
           print('Your branch is behind $remoteStr by $behindBy commits');
         } else {

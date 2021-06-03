@@ -20,7 +20,7 @@ class GitStatusResult {
   }
 }
 
-// do me!
+// FIXME: do me - use Result
 extension Status on GitRepository {
   Future<GitStatusResult?> status() async {
     var rootTreeR = await headTree();
@@ -29,7 +29,7 @@ extension Status on GitRepository {
     }
 
     GitStatusResult? result;
-    return _status(rootTreeR.get(), workTree, result);
+    return _status(rootTreeR.getOrThrow(), workTree, result);
   }
 
   Future<GitStatusResult?> _status(
@@ -59,7 +59,7 @@ extension Status on GitRepository {
         continue;
       }
 
-      var subTree = await objStorage.readTree(entry.hash).get();
+      var subTree = await objStorage.readTree(entry.hash).getOrThrow();
       var r = await _status(subTree, fsEntity.path, result);
       if (r != null) {
         result!.add(r);

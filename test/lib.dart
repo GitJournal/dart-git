@@ -247,7 +247,7 @@ extension GitStream on Stream<Result<GitCommit>> {
   Future<List<String>> asHashStrings() async {
     var list = <String>[];
     await for (var commitR in this) {
-      var commit = commitR.get();
+      var commit = commitR.getOrThrow();
       var hash = commit.hash.toString();
       list.add(hash);
     }

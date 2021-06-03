@@ -21,16 +21,16 @@ class ShowCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var hash = GitHash(argResults!.arguments[0]);
     var result = await repo.objStorage.read(hash);
-    var object = result.get();
+    var object = result.getOrThrow();
 
     if (object is GitCommit) {
       var commit = object;
       var parentHash = commit.parents[0];
-      var parent = (await repo.objStorage.readCommit(parentHash)).get();
+      var parent = (await repo.objStorage.readCommit(parentHash)).getOrThrow();
 
       var changes = await diffCommits(
         fromCommit: commit,
@@ -44,8 +44,8 @@ class ShowCommand extends Command {
         var newHash = change.from!.hash;
         var oldHash = change.to!.hash;
 
-        var newBlob = (await repo.objStorage.readBlob(newHash)).get();
-        var oldBlob = (await repo.objStorage.readBlob(oldHash)).get();
+        var newBlob = (await repo.objStorage.readBlob(newHash)).getOrThrow();
+        var oldBlob = (await repo.objStorage.readBlob(oldHash)).getOrThrow();
 
         var newBlobConent = utf8.decode(newBlob.blobData);
         var oldBlobConent = utf8.decode(oldBlob.blobData);

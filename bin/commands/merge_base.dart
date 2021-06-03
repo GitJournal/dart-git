@@ -21,7 +21,7 @@ class MergeBaseCommand extends Command {
     }
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var aHash = GitHash(args[0]);
     var bHash = GitHash(args[1]);
@@ -29,7 +29,7 @@ class MergeBaseCommand extends Command {
     var aRes = await repo.objStorage.readCommit(aHash);
     var bRes = await repo.objStorage.readCommit(bHash);
 
-    var commits = await repo.mergeBase(aRes.get(), bRes.get());
+    var commits = await repo.mergeBase(aRes.getOrThrow(), bRes.getOrThrow());
     for (var c in commits) {
       print(c.hash);
     }

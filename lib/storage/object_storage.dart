@@ -158,7 +158,7 @@ class ObjectStorage {
     for (var leaf in tree.entries) {
       if (leaf.name == name) {
         var result = await read(leaf.hash);
-        var obj = result.get();
+        var obj = result.getOrThrow();
 
         if (remainingName.isEmpty) {
           return Result(obj);

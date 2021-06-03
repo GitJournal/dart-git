@@ -36,7 +36,7 @@ void main() {
       'GIT_COMMITTER_DATE': date.toIso8601String(),
     });
 
-    var repo = await GitRepository.load(tmpDir2).get();
+    var repo = await GitRepository.load(tmpDir2).getOrThrow();
     var result = await repo.commit(
       message: 'Message\n',
       author: GitAuthor(

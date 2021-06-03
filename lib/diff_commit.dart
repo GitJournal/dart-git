@@ -86,6 +86,7 @@ class _Item {
   });
 }
 
+// FIXME: do me - use Result
 Future<CommitBlobChanges> diffCommits({
   required GitCommit fromCommit,
   required GitCommit toCommit,
@@ -120,11 +121,11 @@ Future<CommitBlobChanges> diffCommits({
 
     if (item.fromTreeHash != null) {
       var from = await objStore.readTree(item.fromTreeHash!);
-      fromTree = from.get();
+      fromTree = from.getOrThrow();
     }
     if (item.toTreeHash != null) {
       var to = await objStore.readTree(item.toTreeHash!);
-      toTree = to.get();
+      toTree = to.getOrThrow();
     }
 
     var diffTreeResults = diffTree(fromTree, toTree);

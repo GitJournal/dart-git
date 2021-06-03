@@ -17,7 +17,7 @@ class LogCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     GitHash? sha;
     if (argResults!.rest.isNotEmpty) {
@@ -28,7 +28,7 @@ class LogCommand extends Command {
         print('fatal: head hash not found');
         return;
       }
-      sha = result.get();
+      sha = result.getOrThrow();
     }
 
     var seen = <GitHash>{};
@@ -45,7 +45,7 @@ class LogCommand extends Command {
         print('panic: object with sha $sha not found');
         return;
       }
-      var commit = objRes.get();
+      var commit = objRes.getOrThrow();
 
       printCommit(commit, sha);
       for (var p in commit.parents) {

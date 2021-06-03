@@ -14,10 +14,10 @@ class RmCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var filePath = argResults!.arguments[0];
-    var index = await repo.indexStorage.readIndex().get();
+    var index = await repo.indexStorage.readIndex().getOrThrow();
 
     // FIXME: Use rm method, do we ever need to read the index?
     var hashR = await repo.rmFileFromIndex(index, filePath);

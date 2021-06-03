@@ -14,9 +14,9 @@ extension Checkout on GitRepository {
     path = normalizePath(path);
 
     try {
-      var tree = await headTree().get();
+      var tree = await headTree().getOrThrow();
       var spec = path.substring(workTree.length);
-      var obj = await objStorage.refSpec(tree, spec).get();
+      var obj = await objStorage.refSpec(tree, spec).getOrThrow();
 
       if (obj is GitBlob) {
         await fs.directory(p.dirname(path)).create(recursive: true);
@@ -25,7 +25,8 @@ extension Checkout on GitRepository {
       }
 
       var index = GitIndex(versionNo: 2);
-      var numFiles = await _checkoutTree(spec, obj as GitTree, index).get();
+      var numFiles =
+          await _checkoutTree(spec, obj as GitTree, index).getOrThrow();
       var result = await indexStorage.writeIndex(index);
       if (result.isFailure) {
         return fail(result);
@@ -53,7 +54,7 @@ extension Checkout on GitRepository {
       if (objR.isFailure) {
         return fail(objR);
       }
-      var obj = objR.get();
+      var obj = objR.getOrThrow();
 
       var leafRelativePath = p.join(relativePath, leaf.name);
       if (obj is GitTree) {
@@ -61,7 +62,7 @@ extension Checkout on GitRepository {
         if (res.isFailure) {
           return fail(res);
         }
-        updated += res.get();
+        updated += res.getOrThrow();
         continue;
       }
 
@@ -88,7 +89,7 @@ extension Checkout on GitRepository {
     if (refRes.isFailure) {
       return fail(refRes);
     }
-    var ref = refRes.get();
+    var ref = refRes.getOrThrow();
     assert(ref.isHash);
 
     var headCommitR = await headCommit();
@@ -101,13 +102,13 @@ extension Checkout on GitRepository {
       if (commitR.isFailure) {
         return fail(commitR);
       }
-      var commit = commitR.get();
+      var commit = commitR.getOrThrow();
 
       var treeObjRes = await objStorage.readTree(commit.treeHash);
       if (treeObjRes.isFailure) {
         return fail(treeObjRes);
       }
-      var treeObj = treeObjRes.get();
+      var treeObj = treeObjRes.getOrThrow();
 
       var index = GitIndex(versionNo: 2);
       var checkoutR = await _checkoutTree('', treeObj, index);
@@ -130,13 +131,13 @@ extension Checkout on GitRepository {
 
       return Result(ref);
     }
-    var _headCommit = headCommitR.get();
+    var _headCommit = headCommitR.getOrThrow();
 
     var res = await objStorage.readCommit(ref.hash!);
     if (res.isFailure) {
       return fail(res);
     }
-    var branchCommit = res.get();
+    var branchCommit = res.getOrThrow();
 
     var blobChanges = await diffCommits(
       fromCommit: _headCommit,
@@ -147,13 +148,13 @@ extension Checkout on GitRepository {
     if (indexR.isFailure) {
       return fail(indexR);
     }
-    var index = indexR.get();
+    var index = indexR.getOrThrow();
 
     for (var change in blobChanges.merged()) {
       if (change.added || change.modified) {
         var to = change.to!;
         var blobObjRes = await objStorage.readBlob(to.hash);
-        var blobObj = blobObjRes.get();
+        var blobObj = blobObjRes.getOrThrow();
 
         // FIXME: Add file mode
         await fs

@@ -27,7 +27,7 @@ class DiffCommand extends Command {
     }
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var fromStr = argResults!.arguments[0];
     var toStr = argResults!.arguments[1];
@@ -35,8 +35,8 @@ class DiffCommand extends Command {
     var fromCommitRes = await repo.objStorage.readCommit(GitHash(fromStr));
     var toCommitRes = await repo.objStorage.readCommit(GitHash(toStr));
 
-    var fromCommit = fromCommitRes.get();
-    var toCommit = toCommitRes.get();
+    var fromCommit = fromCommitRes.getOrThrow();
+    var toCommit = toCommitRes.getOrThrow();
 
     var changes = await diffCommits(
       fromCommit: fromCommit,

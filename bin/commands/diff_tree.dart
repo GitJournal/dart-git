@@ -19,7 +19,7 @@ class DiffTreeCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var hash = argResults!.arguments[0];
     var objRes = await repo.objStorage.read(GitHash(hash));
@@ -27,7 +27,7 @@ class DiffTreeCommand extends Command {
       print('fatal: bad object $hash');
       return;
     }
-    var obj = objRes.get();
+    var obj = objRes.getOrThrow();
 
     if (obj is! GitCommit) {
       print('error: object $hash is a ${obj.formatStr()}, not a commit');
@@ -41,8 +41,8 @@ class DiffTreeCommand extends Command {
     var tbHash = obj.treeHash;
 
     var results = diffTree(
-      await repo.objStorage.readTree(taHash).get(),
-      await repo.objStorage.readTree(tbHash).get(),
+      await repo.objStorage.readTree(taHash).getOrThrow(),
+      await repo.objStorage.readTree(tbHash).getOrThrow(),
     );
 
     for (var r in results.merged()) {

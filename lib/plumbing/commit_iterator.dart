@@ -26,7 +26,7 @@ Stream<Result<GitCommit>> commitIteratorBFS({
       yield fail(result);
       continue;
     }
-    var commit = result.get();
+    var commit = result.getOrThrow();
 
     queue.addAll(commit.parents);
     yield Result(commit);
@@ -61,7 +61,7 @@ Stream<Result<GitCommit>> commitIteratorBFSFiltered({
       yield fail(result);
       continue;
     }
-    var commit = result.get();
+    var commit = result.getOrThrow();
 
     if (!isLimit(commit)) {
       queue.addAll(commit.parents);
@@ -91,7 +91,7 @@ Stream<Result<GitCommit>> commitPreOrderIterator({
       yield fail(result);
       continue;
     }
-    var commit = result.get();
+    var commit = result.getOrThrow();
 
     stack.addAll(commit.parents.reversed);
     yield Result(commit);

@@ -15,7 +15,7 @@ extension Index on GitRepository {
     if (indexR.isFailure) {
       return fail(indexR);
     }
-    var index = indexR.get();
+    var index = indexR.getOrThrow();
 
     var stat = await fs.stat(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
@@ -55,7 +55,7 @@ extension Index on GitRepository {
     if (hashR.isFailure) {
       return fail(hashR);
     }
-    var hash = hashR.get();
+    var hash = hashR.getOrThrow();
 
     var pathSpec = filePath;
     if (pathSpec.startsWith(workTree)) {
@@ -117,7 +117,7 @@ extension Index on GitRepository {
     if (indexR.isFailure) {
       return fail(indexR);
     }
-    var index = indexR.get();
+    var index = indexR.getOrThrow();
 
     var stat = await fs.stat(pathSpec);
     if (stat.type == FileSystemEntityType.file) {

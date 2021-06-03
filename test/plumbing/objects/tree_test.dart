@@ -12,7 +12,8 @@ void main() {
     const fs = LocalFileSystem();
     var objStorage = ObjectStorage('', fs);
 
-    var obj = await objStorage.readObjectFromPath('test/data/tree').get();
+    var obj =
+        await objStorage.readObjectFromPath('test/data/tree').getOrThrow();
     expect(obj is GitTree, equals(true));
 
     var tree = obj as GitTree;

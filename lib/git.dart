@@ -103,7 +103,7 @@ class GitRepository {
     if (configResult.isFailure) {
       return fail(configResult);
     }
-    repo.config = configResult.get();
+    repo.config = configResult.getOrThrow();
 
     return Result(repo);
   }
@@ -123,7 +123,7 @@ class GitRepository {
     }
 
     repo.configStorage = ConfigStorage(repo.gitDir, fs);
-    var configExists = await repo.configStorage.exists().get();
+    var configExists = await repo.configStorage.exists().getOrThrow();
     if (!configExists) {
       return false;
     }
@@ -177,7 +177,7 @@ class GitRepository {
       return fail(refsResult);
     }
 
-    var refs = refsResult.get();
+    var refs = refsResult.getOrThrow();
     var refNames = refs.map((r) => r.name);
     var branchNames = refNames.map((r) => r.branchName()!).toList();
 
@@ -190,7 +190,7 @@ class GitRepository {
       return fail(headResult);
     }
 
-    var _head = headResult.get();
+    var _head = headResult.getOrThrow();
     if (_head.isHash) {
       var ex = GitHeadDetached();
       return Result.fail(ex);
@@ -210,7 +210,7 @@ class GitRepository {
       return fail(branchNameResult);
     }
 
-    var branchName = branchNameResult.get();
+    var branchName = branchNameResult.getOrThrow();
     return setBranchUpstreamTo(branchName, remote, remoteBranchName);
   }
 
@@ -241,7 +241,7 @@ class GitRepository {
       if (headHashResult.isFailure) {
         return fail(headHashResult);
       }
-      hash = headHashResult.get();
+      hash = headHashResult.getOrThrow();
     }
 
     var branch = ReferenceName.branch(name);
@@ -267,7 +267,7 @@ class GitRepository {
     if (refResult.isFailure) {
       return fail(refResult);
     }
-    var ref = refResult.get();
+    var ref = refResult.getOrThrow();
 
     var res = await refStorage.deleteReference(refName);
     if (res.isFailure) {
@@ -283,7 +283,7 @@ class GitRepository {
       return fail(result);
     }
 
-    return Result(result.get());
+    return Result(result.getOrThrow());
   }
 
   Future<Result<GitHash>> headHash() async {
@@ -292,13 +292,13 @@ class GitRepository {
       return fail(result);
     }
 
-    var ref = result.get();
+    var ref = result.getOrThrow();
     result = await resolveReference(ref);
     if (result.isFailure) {
       return fail(result);
     }
 
-    ref = result.get();
+    ref = result.getOrThrow();
     return Result(ref.hash!);
   }
 
@@ -307,13 +307,13 @@ class GitRepository {
     if (hashResult.isFailure) {
       return fail(hashResult);
     }
-    var hash = hashResult.get();
+    var hash = hashResult.getOrThrow();
 
     var result = await objStorage.readCommit(hash);
     if (result.isFailure) {
       return fail(result);
     }
-    return Result(result.get());
+    return Result(result.getOrThrow());
   }
 
   Future<Result<GitTree>> headTree() async {
@@ -321,13 +321,13 @@ class GitRepository {
     if (commitResult.isFailure) {
       return fail(commitResult);
     }
-    var commit = commitResult.get();
+    var commit = commitResult.getOrThrow();
 
     var res = await objStorage.readTree(commit.treeHash);
     if (res.isFailure) {
       return fail(res);
     }
-    return Result(res.get());
+    return Result(res.getOrThrow());
   }
 
   Future<Result<Reference>> resolveReference(
@@ -343,7 +343,7 @@ class GitRepository {
       return fail(resolvedRefResult);
     }
 
-    var resolvedRef = resolvedRefResult.get();
+    var resolvedRef = resolvedRefResult.getOrThrow();
     return recursive
         ? await resolveReference(resolvedRef)
         : Result(resolvedRef);
@@ -355,7 +355,7 @@ class GitRepository {
       return fail(resolvedRefResult);
     }
 
-    var resolvedRef = resolvedRefResult.get();
+    var resolvedRef = resolvedRefResult.getOrThrow();
     return resolveReference(resolvedRef);
   }
 
@@ -369,7 +369,7 @@ class GitRepository {
       return false;
     }
 
-    var _head = headResult.get();
+    var _head = headResult.getOrThrow();
     if (_head.isHash) {
       return false;
     }
@@ -386,7 +386,7 @@ class GitRepository {
     if (resolvedHeadResult.isFailure) {
       return false;
     }
-    var resolvedHead = resolvedHeadResult.get();
+    var resolvedHead = resolvedHeadResult.getOrThrow();
 
     // Construct remote's branch
     var remoteBranchName = brConfigMerge.branchName()!;
@@ -395,7 +395,7 @@ class GitRepository {
     if (remoteRefResult.isFailure) {
       return false;
     }
-    var remoteRef = remoteRefResult.get();
+    var remoteRef = remoteRefResult.getOrThrow();
 
     return resolvedHead.hash != remoteRef.hash;
   }
@@ -417,7 +417,7 @@ class GitRepository {
       if (commitR.isFailure) {
         return fail(commitR);
       }
-      var commit = commitR.get();
+      var commit = commitR.getOrThrow();
 
       for (var p in commit.parents) {
         if (seen.contains(p)) continue;
@@ -454,8 +454,8 @@ class GitRepository {
       return fail(remoteRefResult);
     }
 
-    var headHash = headRefResult.get().hash!;
-    var remoteHash = remoteRefResult.get().hash!;
+    var headHash = headRefResult.getOrThrow().hash!;
+    var remoteHash = remoteRefResult.getOrThrow().hash!;
 
     if (headHash == remoteHash) {
       return Result(0);
@@ -465,7 +465,7 @@ class GitRepository {
     if (aheadByResult.isFailure) {
       return fail(aheadByResult);
     }
-    var aheadBy = aheadByResult.get();
+    var aheadBy = aheadByResult.getOrThrow();
 
     return Result(aheadBy != -1 ? aheadBy : 0);
   }

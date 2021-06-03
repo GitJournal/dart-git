@@ -18,11 +18,11 @@ class CatFileCommand extends Command {
   @override
   Future run() async {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).get();
+    var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var objectSha1 = argResults!.arguments[1];
     var objRes = await repo.objStorage.read(GitHash(objectSha1));
-    var obj = objRes.get();
+    var obj = objRes.getOrThrow();
     if (obj is GitBlob) {
       var s = utf8.decode(obj.blobData);
       print(s);

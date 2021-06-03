@@ -10,6 +10,6 @@ void main() {
 
     await GitRepository.init(tmpDir);
     var repo = await GitRepository.load(tmpDir).getOrThrow();
-    expect(await repo.canPush(), false);
+    expect(await repo.canPush().getOrThrow(), false);
   });
 }

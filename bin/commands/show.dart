@@ -36,7 +36,7 @@ class ShowCommand extends Command {
         fromCommit: commit,
         toCommit: parent,
         objStore: repo.objStorage,
-      );
+      ).getOrThrow();
 
       printCommit(commit, hash);
 

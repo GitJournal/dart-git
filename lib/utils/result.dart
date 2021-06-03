@@ -1,4 +1,5 @@
 /// See https://github.com/michaelbull/kotlin-result
+/// FIXME: Add a Stacktrace somehow?
 class Result<DataType> {
   DataType? data;
   Exception? error;

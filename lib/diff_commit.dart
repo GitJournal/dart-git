@@ -8,6 +8,7 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/utils/file_mode.dart';
+import 'package:dart_git/utils/result.dart';
 
 class CommitBlobChanges {
   final List<Change> added;
@@ -86,8 +87,7 @@ class _Item {
   });
 }
 
-// FIXME: do me - use Result
-Future<CommitBlobChanges> diffCommits({
+Future<Result<CommitBlobChanges>> diffCommits({
   required GitCommit fromCommit,
   required GitCommit toCommit,
   required ObjectStorage objStore,
@@ -120,12 +120,18 @@ Future<CommitBlobChanges> diffCommits({
     GitTree? toTree;
 
     if (item.fromTreeHash != null) {
-      var from = await objStore.readTree(item.fromTreeHash!);
-      fromTree = from.getOrThrow();
+      var fromResult = await objStore.readTree(item.fromTreeHash!);
+      if (fromResult.isFailure) {
+        return fail(fromResult);
+      }
+      fromTree = fromResult.getOrThrow();
     }
     if (item.toTreeHash != null) {
-      var to = await objStore.readTree(item.toTreeHash!);
-      toTree = to.getOrThrow();
+      var toResult = await objStore.readTree(item.toTreeHash!);
+      if (toResult.isFailure) {
+        return fail(toResult);
+      }
+      toTree = toResult.getOrThrow();
     }
 
     var diffTreeResults = diffTree(fromTree, toTree);
@@ -185,11 +191,12 @@ Future<CommitBlobChanges> diffCommits({
     }
   }
 
-  return CommitBlobChanges(
+  var changes = CommitBlobChanges(
     added: addedChanges,
     removed: removedChanges,
     modified: modifiedChanges,
   );
+  return Result(changes);
 }
 
 // FIXME: Paths should not start with /

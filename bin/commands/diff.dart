@@ -42,7 +42,7 @@ class DiffCommand extends Command {
       fromCommit: fromCommit,
       toCommit: toCommit,
       objStore: repo.objStorage,
-    );
+    ).getOrThrow();
 
     for (var r in changes.merged()) {
       var prevMode = ''.padLeft(6, '0');

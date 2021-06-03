@@ -116,7 +116,7 @@ extension Checkout on GitRepository {
       fromCommit: _headCommit,
       toCommit: branchCommit,
       objStore: objStorage,
-    );
+    ).getOrThrow();
     var index = await indexStorage.readIndex().getOrThrow();
 
     for (var change in blobChanges.merged()) {

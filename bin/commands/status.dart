@@ -18,7 +18,7 @@ class StatusCommand extends Command {
     var repo = await GitRepository.load(gitRootDir).get();
 
     var headResult = await repo.head();
-    if (headResult.failed) {
+    if (headResult.isFailure) {
       print('fatal: no head found');
       return;
     }

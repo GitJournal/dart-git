@@ -12,7 +12,7 @@ extension Index on GitRepository {
     pathSpec = normalizePath(pathSpec);
 
     var indexR = await indexStorage.readIndex();
-    if (indexR.failed) {
+    if (indexR.isFailure) {
       return fail(indexR);
     }
     var index = indexR.get();
@@ -20,12 +20,12 @@ extension Index on GitRepository {
     var stat = await fs.stat(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
       var result = await addFileToIndex(index, pathSpec);
-      if (result.failed) {
+      if (result.isFailure) {
         return fail(result);
       }
     } else if (stat.type == FileSystemEntityType.directory) {
       var result = await addDirectoryToIndex(index, pathSpec, recursive: true);
-      if (result.failed) {
+      if (result.isFailure) {
         return fail(result);
       }
     } else {
@@ -52,7 +52,7 @@ extension Index on GitRepository {
     var data = await file.readAsBytes();
     var blob = GitBlob(data, null);
     var hashR = await objStorage.writeObject(blob);
-    if (hashR.failed) {
+    if (hashR.isFailure) {
       return fail(hashR);
     }
     var hash = hashR.get();
@@ -102,7 +102,7 @@ extension Index on GitRepository {
       }
 
       var r = await addFileToIndex(index, fsEntity.path);
-      if (r.failed) {
+      if (r.isFailure) {
         return fail(r);
       }
     }
@@ -114,7 +114,7 @@ extension Index on GitRepository {
     pathSpec = normalizePath(pathSpec);
 
     var indexR = await indexStorage.readIndex();
-    if (indexR.failed) {
+    if (indexR.isFailure) {
       return fail(indexR);
     }
     var index = indexR.get();
@@ -122,7 +122,7 @@ extension Index on GitRepository {
     var stat = await fs.stat(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
       var r = await rmFileFromIndex(index, pathSpec);
-      if (r.failed) {
+      if (r.isFailure) {
         return fail(r);
       }
       if (rmFromFs) {
@@ -130,7 +130,7 @@ extension Index on GitRepository {
       }
     } else if (stat.type == FileSystemEntityType.directory) {
       var r = await rmDirectoryFromIndex(index, pathSpec, recursive: true);
-      if (r.failed) {
+      if (r.isFailure) {
         return fail(r);
       }
       if (rmFromFs) {
@@ -178,7 +178,7 @@ extension Index on GitRepository {
       }
 
       var r = await rmFileFromIndex(index, fsEntity.path);
-      if (r.failed) {
+      if (r.isFailure) {
         return fail(r);
       }
     }

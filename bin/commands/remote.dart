@@ -50,7 +50,7 @@ class RemoteCommand extends Command {
 
         var name = result.arguments[0];
         var configResult = await repo.removeRemote(name);
-        if (configResult.failed) {
+        if (configResult.isFailure) {
           print("fatal: No such remote: '$name'");
           return;
         }

@@ -31,7 +31,7 @@ class BranchCommand extends Command {
     if (hasNoArgs) {
       if (argResults!.rest.isEmpty) {
         var headResult = await repo.head();
-        if (headResult.failed) {
+        if (headResult.isFailure) {
           print('fatal: no head');
           return;
         }
@@ -80,7 +80,7 @@ class BranchCommand extends Command {
         if (rest.length == 1) {
           var name = argResults!.rest.first;
           var hashR = await repo.createBranch(name);
-          if (hashR.failed) {
+          if (hashR.isFailure) {
             print("fatal: A branch named '$name' already exists.");
           }
         } else {
@@ -91,7 +91,7 @@ class BranchCommand extends Command {
 
           var refName = ReferenceName.remote(remoteName, remoteBranchName);
           var refResult = await repo.resolveReferenceName(refName);
-          if (refResult.failed) {
+          if (refResult.isFailure) {
             print('fatal');
             return;
           }
@@ -117,7 +117,7 @@ class BranchCommand extends Command {
       }
       var branchName = argResults!.rest.first;
       var hashR = await repo.deleteBranch(branchName);
-      if (hashR.failed) {
+      if (hashR.isFailure) {
         print("error: branch '$branchName' not found.");
         return;
       }

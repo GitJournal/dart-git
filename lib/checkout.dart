@@ -27,7 +27,7 @@ extension Checkout on GitRepository {
       var index = GitIndex(versionNo: 2);
       var numFiles = await _checkoutTree(spec, obj as GitTree, index).get();
       var result = await indexStorage.writeIndex(index);
-      if (result.failed) {
+      if (result.isFailure) {
         return fail(result);
       }
 
@@ -50,7 +50,7 @@ extension Checkout on GitRepository {
     var updated = 0;
     for (var leaf in tree.entries) {
       var objR = await objStorage.read(leaf.hash);
-      if (objR.failed) {
+      if (objR.isFailure) {
         return fail(objR);
       }
       var obj = objR.get();
@@ -58,7 +58,7 @@ extension Checkout on GitRepository {
       var leafRelativePath = p.join(relativePath, leaf.name);
       if (obj is GitTree) {
         var res = await _checkoutTree(leafRelativePath, obj, index);
-        if (res.failed) {
+        if (res.isFailure) {
           return fail(res);
         }
         updated += res.get();
@@ -74,7 +74,7 @@ extension Checkout on GitRepository {
       await fs.file(blobPath).writeAsBytes(blob.blobData);
 
       var res = await addFileToIndex(index, blobPath);
-      if (res.failed) {
+      if (res.isFailure) {
         return fail(res);
       }
       updated++;
@@ -85,38 +85,38 @@ extension Checkout on GitRepository {
 
   Future<Result<Reference>> checkoutBranch(String branchName) async {
     var refRes = await refStorage.reference(ReferenceName.branch(branchName));
-    if (refRes.failed) {
+    if (refRes.isFailure) {
       return fail(refRes);
     }
     var ref = refRes.get();
     assert(ref.isHash);
 
     var headCommitR = await headCommit();
-    if (headCommitR.failed) {
+    if (headCommitR.isFailure) {
       if (headCommitR.error is! GitRefNotFound) {
         return fail(headCommitR);
       }
 
       var commitR = await objStorage.readCommit(ref.hash!);
-      if (commitR.failed) {
+      if (commitR.isFailure) {
         return fail(commitR);
       }
       var commit = commitR.get();
 
       var treeObjRes = await objStorage.readTree(commit.treeHash);
-      if (treeObjRes.failed) {
+      if (treeObjRes.isFailure) {
         return fail(treeObjRes);
       }
       var treeObj = treeObjRes.get();
 
       var index = GitIndex(versionNo: 2);
       var checkoutR = await _checkoutTree('', treeObj, index);
-      if (checkoutR.failed) {
+      if (checkoutR.isFailure) {
         return fail(checkoutR);
       }
 
       var writeR = await indexStorage.writeIndex(index);
-      if (writeR.failed) {
+      if (writeR.isFailure) {
         return fail(writeR);
       }
 
@@ -124,7 +124,7 @@ extension Checkout on GitRepository {
       var branchRef = ReferenceName.branch(branchName);
       var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
       var saveRefR = await refStorage.saveRef(headRef);
-      if (saveRefR.failed) {
+      if (saveRefR.isFailure) {
         return fail(saveRefR);
       }
 
@@ -133,7 +133,7 @@ extension Checkout on GitRepository {
     var _headCommit = headCommitR.get();
 
     var res = await objStorage.readCommit(ref.hash!);
-    if (res.failed) {
+    if (res.isFailure) {
       return fail(res);
     }
     var branchCommit = res.get();
@@ -144,7 +144,7 @@ extension Checkout on GitRepository {
       objStore: objStorage,
     );
     var indexR = await indexStorage.readIndex();
-    if (indexR.failed) {
+    if (indexR.isFailure) {
       return fail(indexR);
     }
     var index = indexR.get();
@@ -172,7 +172,7 @@ extension Checkout on GitRepository {
     }
 
     var writeR = await indexStorage.writeIndex(index);
-    if (writeR.failed) {
+    if (writeR.isFailure) {
       return fail(writeR);
     }
 
@@ -181,7 +181,7 @@ extension Checkout on GitRepository {
     var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
 
     var saveRefR = await refStorage.saveRef(headRef);
-    if (saveRefR.failed) {
+    if (saveRefR.isFailure) {
       return fail(saveRefR);
     }
 

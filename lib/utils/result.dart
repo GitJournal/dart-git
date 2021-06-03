@@ -15,8 +15,8 @@ class Result<DataType> {
     }
   }
 
-  bool get failed => error != null;
-  bool get succeeded => error == null;
+  bool get isFailure => error != null;
+  bool get isSuccess => error == null;
 }
 
 Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {

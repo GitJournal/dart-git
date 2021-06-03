@@ -41,7 +41,7 @@ class CheckoutCommand extends Command {
       var remoteBranchName = splitPath(remoteFullBranchName).item2;
 
       var remoteRefR = await repo.remoteBranch(remoteName, remoteBranchName);
-      if (remoteRefR.failed) {
+      if (remoteRefR.isFailure) {
         print('fatal: remote $remoteName branch $remoteBranchName not found');
         return;
       }
@@ -55,7 +55,7 @@ class CheckoutCommand extends Command {
           "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
 
       var headRefResult = await repo.head();
-      if (headRefResult.failed) {
+      if (headRefResult.isFailure) {
         print('fatal: head not found');
         return;
       }
@@ -84,7 +84,7 @@ class CheckoutCommand extends Command {
 
     var objectsUpdatedR = await repo.checkout(pathSpec);
 
-    if (objectsUpdatedR.failed) {
+    if (objectsUpdatedR.isFailure) {
       print(
           "error: pathspec '$pathSpec' did not match any file(s) known to git");
       exit(1);

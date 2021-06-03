@@ -46,7 +46,7 @@ void main() {
       ),
       addAll: true,
     );
-    expect(result.succeeded, isTrue);
+    expect(result.isSuccess, isTrue);
 
     // Do a comparison
     await testRepoEquals(tmpDir2, tmpDir1);

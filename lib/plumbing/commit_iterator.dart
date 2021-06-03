@@ -22,7 +22,7 @@ Stream<Result<GitCommit>> commitIteratorBFS({
     seen.add(hash);
 
     var result = await objStorage.readCommit(hash);
-    if (result.failed) {
+    if (result.isFailure) {
       yield fail(result);
       continue;
     }
@@ -57,7 +57,7 @@ Stream<Result<GitCommit>> commitIteratorBFSFiltered({
     seen.add(hash);
 
     var result = await objStorage.readCommit(hash);
-    if (result.failed) {
+    if (result.isFailure) {
       yield fail(result);
       continue;
     }
@@ -87,7 +87,7 @@ Stream<Result<GitCommit>> commitPreOrderIterator({
     seen.add(hash);
 
     var result = await objStorage.readCommit(hash);
-    if (result.failed) {
+    if (result.isFailure) {
       yield fail(result);
       continue;
     }

@@ -23,7 +23,7 @@ class DiffTreeCommand extends Command {
 
     var hash = argResults!.arguments[0];
     var objRes = await repo.objStorage.read(GitHash(hash));
-    if (objRes.failed) {
+    if (objRes.isFailure) {
       print('fatal: bad object $hash');
       return;
     }

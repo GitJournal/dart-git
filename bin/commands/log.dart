@@ -24,7 +24,7 @@ class LogCommand extends Command {
       sha = GitHash(argResults!.rest.first);
     } else {
       var result = await repo.headHash();
-      if (result.failed) {
+      if (result.isFailure) {
         print('fatal: head hash not found');
         return;
       }
@@ -41,7 +41,7 @@ class LogCommand extends Command {
       seen.add(sha);
 
       var objRes = await repo.objStorage.readCommit(sha);
-      if (objRes.failed) {
+      if (objRes.isFailure) {
         print('panic: object with sha $sha not found');
         return;
       }

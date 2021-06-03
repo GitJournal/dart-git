@@ -20,10 +20,11 @@ class GitStatusResult {
   }
 }
 
+// do me!
 extension Status on GitRepository {
   Future<GitStatusResult?> status() async {
     var rootTreeR = await headTree();
-    if (rootTreeR.failed) {
+    if (rootTreeR.isFailure) {
       return null;
     }
 

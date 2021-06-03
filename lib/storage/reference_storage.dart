@@ -53,7 +53,7 @@ class ReferenceStorage {
       var refName =
           ReferenceName(fsEntity.path.substring(_dotGitDir.length + 1));
       var result = await reference(refName);
-      if (result.succeeded) {
+      if (result.isSuccess) {
         var ref = result.get();
         refs.add(ref);
         processedRefNames.add(refName);

@@ -26,21 +26,21 @@ extension Commit on GitRepository {
     var index = await indexStorage.readIndex().get();
 
     var treeHashR = await writeTree(index);
-    if (treeHashR.failed) {
+    if (treeHashR.isFailure) {
       return fail(treeHashR);
     }
     var treeHash = treeHashR.get();
     var parents = <GitHash>[];
 
     var headRefResult = await head();
-    if (headRefResult.failed) {
+    if (headRefResult.isFailure) {
       if (headRefResult.error is! GitRefNotFound) {
         return fail(headRefResult);
       }
     } else {
       var headRef = headRefResult.get();
       var parentRefResult = await resolveReference(headRef);
-      if (parentRefResult.succeeded) {
+      if (parentRefResult.isSuccess) {
         var parentRef = parentRefResult.get();
         parents.add(parentRef.hash!);
       }
@@ -48,7 +48,7 @@ extension Commit on GitRepository {
 
     for (var parent in parents) {
       var parentCommitR = await objStorage.read(parent);
-      if (parentCommitR.failed) {
+      if (parentCommitR.isFailure) {
         return fail(parentCommitR);
       }
       var parentCommit = parentCommitR.get() as GitCommit;
@@ -66,7 +66,7 @@ extension Commit on GitRepository {
       treeHash: treeHash,
     );
     var hashR = await objStorage.writeObject(commit);
-    if (hashR.failed) {
+    if (hashR.isFailure) {
       return fail(hashR);
     }
     var hash = hashR.get();
@@ -75,10 +75,10 @@ extension Commit on GitRepository {
     late String branchName;
 
     var branchNameResult = await currentBranch();
-    if (branchNameResult.failed) {
+    if (branchNameResult.isFailure) {
       if (branchNameResult.error is GitHeadDetached) {
         var result = await head();
-        if (result.failed) {
+        if (result.isFailure) {
           return fail(result);
         }
 
@@ -95,7 +95,7 @@ extension Commit on GitRepository {
 
     var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
     var saveRefResult = await refStorage.saveRef(newRef);
-    if (saveRefResult.failed) {
+    if (saveRefResult.isFailure) {
       return fail(saveRefResult);
     }
 
@@ -197,7 +197,7 @@ extension Commit on GitRepository {
       }
 
       var hashR = await objStorage.writeObject(tree);
-      if (hashR.failed) {
+      if (hashR.isFailure) {
         return fail(hashR);
       }
       hashMap[dir] = hashR.get();

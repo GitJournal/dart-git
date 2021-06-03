@@ -40,7 +40,7 @@ extension Remotes on GitRepository {
     config.remotes.add(remote);
 
     var result = await saveConfig();
-    if (result.failed) {
+    if (result.isFailure) {
       return fail(result);
     }
 
@@ -62,7 +62,7 @@ extension Remotes on GitRepository {
       url: url,
     );
     var result = await saveConfig();
-    if (result.failed) {
+    if (result.isFailure) {
       return fail(result);
     }
 
@@ -79,12 +79,12 @@ extension Remotes on GitRepository {
     var remote = config.remotes[i];
     config.remotes.removeAt(i);
     var cfgResult = await saveConfig();
-    if (cfgResult.failed) {
+    if (cfgResult.isFailure) {
       return fail(cfgResult);
     }
 
     var result = await refStorage.removeReferences(refRemotePrefix + name);
-    if (result.failed) {
+    if (result.isFailure) {
       return fail(result);
     }
     // TODO: Remote the objects from that remote?

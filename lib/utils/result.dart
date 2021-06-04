@@ -1,11 +1,13 @@
 /// See https://github.com/michaelbull/kotlin-result
-/// FIXME: Add a Stacktrace somehow?
 class Result<DataType> {
   DataType? data;
-  Exception? error;
 
-  Result(DataType data, {this.error}) : data = data;
-  Result.fail(Exception error) : error = error;
+  Exception? error;
+  StackTrace? stackTrace;
+
+  Result(DataType data) : data = data;
+  Result.fail(Exception error, [this.stackTrace]) : error = error;
+  Result._(this.data, this.error, this.stackTrace);
 
   DataType getOrThrow() {
     assert(data != null || error != null);
@@ -30,13 +32,13 @@ class Result<DataType> {
 Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
   try {
     return catchFn();
-  } on Exception catch (e) {
-    return Result.fail(e);
+  } on Exception catch (e, stackTrace) {
+    return Result.fail(e, stackTrace);
   }
 }
 
 Result<Base> downcast<Base, Derived>(Result<Derived> other) {
-  return Result(other.data as Base, error: other.error);
+  return Result._(other.data as Base, other.error, other.stackTrace);
 }
 
 extension ResultFuture<T> on Future<Result<T>> {

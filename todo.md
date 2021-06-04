@@ -29,3 +29,9 @@ Important -
   - Can throw LockFailure
 
 * Modifying the index - What if someone else has modified it during that time?
+
+
+Low Energy Tasks -
+* Capabilities
+* PktLine Decoder
+*

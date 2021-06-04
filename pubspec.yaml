@@ -8,6 +8,7 @@ dependencies:
   buffer: ^1.1.0
   collection: ^1.15.0
   crypto: ^3.0.0
+  diff_match_patch: ^0.4.1
   equatable: ^2.0.0
   file: ^6.1.0
   freezed_annotation: ^0.14.1

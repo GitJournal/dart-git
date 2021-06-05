@@ -432,7 +432,11 @@ class GitRepository {
   }
 
   Future<Result<int>> numChangesToPush() async {
-    var head = await (this.head() as FutureOr<Reference>);
+    var headR = await this.head();
+    if (headR.isFailure) {
+      return fail(headR);
+    }
+    var head = headR.getOrThrow();
     if (head.isHash || head.target == null) {
       return Result(0);
     }

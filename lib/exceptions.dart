@@ -118,3 +118,5 @@ class GitFileNotFound implements GitNotFound {
   @override
   String toString() => 'GitFileNotFound: $filePath';
 }
+
+class GitShouldNotContainFound extends GitException {}

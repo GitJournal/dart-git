@@ -139,7 +139,7 @@ void main() {
         var commits = await commitsFromRevs(repo, t.input);
         expect(commits.length, 2);
 
-        var result = await repo.mergeBase(commits[0], commits[1]);
+        var result = await repo.mergeBase(commits[0], commits[1]).getOrThrow();
         result.sort(sortByHash);
 
         var output = await commitsFromRevs(repo, t.output);
@@ -159,7 +159,7 @@ void main() {
         var repo = await GitRepository.load(gitDir).getOrThrow();
         var commits = await commitsFromRevs(repo, t.input);
 
-        var actual = await repo.independents(commits);
+        var actual = await repo.independents(commits).getOrThrow();
         var expected = await commitsFromRevs(repo, t.output);
 
         expect(actual.toSet(), expected.toSet());
@@ -173,7 +173,7 @@ void main() {
         var repo = await GitRepository.load(gitDir).getOrThrow();
         var commits = await commitsFromRevs(repo, t.input);
 
-        var actual = await repo.isAncestor(commits[0], commits[1]);
+        var actual = await repo.isAncestor(commits[0], commits[1]).getOrThrow();
         expect(actual, t.output);
       });
     }

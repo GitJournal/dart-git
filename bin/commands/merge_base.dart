@@ -29,7 +29,8 @@ class MergeBaseCommand extends Command {
     var aRes = await repo.objStorage.readCommit(aHash);
     var bRes = await repo.objStorage.readCommit(bHash);
 
-    var commits = await repo.mergeBase(aRes.getOrThrow(), bRes.getOrThrow());
+    var commits =
+        await repo.mergeBase(aRes.getOrThrow(), bRes.getOrThrow()).getOrThrow();
     for (var c in commits) {
       print(c.hash);
     }

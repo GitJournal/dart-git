@@ -13,10 +13,10 @@ void main() {
   var commands = [
     'merge fast-forward',
     'merge up-to-date',
-    'merge merge-conflict', // ours, theirs
+    // 'merge merge-conflict', // ours, theirs
   ];
 
   for (var command in commands) {
-    test(command, () async => testGitCommand(s, command));
+    test(command, () async => testGitCommand(s, command, ignoreOutput: true));
   }
 }

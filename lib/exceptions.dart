@@ -122,3 +122,5 @@ class GitFileNotFound implements GitNotFound {
 class GitShouldNotContainFound extends GitException {}
 
 class GitMergeTooManyBases extends GitException {}
+
+class GitMergeOnHashNotAllowed extends GitException {}

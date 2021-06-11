@@ -11,6 +11,10 @@ class MergeCommand extends Command {
   @override
   final description = 'Join two or more development histories together';
 
+  MergeCommand() {
+    argParser.addFlag('ours', defaultsTo: false);
+  }
+
   @override
   Future run() async {
     var args = argResults!.rest;

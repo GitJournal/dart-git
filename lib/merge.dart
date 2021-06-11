@@ -1,14 +1,38 @@
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/exceptions.dart';
+import 'package:dart_git/plumbing/reference.dart';
 
 extension Merge on GitRepository {
   Future<Result<void>> merge(GitCommit commitB) async {
-    var headComR = await headCommit();
-    if (headComR.isFailure) {
-      return fail(headComR);
+    var headR = await head();
+    if (headR.isFailure) {
+      return fail(headR);
     }
-    var commitA = headComR.getOrThrow();
-    var baseR = await mergeBase(commitA, commitB);
+    var headRef = headR.getOrThrow();
+
+    if (headRef.isHash) {
+      var ex = GitMergeOnHashNotAllowed();
+      return Result.fail(ex);
+    }
+
+    var headHashRefR = await resolveReference(headRef);
+    if (headHashRefR.isFailure) {
+      return fail(headHashRefR);
+    }
+    var headHash = headHashRefR.getOrThrow().hash!;
+
+    var headCommitR = await objStorage.read(headHash);
+    if (headCommitR.isFailure) {
+      return fail(headCommitR);
+    }
+    var headCommit = headCommitR.getOrThrow() as GitCommit;
+
+    // up to date
+    if (headHash == commitB.hash) {
+      return Result(null);
+    }
+
+    var baseR = await mergeBase(headCommit, commitB);
     if (baseR.isFailure) {
       return fail(baseR);
     }
@@ -18,22 +42,39 @@ extension Merge on GitRepository {
       var ex = GitMergeTooManyBases();
       return Result.fail(ex);
     }
-    var base = bases.first;
+    var baseHash = bases.first.hash;
 
-    // - fastforward
-    // FIXME: Use reset?
-    if (base.hash == commitA.hash) {
-      // set head to commitA
-      return Result(null);
-    } else if (base.hash == commitB.hash) {
+    // up to date
+    if (baseHash == commitB.hash) {
       return Result(null);
     }
 
+    // fastforward
+    if (baseHash == headCommit.hash) {
+      var branchNameRef = headRef.target!;
+      assert(branchNameRef.isBranch());
+
+      var newRef = Reference.hash(branchNameRef, commitB.hash);
+      var saveRefResult = await refStorage.saveRef(newRef);
+      if (saveRefResult.isFailure) {
+        return fail(saveRefResult);
+      }
+
+      var res = await checkout('.');
+      if (res.isFailure) {
+        return fail(res);
+      }
+
+      return Result(null);
+    }
+
+    // TODO: Implement merge options -
     // - normal
     //   - ours
     //   - theirs
-    // - up to date
     // - unborn ?
-    return Result(null);
+
+    var ex = GitException();
+    return Result.fail(ex);
   }
 }

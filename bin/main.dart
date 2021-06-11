@@ -45,6 +45,7 @@ Future<int> mainWithExitCode(List<String> args) async {
     ..addCommand(RmCommand())
     ..addCommand(WriteTreeCommand())
     ..addCommand(MergeBaseCommand())
+    ..addCommand(MergeCommand())
     ..addCommand(DiffTreeCommand())
     ..addCommand(DiffCommand())
     ..addCommand(ShowCommand())

@@ -40,6 +40,24 @@ Future<GitCommandSetupResult> gitCommandTestSetupAll() async {
   return result;
 }
 
+Future<GitCommandSetupResult> gitCommandTestFixtureSetupAll(String name) async {
+  var result = GitCommandSetupResult();
+  result.tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;
+
+  result.clonedGitDir = p.join(result.tmpDir, name);
+  result.realGitDir = p.join(result.tmpDir, '${name}_git');
+  result.dartGitDir = p.join(result.tmpDir, '${name}_dart');
+
+  await cloneGittedFixture(name, result.clonedGitDir);
+
+  if (!silenceShellOutput) {
+    print('RealGitDir: ${result.realGitDir}');
+    print('DartGitDir: ${result.dartGitDir}');
+  }
+
+  return result;
+}
+
 Future<void> gitCommandTestSetup(GitCommandSetupResult r) async {
   if (Directory(r.realGitDir).existsSync()) {
     await Directory(r.realGitDir).delete(recursive: true);

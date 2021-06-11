@@ -34,4 +34,7 @@ Important -
 Low Energy Tasks -
 * Capabilities
 * PktLine Decoder
-*
+* reset hard/soft
+* Tests: No need to clone anything!
+
+Look at https://github.com/Byron/gitoxide and learn about community building

@@ -24,6 +24,7 @@ import 'package:dart_git/utils/result.dart';
 export 'commit.dart';
 export 'checkout.dart';
 export 'merge_base.dart';
+export 'merge.dart';
 export 'remotes.dart';
 export 'utils/result.dart';
 export 'index.dart';
@@ -275,6 +276,22 @@ class GitRepository {
     }
 
     return Result(ref.hash!);
+  }
+
+  Future<Result<GitCommit>> branchCommit(String branchName) async {
+    var refName = ReferenceName.branch(branchName);
+    var refResult = await refStorage.reference(refName);
+    if (refResult.isFailure) {
+      return fail(refResult);
+    }
+    var ref = refResult.getOrThrow();
+
+    var objR = await objStorage.read(ref.hash!);
+    if (objR.isFailure) {
+      return fail(objR);
+    }
+
+    return Result(objR.getOrThrow() as GitCommit);
   }
 
   Future<Result<Reference>> head() async {

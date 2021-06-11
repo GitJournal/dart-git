@@ -1,0 +1,32 @@
+Modify for conflict
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Fri Jun 11 11:36:05 2021 +0200
+#
+# On branch merge-conflict
+# Changes to be committed:
+#	modified:   2.md
+#	new file:   4.md
+#
+# ------------------------ >8 ------------------------
+# Do not modify or remove the line above.
+# Everything below it will be ignored.
+diff --git a/2.md b/2.md
+index ab266b8..9c5d65d 100644
+--- a/2.md
++++ b/2.md
+@@ -2,4 +2,5 @@
+ 
+ Weee.
+ Woo.
++Swam
+ Hello
+diff --git a/4.md b/4.md
+new file mode 100644
+index 0000000..e058655
+--- /dev/null
++++ b/4.md
+@@ -0,0 +1 @@
++Just adding another file to make sure it is not deleted

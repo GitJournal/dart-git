@@ -208,6 +208,7 @@ Future<List<String>> runDartGitCommand(
 }
 
 Future<void> copyDirectory(String source, String destination) async {
+  await Directory(destination).create(recursive: true);
   await for (var entity in Directory(source).list(recursive: false)) {
     if (entity is Directory) {
       var newDirectory = Directory(p.join(
@@ -241,6 +242,20 @@ Future<String> openFixture(String filePath) async {
   }
 
   return gitDir;
+}
+
+Future<String> cloneGittedFixture(String fixtureName, String newDirPath) async {
+  var fixtureDirPath = 'test/data/$fixtureName';
+  assert(Directory(fixtureDirPath).existsSync());
+  assert(Directory('$fixtureDirPath/.gitted').existsSync());
+
+  await copyDirectory(fixtureDirPath, newDirPath);
+  assert(Directory('$newDirPath/.gitted').existsSync());
+  await Directory('$newDirPath/.gitted').rename('$newDirPath/.git');
+  print(newDirPath);
+  print(Directory(newDirPath).path);
+
+  return newDirPath;
 }
 
 extension GitStream on Stream<Result<GitCommit>> {

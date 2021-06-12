@@ -1,10 +1,5 @@
 We need merge support
-- Simple fast forwards
 - Creating a merge commit and resolving conflicts!
-
-For Diffs we could use -
-  * Word based: https://pub.dev/packages/diff_match_patch
-  * Classical: https://pub.dev/packages/diff2
 
 * Revision Support - At some point we might need support for stuff like HEAD^
   https://mirrors.edge.kernel.org/pub/software/scm/git/docs/gitrevisions.html

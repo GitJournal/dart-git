@@ -9,7 +9,8 @@ import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'log.dart';
 
-import 'package:fire_line_diff/fire_line_diff.dart';
+import 'package:diff_match_patch/diff_match_patch.dart';
+import 'package:diff_match_patch/src/diff.dart';
 
 class ShowCommand extends Command {
   @override
@@ -50,41 +51,47 @@ class ShowCommand extends Command {
         var newBlobConent = utf8.decode(newBlob.blobData);
         var oldBlobConent = utf8.decode(oldBlob.blobData);
 
-        var newList = LineSplitter.split(newBlobConent).toList();
-        var oldList = LineSplitter.split(oldBlobConent).toList();
-
-        // print(oldList);
-        // print(newList);
         var filePath = change.path;
         print('diff --git a/$filePath b/lib/$filePath');
         print('index .....');
         print('--- a/$filePath');
         print('+++ b/$filePath');
 
-        var results = FireLineDiff.diff(oldList, newList);
-        for (var result in results) {
+        var results = diff(oldBlobConent, newBlobConent);
+        for (var diff in results) {
           var str = '';
-          if (result.state == LineDiffState.neutral) {
+          if (diff.operation == 0) {
             str += '   ';
-          } else if (result.state == LineDiffState.negative) {
+          } else if (diff.operation == -1) {
             str += ' - ';
-          } else if (result.state == LineDiffState.positive) {
+          } else if (diff.operation == 1) {
             str += ' + ';
           }
+          assert(str.isNotEmpty);
 
-          if (result.left != null && result.right != null) {
-            str += result.left!;
-          } else if (result.left != null) {
-            str += result.left!;
-          } else {
-            str += result.right!;
+          for (var line in LineSplitter.split(diff.text)) {
+            print(str + line);
           }
-
-          print(str);
         }
       }
     } else {
       print('no other git type is currentyl supported');
     }
   }
+}
+
+List<Diff> diff(String a, String b) {
+  var res = linesToChars(a, b);
+  var chars1 = res['chars1'] as String;
+  var chars2 = res['chars2'] as String;
+  var lineArray = res['lineArray'] as List<String>;
+  // print(chars1.codeUnits);
+  // print(chars2.codeUnits);
+  // print(lineArray);
+
+  var dmp = DiffMatchPatch();
+  var diffObjects = dmp.diff(chars1, chars2);
+  charsToLines(diffObjects, lineArray);
+
+  return diffObjects;
 }

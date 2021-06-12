@@ -124,3 +124,5 @@ class GitShouldNotContainFound extends GitException {}
 class GitMergeTooManyBases extends GitException {}
 
 class GitMergeOnHashNotAllowed extends GitException {}
+
+class GitNotImplemented extends GitException {}

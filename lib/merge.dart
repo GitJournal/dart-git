@@ -4,6 +4,7 @@ import 'package:dart_git/plumbing/reference.dart';
 
 extension Merge on GitRepository {
   Future<Result<void>> merge(GitCommit commitB) async {
+    // fetch the head commit
     var headR = await head();
     if (headR.isFailure) {
       return fail(headR);
@@ -74,7 +75,10 @@ extension Merge on GitRepository {
     //   - theirs
     // - unborn ?
 
-    var ex = GitException();
+    // Full 3 way
+    // https://stackoverflow.com/questions/4129049/why-is-a-3-way-merge-advantageous-over-a-2-way-merge
+
+    var ex = GitNotImplemented();
     return Result.fail(ex);
   }
 }

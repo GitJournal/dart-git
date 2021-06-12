@@ -30,11 +30,10 @@ Important -
 
 * Modifying the index - What if someone else has modified it during that time?
 
-
 Low Energy Tasks -
 * Capabilities
 * PktLine Decoder
 * reset hard/soft
-* Tests: No need to clone anything!
+* Tests: Use a fixture instead of cloning
 
 Look at https://github.com/Byron/gitoxide and learn about community building

@@ -11,6 +11,7 @@ dependencies:
   diff_match_patch: ^0.4.1
   equatable: ^2.0.0
   file: ^6.1.0
+  fire_line_diff: ^1.5.1
   freezed_annotation: ^0.14.1
   meta: ^1.3.0
   path: ^1.8.0

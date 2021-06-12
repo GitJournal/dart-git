@@ -9,7 +9,7 @@ import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'log.dart';
 
-// import 'package:fire_line_diff/fire_line_diff.dart';
+import 'package:fire_line_diff/fire_line_diff.dart';
 
 class ShowCommand extends Command {
   @override
@@ -53,11 +53,35 @@ class ShowCommand extends Command {
         var newList = LineSplitter.split(newBlobConent).toList();
         var oldList = LineSplitter.split(oldBlobConent).toList();
 
-        print(oldList);
-        print(newList);
+        // print(oldList);
+        // print(newList);
+        var filePath = change.path;
+        print('diff --git a/$filePath b/lib/$filePath');
+        print('index .....');
+        print('--- a/$filePath');
+        print('+++ b/$filePath');
 
-        // var result = FireLineDiff.diff(oldList, newList);
-        // print(result);
+        var results = FireLineDiff.diff(oldList, newList);
+        for (var result in results) {
+          var str = '';
+          if (result.state == LineDiffState.neutral) {
+            str += '   ';
+          } else if (result.state == LineDiffState.negative) {
+            str += ' - ';
+          } else if (result.state == LineDiffState.positive) {
+            str += ' + ';
+          }
+
+          if (result.left != null && result.right != null) {
+            str += result.left!;
+          } else if (result.left != null) {
+            str += result.left!;
+          } else {
+            str += result.right!;
+          }
+
+          print(str);
+        }
       }
     } else {
       print('no other git type is currentyl supported');

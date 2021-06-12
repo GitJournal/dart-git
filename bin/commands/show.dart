@@ -58,19 +58,45 @@ class ShowCommand extends Command {
         print('+++ b/$filePath');
 
         var results = diff(oldBlobConent, newBlobConent);
-        for (var diff in results) {
+        for (var i = 0; i < results.length; i++) {
+          var diff = results[i];
           var str = '';
-          if (diff.operation == 0) {
-            str += '   ';
-          } else if (diff.operation == -1) {
-            str += ' - ';
+          if (diff.operation == -1) {
+            str = '-';
           } else if (diff.operation == 1) {
-            str += ' + ';
+            str = '+';
+          } else {
+            continue; // no change
           }
-          assert(str.isNotEmpty);
 
+          // Prev context
+          const prevLinesOfContext = 3;
+          if (i > 0 && results[i - 1].operation == 0) {
+            var lines = LineSplitter.split(results[i - 1].text).toList();
+            if (lines.length > prevLinesOfContext) {
+              lines = lines.sublist(lines.length - prevLinesOfContext);
+            }
+
+            // FIXME: Figure out how to show the correct line numbers!
+            print('@@ -30,11 +30,10 @@ ...');
+            for (var line in lines) {
+              print(' $line');
+            }
+          }
+
+          // Current op
           for (var line in LineSplitter.split(diff.text)) {
             print(str + line);
+          }
+
+          // After context
+          const afterLinesOfContext = 3;
+          if (i < results.length - 1 && results[i + 1].operation == 0) {
+            var lines = LineSplitter.split(results[i + 1].text).toList();
+            for (var i = 0; i < lines.length && i < afterLinesOfContext; i++) {
+              var line = lines[i];
+              print(' $line');
+            }
           }
         }
       }
@@ -85,9 +111,6 @@ List<Diff> diff(String a, String b) {
   var chars1 = res['chars1'] as String;
   var chars2 = res['chars2'] as String;
   var lineArray = res['lineArray'] as List<String>;
-  // print(chars1.codeUnits);
-  // print(chars2.codeUnits);
-  // print(lineArray);
 
   var dmp = DiffMatchPatch();
   var diffObjects = dmp.diff(chars1, chars2);

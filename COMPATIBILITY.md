@@ -32,7 +32,7 @@ is supported by dart-git.
 | remote                                | ✖ |
 | submodule                             | ✖ |
 | **inspection and comparison** |
-| show                                  | ✖ |
+| show                                  | ✔ |
 | log                                   | ✔ |
 | shortlog                              | (see log) |
 | describe                              | |

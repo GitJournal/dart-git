@@ -6,6 +6,45 @@ import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/file_mode.dart';
 import 'package:dart_git/utils/result.dart';
 
+/*
+StatusSummary {
+  not_added: [
+    'assets/README',
+    'assets/folder-green-git-icon.png',
+    'assets/folder-green-git-icon.svg',
+    'todo.md'
+  ],
+  conflicted: [],
+  created: [],
+  deleted: [],
+  modified: [],
+  renamed: [],
+  files: [
+    FileStatusSummary {
+      path: 'assets/README',
+      index: '?',
+      working_dir: '?'
+    },
+    FileStatusSummary {
+      path: 'assets/folder-green-git-icon.png',
+      index: '?',
+      working_dir: '?'
+    },
+    FileStatusSummary {
+      path: 'assets/folder-green-git-icon.svg',
+      index: '?',
+      working_dir: '?'
+    },
+    FileStatusSummary { path: 'todo.md', index: '?', working_dir: '?' }
+  ],
+  staged: [],
+  ahead: 0,
+  behind: 0,
+  current: 'master',
+  tracking: null
+}
+*/
+
 class GitStatusResult {
   var added = <String>[];
   var removed = <String>[];

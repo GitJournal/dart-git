@@ -82,3 +82,9 @@ extension Merge on GitRepository {
     return Result.fail(ex);
   }
 }
+
+// for a tree
+// -> combine both blobs, and choose one or the other
+// -> keep going down each 'tree' and doing that
+// -> fill all the tree object hashes
+// -> done

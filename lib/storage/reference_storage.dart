@@ -7,6 +7,9 @@ import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/result.dart';
 
+// FIXME: Revisions have a particular format!!
+//        https://git-scm.com/docs/git-check-ref-format
+//        This seems like a good task to delegate!
 class ReferenceStorage {
   final String _dotGitDir;
   final FileSystem _fs;
@@ -120,6 +123,7 @@ class ReferenceStorage {
 
     return Result(null);
     // FIXME: What if the deleted ref is in the packed-refs?
+    //        The file is being locked in the go-git code!
   }
 }
 

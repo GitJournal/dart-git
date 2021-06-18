@@ -25,6 +25,7 @@ class ConfigStorage {
   }
 
   Future<Result<void>> writeConfig(Config config) async {
+    // FIXME: Write to another file and then move it!!
     await _fs.file(_path).writeAsString(config.serialize());
     return Result(null);
   }

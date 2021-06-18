@@ -13,6 +13,7 @@ class MergeCommand extends Command {
 
   MergeCommand() {
     argParser.addOption('strategy-option', abbr: 'X');
+    argParser.addOption('message', abbr: 'm');
   }
 
   @override
@@ -23,10 +24,36 @@ class MergeCommand extends Command {
       return;
     }
 
+    var branchName = args[0];
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = await GitRepository.load(gitRootDir).getOrThrow();
-    var branchCommit = await repo.branchCommit(args[0]).getOrThrow();
+    var branchCommit = await repo.branchCommit(branchName).getOrThrow();
 
-    await repo.merge(branchCommit).throwOnError();
+    var user = repo.config.user;
+    if (user == null) {
+      print('Git user not set');
+      return;
+    }
+    var authorDate = Platform.environment['GIT_AUTHOR_DATE'];
+    if (authorDate != null) {
+      user.date = DateTime.parse(authorDate);
+    }
+
+    var committer = user;
+    var comitterDate = Platform.environment['GIT_COMMITTER_DATE'];
+    if (comitterDate != null) {
+      committer.date = DateTime.parse(comitterDate);
+    }
+
+    var msg = argResults!['message'] ?? 'Merge branch $branchName';
+
+    await repo
+        .merge(
+          theirCommit: branchCommit,
+          author: user,
+          committer: committer,
+          message: msg,
+        )
+        .throwOnError();
   }
 }

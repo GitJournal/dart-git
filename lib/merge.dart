@@ -6,7 +6,15 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Merge on GitRepository {
-  Future<Result<void>> merge(GitCommit commitB) async {
+  Future<Result<void>> merge({
+    required GitCommit theirCommit,
+    required String message,
+    required GitAuthor author,
+    GitAuthor? committer,
+  }) async {
+    committer ??= author;
+    var commitB = theirCommit;
+
     // fetch the head commit
     var headR = await head();
     if (headR.isFailure) {
@@ -80,12 +88,11 @@ extension Merge on GitRepository {
     //   - ours
     //   - theirs
     var parents = [headHash, commitB.hash];
-    // FIXME: Implement this properly!!
     var commit = GitCommit.create(
-      author: commitB.author,
-      committer: commitB.author,
+      author: author,
+      committer: committer,
       parents: parents,
-      message: 'Merge Test!!',
+      message: message,
       treeHash: await _combineTrees(
         headTree as GitTree,
         bTree as GitTree,
@@ -188,9 +195,3 @@ extension Merge on GitRepository {
     return Result(null);
   }
 }
-
-// for a tree
-// -> combine both blobs, and choose one or the other
-// -> keep going down each 'tree' and doing that
-// -> fill all the tree object hashes
-// -> done

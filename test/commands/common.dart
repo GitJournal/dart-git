@@ -81,13 +81,14 @@ Future<void> testGitCommand(
   String command, {
   bool containsMatch = false,
   bool ignoreOutput = false,
+  Map<String, String> env = const {},
 }) async {
   // hack: Untill we implement git fetch
   var outputL = command.startsWith('fetch')
       ? (await runGitCommand(command, s.dartGitDir)).split('\n')
       : await runDartGitCommand(command, s.dartGitDir);
   var output = outputL.join('\n').trim();
-  var expectedOutput = await runGitCommand(command, s.realGitDir);
+  var expectedOutput = await runGitCommand(command, s.realGitDir, env: env);
 
   if (!ignoreOutput) {
     if (!containsMatch) {

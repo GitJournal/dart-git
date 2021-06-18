@@ -12,7 +12,7 @@ class MergeCommand extends Command {
   final description = 'Join two or more development histories together';
 
   MergeCommand() {
-    argParser.addOption('strategy', abbr: 's');
+    argParser.addOption('strategy-option', abbr: 'X');
   }
 
   @override

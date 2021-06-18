@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
-import 'lib.dart';
+import '../lib.dart';
 
 void main() {
   test('Commit all Initial Repo Test - Single File', () async {

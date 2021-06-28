@@ -16,13 +16,13 @@ void main() {
 
     test('from DateTime', () {
       final utcTime = DateTime.utc(2010, 1, 2, 3, 4, 5, 6, 7);
-      final t = DateTimeWithTzOffset.from(11.5, utcTime);
+      final t = DateTimeWithTzOffset.fromDt(11.5, utcTime);
       expect(t.toString(), equals('2010-01-02 03:04:05.006007+1130'));
     });
 
     test('from local DateTime', () {
       final localTime = DateTime(2010, 1, 2, 3, 4, 5, 6, 7);
-      final t = DateTimeWithTzOffset.from(-12.5, localTime);
+      final t = DateTimeWithTzOffset.fromDt(-12.5, localTime);
       expect(t.toString(), equals('2010-01-02 03:04:05.006007-1230'));
     });
   });

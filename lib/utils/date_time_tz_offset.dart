@@ -20,9 +20,19 @@ class DateTimeWithTzOffset implements DateTime {
   ]) : this._internal(tzOffset, year, month, day, hour, minute, second,
             millisecond, microsecond);
 
-  DateTimeWithTzOffset.from(double tzOffset, DateTime dt)
+  DateTimeWithTzOffset.fromDt(double tzOffset, DateTime dt)
       : this._internal(tzOffset, dt.year, dt.month, dt.day, dt.hour, dt.minute,
             dt.second, dt.millisecond, dt.microsecond);
+
+  DateTimeWithTzOffset.from(DateTime dt)
+      : this.fromDt(dt.timeZoneOffset.inMinutes / 60, dt);
+
+  DateTimeWithTzOffset.fromTimeStamp(double tzOffset, int timeStampInSecs)
+      : offset = (tzOffset * 1000 * 60 * 60).toInt(),
+        _native = DateTime.fromMillisecondsSinceEpoch(
+          timeStampInSecs * 1000,
+          isUtc: true,
+        );
 
   DateTimeWithTzOffset._internal(double tzOffset, int year, int month, int day,
       int hour, int minute, int second, int millisecond, int microsecond)
@@ -169,4 +179,7 @@ class DateTimeWithTzOffset implements DateTime {
   int get microsecond => _native.microsecond;
   @override
   int get weekday => _native.weekday;
+
+  static DateTimeWithTzOffset now() =>
+      DateTimeWithTzOffset.from(DateTime.now());
 }

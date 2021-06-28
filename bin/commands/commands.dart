@@ -10,6 +10,7 @@ export 'ls_tree.dart';
 export 'remote.dart';
 export 'status.dart';
 export 'rm.dart';
+export 'reset.dart';
 export 'write_tree.dart';
 export 'merge.dart';
 export 'merge_base.dart';

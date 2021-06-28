@@ -64,7 +64,7 @@ class DateTimeWithTzOffset implements DateTime {
   @override
   int compareTo(DateTime other) {
     // FIXME: IMplement me
-    return 0;
+    throw UnimplementedError();
   }
 
   @override
@@ -73,7 +73,7 @@ class DateTimeWithTzOffset implements DateTime {
   @override
   DateTime toLocal() {
     // FIXME: Implement me
-    return this;
+    throw UnimplementedError();
   }
 
   @override
@@ -130,23 +130,22 @@ class DateTimeWithTzOffset implements DateTime {
 
   @override
   DateTime add(Duration duration) {
+    throw UnimplementedError();
     // FIXME: IMplement me
-
-    return this;
   }
 
   @override
   DateTime subtract(Duration duration) {
     // FIXME: IMplement me
 
-    return this;
+    throw UnimplementedError();
   }
 
   @override
   Duration difference(DateTime other) {
     // FIXME: IMplement me
 
-    return Duration();
+    throw UnimplementedError();
   }
 
   @override

@@ -176,11 +176,35 @@ done''';
 }
 
 Future<List<String>> runDartGitCommand(
-    String command, String workingDir) async {
+  String command,
+  String workingDir, {
+  Map<String, String> env = const {},
+}) async {
   var printLog = <String>[];
 
   if (!silenceShellOutput) {
     print('dartgit>\$ git $command');
+  }
+
+  // Spawn an actual process as we can't set the env variables for a zone or isolate
+  if (env.isNotEmpty) {
+    var sink = NullStreamSink<List<int>>();
+
+    var results = await shell.run(
+      '${Directory.current.path}/bin/main.dart $command',
+      workingDirectory: workingDir,
+      includeParentEnvironment: true,
+      environment: env,
+      throwOnError: false,
+      // silence
+      stdout: silenceShellOutput ? sink : null,
+      stderr: silenceShellOutput ? sink : null,
+    );
+
+    var stdout = results.map((e) => e.stdout).join('\n').trim();
+    var stderr = results.map((e) => e.stderr).join('\n').trim();
+
+    return (stdout + '\n' + stderr).trim().split('\n');
   }
 
   var spec = ZoneSpecification(print: (_, __, ___, String msg) {

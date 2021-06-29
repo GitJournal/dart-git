@@ -18,7 +18,14 @@ void main() {
   ];
 
   for (var command in commands) {
-    test(command, () async => testGitCommand(s, command, ignoreOutput: true));
+    test(
+        command,
+        () async => testGitCommand(s, command, ignoreOutput: true, env: {
+              'GIT_AUTHOR_DATE': '2020-02-15T09:08:07.000',
+              'GIT_COMMITTER_DATE': '2020-02-15T09:08:07.000',
+              'GIT_AUTHOR_NAME': 'Vishesh Handa',
+              'GIT_AUTHOR_EMAIL': 'me@vhanda.in',
+            }));
   }
 }
 

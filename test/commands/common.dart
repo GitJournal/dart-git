@@ -85,8 +85,8 @@ Future<void> testGitCommand(
 }) async {
   // hack: Untill we implement git fetch
   var outputL = command.startsWith('fetch')
-      ? (await runGitCommand(command, s.dartGitDir)).split('\n')
-      : await runDartGitCommand(command, s.dartGitDir);
+      ? (await runGitCommand(command, s.dartGitDir, env: env)).split('\n')
+      : await runDartGitCommand(command, s.dartGitDir, env: env);
   var output = outputL.join('\n').trim();
   var expectedOutput = await runGitCommand(command, s.realGitDir, env: env);
 

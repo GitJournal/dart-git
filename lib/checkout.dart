@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
-import 'package:os/file_system.dart' as os_fs;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
@@ -11,6 +8,7 @@ import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/result.dart';
+import 'package:dart_git/utils/file_extensions.dart';
 
 extension Checkout on GitRepository {
   /// This doesn't delete files
@@ -35,7 +33,7 @@ extension Checkout on GitRepository {
     if (obj is GitBlob) {
       await fs.directory(p.dirname(path)).create(recursive: true);
       await fs.file(path).writeAsBytes(obj.blobData);
-      os_fs.chmodSync(File(path), treeEntry.mode.val);
+      await fs.file(path).chmod(treeEntry.mode.val);
 
       return Result(1);
     }
@@ -83,7 +81,7 @@ extension Checkout on GitRepository {
 
       await fs.directory(p.dirname(blobPath)).create(recursive: true);
       await fs.file(blobPath).writeAsBytes(blob.blobData);
-      os_fs.chmodSync(File(blobPath), leaf.mode.val);
+      await fs.file(blobPath).chmod(leaf.mode.val);
 
       var res = await addFileToIndex(index, blobPath);
       if (res.isFailure) {
@@ -146,7 +144,7 @@ extension Checkout on GitRepository {
 
         var filePath = p.join(workTree, to.path);
         await fs.file(filePath).writeAsBytes(blobObj.blobData);
-        os_fs.chmodSync(File(filePath), change.to!.mode.val);
+        await fs.file(filePath).chmod(change.to!.mode.val);
 
         await index.updatePath(to.path, to.hash);
       } else if (change.deleted) {

@@ -3,6 +3,9 @@ description: A pure dart implementation of Git
 version: 0.0.2
 homepage: https://gitjournal.io
 
+# Temporary, while os depends on a 'git' repo
+publish_to: none
+
 dependencies:
   args: ^2.0.0
   buffer: ^1.1.0

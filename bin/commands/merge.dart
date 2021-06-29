@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:dart_git/dart_git.dart';
 
 import 'package:dart_git/git.dart';
 
@@ -32,8 +33,15 @@ class MergeCommand extends Command {
     var user = repo.config.user;
     if (user == null) {
       print('Git user not set');
-      return;
+      // FIXME: Avoid hardcoding this
+      repo.config.user = GitAuthor(
+        name: 'Vishesh Handa',
+        email: 'me@vhanda.in',
+      );
+      user = repo.config.user!;
+      await repo.configStorage.writeConfig(repo.config).throwOnError();
     }
+
     var authorDate = Platform.environment['GIT_AUTHOR_DATE'];
     if (authorDate != null) {
       user.date = DateTime.parse(authorDate);

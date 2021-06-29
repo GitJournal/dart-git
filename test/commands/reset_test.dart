@@ -11,10 +11,12 @@ void main() {
   setUp(() async => gitCommandTestSetup(s));
 
   var commands = [
-    'git reset --hard HEAD^',
+    'reset --hard HEAD^',
   ];
 
   for (var command in commands) {
     test(command, () async => testGitCommand(s, command, ignoreOutput: true));
   }
 }
+
+// FIXME: This needs to be tested with every fixture

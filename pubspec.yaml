@@ -13,6 +13,8 @@ dependencies:
   file: ^6.1.0
   freezed_annotation: ^0.14.1
   meta: ^1.3.0
+  os:
+    git: https://github.com/GitJournal/os.git
   path: ^1.8.0
   quiver: ^3.0.0
   tuple: ^2.0.0

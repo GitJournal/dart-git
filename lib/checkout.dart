@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
+import 'package:os/file_system.dart' as os_fs;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
@@ -128,7 +131,10 @@ extension Checkout on GitRepository {
         await fs
             .directory(p.join(workTree, p.dirname(to.path)))
             .create(recursive: true);
-        await fs.file(p.join(workTree, to.path)).writeAsBytes(blobObj.blobData);
+
+        var filePath = p.join(workTree, to.path);
+        await fs.file(filePath).writeAsBytes(blobObj.blobData);
+        os_fs.chmodSync(File(filePath), change.to!.mode.val);
 
         await index.updatePath(to.path, to.hash);
       } else if (change.deleted) {

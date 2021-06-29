@@ -13,6 +13,7 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/result.dart';
 
 extension Checkout on GitRepository {
+  /// This doesn't delete files
   Future<Result<int>> checkout(String path) => catchAll(() => _checkout(path));
 
   Future<Result<int>> _checkout(String path) async {

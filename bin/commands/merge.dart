@@ -32,14 +32,11 @@ class MergeCommand extends Command {
 
     var user = repo.config.user;
     if (user == null) {
-      print('Git user not set');
-      // FIXME: Avoid hardcoding this
-      repo.config.user = GitAuthor(
-        name: 'Vishesh Handa',
-        email: 'me@vhanda.in',
+      print('Git user not set. Fetching from env variables');
+      user = GitAuthor(
+        name: Platform.environment['GIT_AUTHOR_NAME']!,
+        email: Platform.environment['GIT_AUTHOR_EMAIL']!,
       );
-      user = repo.config.user!;
-      await repo.configStorage.writeConfig(repo.config).throwOnError();
     }
 
     var authorDate = Platform.environment['GIT_AUTHOR_DATE'];

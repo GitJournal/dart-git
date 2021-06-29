@@ -42,6 +42,7 @@ class MergeCommand extends Command {
     var authorDate = Platform.environment['GIT_AUTHOR_DATE'];
     if (authorDate != null) {
       user.date = DateTime.parse(authorDate);
+      user.timezoneOffset = 0; // FIXME: Parse this from the env variable
     }
 
     var committer = user;
@@ -50,7 +51,7 @@ class MergeCommand extends Command {
       committer.date = DateTime.parse(comitterDate);
     }
 
-    var msg = argResults!['message'] ?? 'Merge branch $branchName';
+    var msg = argResults!['message'] ?? "Merge branch '$branchName'\n";
 
     await repo
         .merge(

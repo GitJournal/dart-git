@@ -13,7 +13,7 @@ void main() {
   var commands = [
     'merge fast-forward',
     'merge up-to-date',
-    // 'merge merge-conflict -X ours',
+    'merge merge-conflict -X ours',
     // 'merge merge-conflict -X theirs', // ours, theirs
   ];
 
@@ -21,10 +21,12 @@ void main() {
     test(
         command,
         () async => testGitCommand(s, command, ignoreOutput: true, env: {
-              'GIT_AUTHOR_DATE': '2020-02-15T09:08:07.000',
-              'GIT_COMMITTER_DATE': '2020-02-15T09:08:07.000',
+              'GIT_AUTHOR_DATE': '2020-02-15T09:08:07.000Z',
               'GIT_AUTHOR_NAME': 'Vishesh Handa',
               'GIT_AUTHOR_EMAIL': 'me@vhanda.in',
+              'GIT_COMMITTER_DATE': '2020-02-15T09:08:07.000Z',
+              'GIT_COMMITTER_NAME': 'Vishesh Handa',
+              'GIT_COMMITTER_EMAIL': 'me@vhanda.in',
             }));
   }
 }

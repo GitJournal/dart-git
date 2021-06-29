@@ -256,7 +256,7 @@ class GitIndexEntry {
   int fileSize;
   GitHash hash;
 
-  GitFileStage /*!*/ stage;
+  GitFileStage stage;
 
   String path;
 
@@ -290,7 +290,9 @@ class GitIndexEntry {
 
     switch (stat.type) {
       case FileSystemEntityType.file:
-        mode = GitFileMode.Regular;
+        mode = stat.mode == GitFileMode.Executable.val
+            ? GitFileMode.Executable
+            : GitFileMode.Regular;
         break;
       case FileSystemEntityType.directory:
         mode = GitFileMode.Dir;
@@ -300,7 +302,7 @@ class GitIndexEntry {
         break;
     }
 
-    // Don't seem accessible in Dart -https://github.com/dart-lang/sdk/issues/15078
+    // FIXME: uid, gid don't seem accessible in Dart -https://github.com/dart-lang/sdk/issues/15078
     var uid = 0;
     var gid = 0;
 

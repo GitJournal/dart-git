@@ -144,11 +144,11 @@ class ObjectStorage {
     return Result(hash);
   }
 
-  Future<Result<GitObject>> refSpec(GitTree tree, String spec) async {
+  Future<Result<GitTreeEntry>> refSpec(GitTree tree, String spec) async {
     assert(!spec.startsWith(p.separator));
 
     if (spec.isEmpty) {
-      return Result(tree);
+      return Result.fail(GitObjectWithRefSpecNotFound(spec));
     }
 
     var parts = splitPath(spec);
@@ -157,12 +157,12 @@ class ObjectStorage {
 
     for (var leaf in tree.entries) {
       if (leaf.name == name) {
+        if (remainingName.isEmpty) {
+          return Result(leaf);
+        }
+
         var result = await read(leaf.hash);
         var obj = result.getOrThrow();
-
-        if (remainingName.isEmpty) {
-          return Result(obj);
-        }
 
         return obj is GitTree
             ? await refSpec(obj, remainingName)

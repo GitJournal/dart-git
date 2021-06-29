@@ -20,11 +20,22 @@ extension Checkout on GitRepository {
 
     var tree = await headTree().getOrThrow();
     var spec = path.substring(workTree.length);
-    var obj = await objStorage.refSpec(tree, spec).getOrThrow();
+    if (spec.isEmpty) {
+      var index = GitIndex(versionNo: 2);
+      var numFiles = await _checkoutTree(spec, tree, index).getOrThrow();
+      await indexStorage.writeIndex(index).throwOnError();
+
+      return Result(numFiles);
+    }
+
+    var treeEntry = await objStorage.refSpec(tree, spec).getOrThrow();
+    var obj = await objStorage.read(treeEntry.hash).getOrThrow();
 
     if (obj is GitBlob) {
       await fs.directory(p.dirname(path)).create(recursive: true);
       await fs.file(path).writeAsBytes(obj.blobData);
+      os_fs.chmodSync(File(path), treeEntry.mode.val);
+
       return Result(1);
     }
 
@@ -71,6 +82,7 @@ extension Checkout on GitRepository {
 
       await fs.directory(p.dirname(blobPath)).create(recursive: true);
       await fs.file(blobPath).writeAsBytes(blob.blobData);
+      os_fs.chmodSync(File(blobPath), leaf.mode.val);
 
       var res = await addFileToIndex(index, blobPath);
       if (res.isFailure) {
@@ -127,7 +139,6 @@ extension Checkout on GitRepository {
         var to = change.to!;
         var blobObj = await objStorage.readBlob(to.hash).getOrThrow();
 
-        // FIXME: Add file mode
         await fs
             .directory(p.join(workTree, p.dirname(to.path)))
             .create(recursive: true);

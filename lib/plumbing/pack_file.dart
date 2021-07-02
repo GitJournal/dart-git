@@ -113,6 +113,7 @@ class PackFile {
         var baseOffset = offset - n;
         var deltaData = await _decodeObject(file, objHeader.size);
 
+        await file.close();
         return _fillOFSDeltaObject(baseOffset, deltaData);
 
       case ObjectTypes.REF_DELTA:
@@ -120,6 +121,7 @@ class PackFile {
         var hash = GitHash.fromBytes(hashBytes);
         var deltaData = await _decodeObject(file, objHeader.size);
 
+        await file.close();
         return _fillRefDeltaObject(hash, deltaData);
 
       default:

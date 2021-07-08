@@ -16,7 +16,7 @@ class BranchConfig {
   @override
   String toString() => 'Branch{name: $name, remote: $remote, merge: $merge}';
 
-  String? trackingBranch() => merge!.branchName();
+  String? trackingBranch() => merge?.branchName();
   String remoteTrackingBranch() => '$remote/${trackingBranch()}';
 }
 

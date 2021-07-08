@@ -171,6 +171,38 @@ extension Merge on GitRepository {
     return objStorage.writeObject(newTree);
   }
 
+  // Convenience method
+  Future<Result<void>> mergeCurrentTrackingBranch({
+    required GitAuthor author,
+  }) =>
+      catchAll(() => _mergeTrackingBranch(author: author));
+
+  Future<Result<void>> _mergeTrackingBranch({required GitAuthor author}) async {
+    var branch = await currentBranch().getOrThrow();
+    var branchConfig = config.branch(branch);
+    if (branchConfig == null) {
+      throw Exception("Branch '$branch' not in config");
+    }
+
+    if (branchConfig.trackingBranch() == null) {
+      throw Exception("Branch '$branch' has no tracking branch");
+    }
+    var remoteBranchRef = await remoteBranch(
+      branchConfig.remote!,
+      branchConfig.trackingBranch()!,
+    ).getOrThrow();
+
+    var hash = remoteBranchRef.hash!;
+    var commit = await objStorage.readCommit(hash).getOrThrow();
+    await merge(
+      theirCommit: commit,
+      author: author,
+      message: 'Merge ${branchConfig.remoteTrackingBranch()}',
+    ).throwOnError();
+
+    return Result(null);
+  }
+
   Future<Result<void>> resetHard(GitHash hash) async {
     var headR = await head();
     if (headR.isFailure) {

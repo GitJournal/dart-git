@@ -45,10 +45,11 @@ StatusSummary {
 }
 */
 
+// FIXME: Give me the oids as well
 class GitStatusResult {
   var added = <String>[];
-  var removed = <String>[];
-  var modified = <String>[];
+  var removed = <String>[]; // I want the oids
+  var modified = <String>[]; // I want the oids
   var unTracked = <String>[];
 
   void add(GitStatusResult r) {
@@ -70,12 +71,14 @@ extension Status on GitRepository {
     return catchAll(() => _status(rootTreeR.getOrThrow(), workTree, result));
   }
 
+  // FIXME: vHanda: Return unchanged stuff
   Future<Result<GitStatusResult>> _status(
     GitTree tree,
     String? treePath,
     GitStatusResult result,
   ) async {
-    var dirContents = await fs.directory(treePath).list().toList();
+    var dirContents =
+        await fs.directory(treePath).list(followLinks: false).toList();
     var newFilesAdded = dirContents.map((e) => e.path).toSet();
 
     for (var entry in tree.entries) {
@@ -111,6 +114,7 @@ extension Status on GitRepository {
 
   bool _fileModified(FileSystemEntity fsEntity, GitTreeEntry treeEntry) {
     // Most expensive way is to compute the hash
+    // FIXME: I could use the index entry to figure this out?
     return false;
   }
 

@@ -32,8 +32,4 @@ class ObjectStorageExceptionCatcher implements ObjectStorage {
 
   @override
   Future<Result<GitHash>> writeObject(GitObject obj) => _.writeObject(obj);
-
-  @override
-  Future<Result<GitTreeEntry>> refSpec(GitTree tree, String spec) =>
-      catchAll(() => _.refSpec(tree, spec));
 }

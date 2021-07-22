@@ -7,8 +7,8 @@ import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/utils/result.dart';
 import 'package:dart_git/utils/file_extensions.dart';
+import 'package:dart_git/utils/result.dart';
 
 extension Checkout on GitRepository {
   /// This doesn't delete files

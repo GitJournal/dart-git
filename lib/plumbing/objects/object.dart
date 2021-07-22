@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 
 import 'package:dart_git/exceptions.dart';
@@ -8,7 +9,6 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
-import 'package:dart_git/utils/ascii_helper.dart';
 import 'package:dart_git/utils/result.dart';
 
 abstract class GitObject {
@@ -18,7 +18,7 @@ abstract class GitObject {
     final bytesBuilder = BytesBuilder(copy: false);
     bytesBuilder
       ..add(format())
-      ..addByte(asciiHelper.space)
+      ..addByte($space)
       ..add(ascii.encode(data.length.toString()))
       ..addByte(0x0)
       ..add(data);

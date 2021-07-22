@@ -1,6 +1,5 @@
 class asciiHelper {
-  static const space = 32;
-  static const newLine = 10;
-  static const num0 = 48;
-  static const a = 97;
+  static const _newLine = 10;
 }
+
+const $newLine = asciiHelper._newLine;

@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:charcode/charcode.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
-import 'package:dart_git/utils/ascii_helper.dart';
 import 'package:dart_git/utils/file_mode.dart';
 import 'package:dart_git/utils/uint8list.dart';
 
@@ -35,7 +35,7 @@ class GitTree extends GitObject {
   GitTree(Uint8List raw, this._hash) {
     var start = 0;
     while (start < raw.length) {
-      var x = raw.indexOf(asciiHelper.space, start);
+      var x = raw.indexOf($space, start);
       assert(x - start == 5 || x - start == 6);
 
       var mode = raw.sublistView(start, x);
@@ -62,7 +62,7 @@ class GitTree extends GitObject {
     for (var e in entries) {
       bytesBuilder
         ..add(ascii.encode(e.mode.toString()))
-        ..addByte(asciiHelper.space)
+        ..addByte($space)
         ..add(utf8.encode(e.name))
         ..addByte(0x00)
         ..add(e.hash.bytes);

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show zlib;
 import 'dart:typed_data';
 
+import 'package:charcode/charcode.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
@@ -13,7 +14,6 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
-import 'package:dart_git/utils/ascii_helper.dart';
 import 'package:dart_git/utils/result.dart';
 import 'package:dart_git/utils/uint8list.dart';
 import 'package:dart_git/utils/utils.dart';
@@ -98,7 +98,7 @@ class ObjectStorage {
     var raw = zlib.decode(contents) as Uint8List;
 
     // Read Object Type
-    var x = raw.indexOf(asciiHelper.space);
+    var x = raw.indexOf($space);
     if (x == -1) {
       return Result.fail(GitObjectCorruptedMissingType());
     }

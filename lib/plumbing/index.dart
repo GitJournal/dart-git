@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:buffer/buffer.dart';
+import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:quiver/core.dart';
@@ -114,13 +115,13 @@ class GitIndex {
       var path = data.sublistView(pos, pathEndPos);
       pos = pathEndPos + 1;
 
-      var entryCountEndPos = data.indexOf(asciiHelper.space, pos);
+      var entryCountEndPos = data.indexOf($space, pos);
       if (entryCountEndPos == -1) {
         throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
       var entryCount = data.sublistView(pos, entryCountEndPos);
       pos = entryCountEndPos + 1;
-      assert(data[pos - 1] == asciiHelper.space);
+      assert(data[pos - 1] == $space);
 
       var numEntries = int.tryParse(ascii.decode(entryCount));
       if (numEntries == null) {
@@ -131,7 +132,7 @@ class GitIndex {
         continue;
       }
 
-      var numSubtreeEndPos = data.indexOf(asciiHelper.newLine, pos);
+      var numSubtreeEndPos = data.indexOf($newLine, pos);
       if (numSubtreeEndPos == -1) {
         throw GitIndexCorruptedException('Git Cache Index corrupted');
       }
@@ -142,7 +143,7 @@ class GitIndex {
         continue;
       }
       pos = numSubtreeEndPos + 1;
-      assert(data[pos - 1] == asciiHelper.newLine);
+      assert(data[pos - 1] == $newLine);
 
       var hashBytes = data.sublistView(pos, pos + 20);
       pos += 20;

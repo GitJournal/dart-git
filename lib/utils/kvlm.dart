@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:charcode/charcode.dart';
+
 import 'package:dart_git/utils/ascii_helper.dart';
 import 'package:dart_git/utils/uint8list.dart';
 
@@ -9,8 +11,8 @@ Map<String, dynamic> kvlmParse(Uint8List raw) {
 
   var start = 0;
   while (true) {
-    var spaceIndex = raw.indexOf(asciiHelper.space, start);
-    var newLineIndex = raw.indexOf(asciiHelper.newLine, start);
+    var spaceIndex = raw.indexOf($space, start);
+    var newLineIndex = raw.indexOf($newLine, start);
 
     if (spaceIndex == -1 && newLineIndex == -1) {
       break;
@@ -26,8 +28,8 @@ Map<String, dynamic> kvlmParse(Uint8List raw) {
     var key = raw.sublistView(start, spaceIndex);
     var end = spaceIndex;
     while (true) {
-      end = raw.indexOf(asciiHelper.newLine, end + 1);
-      if (raw[end + 1] != asciiHelper.space) {
+      end = raw.indexOf($newLine, end + 1);
+      if (raw[end + 1] != $space) {
         break;
       }
     }
@@ -68,14 +70,14 @@ Uint8List kvlmSerialize(Map<String, dynamic> kvlm) {
     for (var v in val) {
       bytesBuilder
         ..add(utf8.encode(key))
-        ..addByte(asciiHelper.space)
+        ..addByte($space)
         ..add(utf8.encode(v.replaceAll('\n', '\n ')))
-        ..addByte(asciiHelper.newLine);
+        ..addByte($newLine);
     }
   });
 
   bytesBuilder
-    ..addByte(asciiHelper.newLine)
+    ..addByte($newLine)
     ..add(utf8.encode(kvlm['_']));
   return bytesBuilder.toBytes();
 }

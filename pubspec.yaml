@@ -9,6 +9,7 @@ publish_to: none
 dependencies:
   args: ^2.0.0
   buffer: ^1.1.0
+  charcode: ^1.3.1
   collection: ^1.15.0
   crypto: ^3.0.0
   diff_match_patch: ^0.4.1

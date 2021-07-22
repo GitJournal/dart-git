@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:dart_git/dart_git.dart';
-import 'package:dart_git/plumbing/git_hash.dart';
-import 'package:dart_git/blob_ctime_builder.dart';
-import 'package:dart_git/utils/date_time_tz_offset.dart';
 import 'package:test/test.dart';
 
+import 'package:dart_git/blob_ctime_builder.dart';
+import 'package:dart_git/dart_git.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
+import 'package:dart_git/utils/date_time_tz_offset.dart';
 import 'lib.dart';
 
 void main() {

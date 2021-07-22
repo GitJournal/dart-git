@@ -1,17 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:charcode/charcode.dart';
 import 'package:meta/meta.dart';
 
-import 'package:dart_git/utils/ascii_helper.dart';
-
 class PktLine {
-  static final FlushPkt = Uint8List.fromList([
-    asciiHelper.num0,
-    asciiHelper.num0,
-    asciiHelper.num0,
-    asciiHelper.num0,
-  ]);
+  static final FlushPkt = Uint8List.fromList([$0, $0, $0, $0]);
   static final FlushPktString = '';
   static const MaxPayloadSize = 65516;
   static const OversizePayloadMax = 65520;
@@ -69,8 +63,8 @@ List<int> asciiHex16(int n) {
 @visibleForTesting
 int byteToASCIIHex(int n) {
   if (n < 10) {
-    return asciiHelper.num0 + n;
+    return $0 + n;
   }
 
-  return asciiHelper.a - 10 + n;
+  return $a - 10 + n;
 }

@@ -1,6 +1,6 @@
 import 'package:dart_git/plumbing/index.dart';
-import 'package:dart_git/storage/index_storage.dart';
 import 'package:dart_git/utils/result.dart';
+import 'interfaces.dart';
 
 class IndexStorageExceptionCatcher implements IndexStorage {
   final IndexStorage _;

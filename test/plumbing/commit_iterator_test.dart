@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/commit_iterator.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
-import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/storage/interfaces.dart';
 import '../lib.dart';
 
 void main() {

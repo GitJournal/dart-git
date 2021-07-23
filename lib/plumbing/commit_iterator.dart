@@ -2,7 +2,7 @@ import 'dart:collection';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
-import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/storage/interfaces.dart';
 import 'package:dart_git/utils/result.dart';
 
 // FIXME: How to deal with missing objects?

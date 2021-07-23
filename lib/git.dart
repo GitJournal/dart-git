@@ -10,15 +10,15 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/storage/config_storage.dart';
 import 'package:dart_git/storage/config_storage_exception_catcher.dart';
 import 'package:dart_git/storage/config_storage_fs.dart';
-import 'package:dart_git/storage/index_storage.dart';
 import 'package:dart_git/storage/index_storage_exception_catcher.dart';
-import 'package:dart_git/storage/object_storage.dart';
+import 'package:dart_git/storage/index_storage_fs.dart';
+import 'package:dart_git/storage/interfaces.dart';
 import 'package:dart_git/storage/object_storage_exception_catcher.dart';
-import 'package:dart_git/storage/reference_storage.dart';
+import 'package:dart_git/storage/object_storage_fs.dart';
 import 'package:dart_git/storage/reference_storage_exception_catcher.dart';
+import 'package:dart_git/storage/reference_storage_fs.dart';
 import 'package:dart_git/utils/local_fs_with_checks.dart';
 import 'package:dart_git/utils/result.dart';
 
@@ -29,6 +29,8 @@ export 'merge.dart';
 export 'remotes.dart';
 export 'utils/result.dart';
 export 'index.dart';
+
+export 'storage/object_storage_extensions.dart';
 
 // A Git Repo has 5 parts -
 // * Object Store
@@ -89,13 +91,13 @@ class GitRepository {
     var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
 
     repo.objStorage = ObjectStorageExceptionCatcher(
-      storage: ObjectStorage(repo.gitDir, fs),
+      storage: ObjectStorageFS(repo.gitDir, fs),
     );
     repo.refStorage = ReferenceStorageExceptionCatcher(
-      storage: ReferenceStorage(repo.gitDir, fs),
+      storage: ReferenceStorageFS(repo.gitDir, fs),
     );
     repo.indexStorage = IndexStorageExceptionCatcher(
-      storage: IndexStorage(repo.gitDir, fs),
+      storage: IndexStorageFS(repo.gitDir, fs),
     );
     repo.configStorage = ConfigStorageExceptionCatcher(
       storage: ConfigStorageFS(repo.gitDir, fs),

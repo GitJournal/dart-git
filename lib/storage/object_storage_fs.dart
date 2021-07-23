@@ -9,15 +9,13 @@ import 'package:path/path.dart' as p;
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
-import 'package:dart_git/plumbing/objects/blob.dart';
-import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
-import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
 import 'package:dart_git/utils/result.dart';
 import 'package:dart_git/utils/uint8list.dart';
+import 'interfaces.dart';
 
-class ObjectStorage {
+class ObjectStorageFS implements ObjectStorage {
   final String _gitDir;
   final FileSystem _fs;
 
@@ -25,8 +23,9 @@ class ObjectStorage {
   DateTime? _packDirModified;
   var _packFiles = <PackFile>[];
 
-  ObjectStorage(this._gitDir, this._fs);
+  ObjectStorageFS(this._gitDir, this._fs);
 
+  @override
   Future<Result<GitObject>> read(GitHash hash) async {
     var sha = hash.toString();
     var path =
@@ -54,16 +53,6 @@ class ObjectStorage {
 
     return Result.fail(GitObjectNotFound(hash));
   }
-
-  // TODO: What happens when we call readBlob on a commit?
-  Future<Result<GitBlob>> readBlob(GitHash hash) async =>
-      downcast(await read(hash));
-
-  Future<Result<GitTree>> readTree(GitHash hash) async =>
-      downcast(await read(hash));
-
-  Future<Result<GitCommit>> readCommit(GitHash hash) async =>
-      downcast(await read(hash));
 
   Future<void> _loadPackFiles(String packDirPath) async {
     _packFiles = [];
@@ -123,6 +112,7 @@ class ObjectStorage {
     return createObject(fmtStr, rawData);
   }
 
+  @override
   Future<Result<GitHash>> writeObject(GitObject obj) async {
     var result = obj.serialize();
     var hash = GitHash.compute(result);

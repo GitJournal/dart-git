@@ -1,6 +1,6 @@
 import 'package:dart_git/config.dart';
-import 'package:dart_git/storage/config_storage.dart';
 import 'package:dart_git/utils/result.dart';
+import 'interfaces.dart';
 
 class ConfigStorageExceptionCatcher implements ConfigStorage {
   final ConfigStorage _;

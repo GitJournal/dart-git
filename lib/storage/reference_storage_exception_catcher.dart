@@ -1,5 +1,5 @@
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/storage/reference_storage.dart';
+import 'package:dart_git/storage/interfaces.dart';
 import 'package:dart_git/utils/result.dart';
 
 class ReferenceStorageExceptionCatcher implements ReferenceStorage {

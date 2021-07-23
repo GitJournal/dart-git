@@ -6,16 +6,18 @@ import 'package:path/path.dart' as p;
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/result.dart';
+import 'interfaces.dart';
 
 // FIXME: Revisions have a particular format!!
 //        https://git-scm.com/docs/git-check-ref-format
 //        This seems like a good task to delegate!
-class ReferenceStorage {
+class ReferenceStorageFS implements ReferenceStorage {
   final String _dotGitDir;
   final FileSystem _fs;
 
-  ReferenceStorage(this._dotGitDir, this._fs);
+  ReferenceStorageFS(this._dotGitDir, this._fs);
 
+  @override
   Future<Result<Reference>> reference(ReferenceName refName) async {
     var file = _fs.file(p.join(_dotGitDir, refName.value));
     if (file.existsSync()) {
@@ -32,6 +34,7 @@ class ReferenceStorage {
     return Result.fail(GitRefNotFound(refName));
   }
 
+  @override
   Future<Result<List<Reference>>> listReferences(String prefix) async {
     assert(prefix.startsWith(refPrefix));
 
@@ -76,6 +79,7 @@ class ReferenceStorage {
   }
 
   // FIXME: removeRef should also look into packed-ref files?
+  @override
   Future<Result<void>> removeReferences(String prefix) async {
     assert(prefix.startsWith(refPrefix));
 
@@ -89,6 +93,7 @@ class ReferenceStorage {
     return Result(null);
   }
 
+  @override
   Future<Result<void>> saveRef(Reference ref) async {
     var refFileName = p.join(_dotGitDir, ref.name.value);
     var refFileName2 = refFileName + '_';
@@ -117,6 +122,7 @@ class ReferenceStorage {
     return _loadPackedRefs(contents);
   }
 
+  @override
   Future<Result<void>> deleteReference(ReferenceName refName) async {
     var refFileName = p.join(_dotGitDir, refName.value);
     await _fs.file(refFileName).delete();

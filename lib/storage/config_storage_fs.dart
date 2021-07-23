@@ -3,7 +3,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/config.dart';
 import 'package:dart_git/utils/result.dart';
-import 'config_storage.dart';
+import 'interfaces.dart';
 
 class ConfigStorageFS implements ConfigStorage {
   final String _gitDir;

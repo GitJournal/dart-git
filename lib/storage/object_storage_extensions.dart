@@ -1,10 +1,13 @@
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/exceptions.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
+import 'package:dart_git/plumbing/objects/blob.dart';
+import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
-import 'package:dart_git/storage/object_storage.dart';
 import 'package:dart_git/utils/result.dart';
 import 'package:dart_git/utils/utils.dart';
+import 'interfaces.dart';
 
 extension ObjectStorageExtension on ObjectStorage {
   Future<Result<GitTreeEntry>> refSpec(GitTree tree, String spec) async {
@@ -37,4 +40,14 @@ extension ObjectStorageExtension on ObjectStorage {
     }
     return Result.fail(GitObjectWithRefSpecNotFound(spec));
   }
+
+  // TODO: What happens when we call readBlob on a commit?
+  Future<Result<GitBlob>> readBlob(GitHash hash) async =>
+      downcast(await read(hash));
+
+  Future<Result<GitTree>> readTree(GitHash hash) async =>
+      downcast(await read(hash));
+
+  Future<Result<GitCommit>> readCommit(GitHash hash) async =>
+      downcast(await read(hash));
 }

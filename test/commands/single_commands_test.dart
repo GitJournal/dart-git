@@ -101,6 +101,10 @@ void main() {
     await testGitCommand(s, 'rm /outside-repo', containsMatch: true);
   });
 
+  test('reset --hard', () async {
+    await testGitCommand(s, 'reset --hard HEAD^', ignoreOutput: true);
+  }, skip: true);
+
   test(
     'checkout 1 file',
     () async => testCommands(s, [

@@ -57,7 +57,7 @@ extension ResultFuture<T> on Future<Result<T>> {
 
 Result<A> fail<A, B>(Result<B> result) {
   assert(result.error != null);
-  return Result<A>.fail(result.error!);
+  return Result<A>.fail(result.error!, result.stackTrace);
 }
 
 /// Rust style try? operator.

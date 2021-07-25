@@ -31,7 +31,7 @@ class Result<DataType> {
 
 Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
   try {
-    return catchFn();
+    return await catchFn();
   } on Exception catch (e, stackTrace) {
     return Result.fail(e, stackTrace);
   }

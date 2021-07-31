@@ -33,11 +33,11 @@ extension Merge on GitRepository {
     }
     var headHash = headHashRefR.getOrThrow().hash!;
 
-    var headCommitR = await objStorage.read(headHash);
+    var headCommitR = await objStorage.readCommit(headHash);
     if (headCommitR.isFailure) {
       return fail(headCommitR);
     }
-    var headCommit = headCommitR.getOrThrow() as GitCommit;
+    var headCommit = headCommitR.getOrThrow();
 
     // up to date
     if (headHash == commitB.hash) {
@@ -80,8 +80,8 @@ extension Merge on GitRepository {
       return Result(null);
     }
 
-    var headTree = await objStorage.read(headCommit.treeHash).getOrThrow();
-    var bTree = await objStorage.read(commitB.treeHash).getOrThrow();
+    var headTree = await objStorage.readTree(headCommit.treeHash).getOrThrow();
+    var bTree = await objStorage.readTree(commitB.treeHash).getOrThrow();
 
     // TODO: Implement merge options -
     // - normal
@@ -93,10 +93,7 @@ extension Merge on GitRepository {
       committer: committer,
       parents: parents,
       message: message,
-      treeHash: await _combineTrees(
-        headTree as GitTree,
-        bTree as GitTree,
-      ).getOrThrow(),
+      treeHash: await _combineTrees(headTree, bTree).getOrThrow(),
     );
     var hashR = await objStorage.writeObject(commit);
     if (hashR.isFailure) {
@@ -138,12 +135,12 @@ extension Merge on GitRepository {
         var bEntry = b.entries[bIndex];
 
         if (aEntry.mode == GitFileMode.Dir && bEntry.mode == GitFileMode.Dir) {
-          var aEntryTree = await objStorage.read(aEntry.hash).getOrThrow();
-          var bEntryTree = await objStorage.read(bEntry.hash).getOrThrow();
+          var aEntryTree = await objStorage.readTree(aEntry.hash).getOrThrow();
+          var bEntryTree = await objStorage.readTree(bEntry.hash).getOrThrow();
 
           var newTreeHash = await _combineTrees(
-            aEntryTree as GitTree,
-            bEntryTree as GitTree,
+            aEntryTree,
+            bEntryTree,
           ).getOrThrow();
 
           var entry = GitTreeEntry(

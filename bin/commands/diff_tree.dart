@@ -35,9 +35,9 @@ class DiffTreeCommand extends Command {
     }
     var commit = obj;
     var parentHash = commit.parents.first;
-    var parentObj = await repo.objStorage.read(parentHash);
+    var parentObj = await repo.objStorage.readCommit(parentHash).getOrThrow();
 
-    var taHash = (parentObj as GitCommit).treeHash;
+    var taHash = parentObj.treeHash;
     var tbHash = obj.treeHash;
 
     var results = diffTree(

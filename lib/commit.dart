@@ -47,11 +47,11 @@ extension Commit on GitRepository {
     }
 
     for (var parent in parents) {
-      var parentCommitR = await objStorage.read(parent);
+      var parentCommitR = await objStorage.readCommit(parent);
       if (parentCommitR.isFailure) {
         return fail(parentCommitR);
       }
-      var parentCommit = parentCommitR.getOrThrow() as GitCommit;
+      var parentCommit = parentCommitR.getOrThrow();
       if (parentCommit.treeHash == treeHash) {
         var ex = GitEmptyCommit();
         return Result.fail(ex);

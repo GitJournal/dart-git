@@ -289,12 +289,12 @@ class GitRepository {
     }
     var ref = refResult.getOrThrow();
 
-    var objR = await objStorage.read(ref.hash!);
+    var objR = await objStorage.readCommit(ref.hash!);
     if (objR.isFailure) {
       return fail(objR);
     }
 
-    return Result(objR.getOrThrow() as GitCommit);
+    return Result(objR.getOrThrow());
   }
 
   Future<Result<Reference>> head() async {

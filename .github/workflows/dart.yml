@@ -46,7 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-latest, macOS-latest] # FIXME: Add windows-latest, need the git executable!
         sdk: [dev, stable, 2.12.0]
     steps:
       - uses: actions/checkout@v2

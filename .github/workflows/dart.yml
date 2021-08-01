@@ -15,13 +15,13 @@ env:
 
 jobs:
   # Check code formatting and static analysis on a single OS (linux)
-  # against stable, and 2.12.0 (the package's lower bound).
+  # against stable
   analyze:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        sdk: [stable, 2.12.0]
+        sdk: [stable]
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1.0
@@ -37,9 +37,6 @@ jobs:
         run: dart analyze --fatal-infos
         if: always() && steps.install.outcome == 'success'
 
-  # Run tests on a matrix consisting of two dimensions:
-  # 1. OS: ubuntu-latest
-  # 2. Release channel: dev, stable, and 2.12.0 (the package's lower bound)
   test:
     needs: analyze
     runs-on: ${{ matrix.os }}
@@ -47,7 +44,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macOS-latest] # FIXME: Add windows-latest, need the git executable!
-        sdk: [dev, stable, 2.12.0]
+        sdk: [stable]
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1.0

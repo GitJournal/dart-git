@@ -129,7 +129,8 @@ class GitIndex {
         continue;
       }
       if (numEntries == -1) {
-        continue;
+        // FIXME: Should I be returning?
+        return;
       }
 
       var numSubtreeEndPos = data.indexOf($newLine, pos);

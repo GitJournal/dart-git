@@ -22,6 +22,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/exceptions.dart';
+import 'package:dart_git/utils/result.dart';
 import 'commands/commands.dart';
 
 Future<void> main(List<String> args) async {
@@ -57,6 +58,10 @@ Future<int> mainWithExitCode(List<String> args) async {
     var _ = await runner.run(args);
   } on GitException catch (e) {
     print(e);
+    return 1;
+  } on ResultException catch (e, _) {
+    print(e);
+    print(e.stackTrace);
     return 1;
   } catch (e, stacktrace) {
     print(e);

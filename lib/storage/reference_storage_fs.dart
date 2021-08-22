@@ -62,7 +62,7 @@ class ReferenceStorageFS implements ReferenceStorage {
       if (result.isSuccess) {
         var ref = result.getOrThrow();
         refs.add(ref);
-        processedRefNames.add(refName);
+        var _ = processedRefNames.add(refName);
       }
     }
 
@@ -89,7 +89,7 @@ class ReferenceStorageFS implements ReferenceStorage {
       return Result(null);
     }
 
-    await dir.delete(recursive: true);
+    var _ = await dir.delete(recursive: true);
     return Result(null);
   }
 
@@ -98,15 +98,15 @@ class ReferenceStorageFS implements ReferenceStorage {
     var refFileName = p.join(_dotGitDir, ref.name.value);
     var refFileName2 = refFileName + '_';
 
-    await _fs.directory(p.dirname(refFileName)).create(recursive: true);
+    var _ = await _fs.directory(p.dirname(refFileName)).create(recursive: true);
     var file = _fs.file(refFileName2);
     if (ref.isHash) {
-      await file.writeAsString(ref.hash.toString() + '\n', flush: true);
+      file = await file.writeAsString(ref.hash.toString() + '\n', flush: true);
     } else if (ref.isSymbolic) {
       var val = symbolicRefPrefix + ref.target!.value;
-      await file.writeAsString(val + '\n', flush: true);
+      file = await file.writeAsString(val + '\n', flush: true);
     }
-    await file.rename(refFileName);
+    file = await file.rename(refFileName);
 
     return Result(null);
   }
@@ -125,7 +125,7 @@ class ReferenceStorageFS implements ReferenceStorage {
   @override
   Future<Result<void>> deleteReference(ReferenceName refName) async {
     var refFileName = p.join(_dotGitDir, refName.value);
-    await _fs.file(refFileName).delete();
+    var _ = await _fs.file(refFileName).delete();
 
     return Result(null);
     // FIXME: What if the deleted ref is in the packed-refs?

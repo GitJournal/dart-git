@@ -98,7 +98,7 @@ class BranchCommand extends Command {
 
           var ref = refResult.getOrThrow();
           assert(ref.isHash);
-          await repo.createBranch(branchName, hash: ref.hash);
+          await repo.createBranch(branchName, hash: ref.hash).throwOnError();
 
           var remote = repo.config.remote(remoteName)!;
           await repo.setBranchUpstreamTo(branchName, remote, remoteBranchName);

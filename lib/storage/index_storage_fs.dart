@@ -27,8 +27,8 @@ class IndexStorageFS implements IndexStorage {
   Future<Result<void>> writeIndex(GitIndex index) async {
     var path = p.join(_gitDir, 'index.new');
     var file = _fs.file(path);
-    await file.writeAsBytes(index.serialize());
-    await file.rename(p.join(_gitDir, 'index'));
+    var _ = await file.writeAsBytes(index.serialize());
+    var __ = await file.rename(p.join(_gitDir, 'index'));
 
     return Result(null);
   }

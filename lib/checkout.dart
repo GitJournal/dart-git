@@ -33,9 +33,9 @@ extension Checkout on GitRepository {
     var obj = await objStorage.read(treeEntry.hash).getOrThrow();
 
     if (obj is GitBlob) {
-      await fs.directory(p.dirname(path)).create(recursive: true);
-      await fs.file(path).writeAsBytes(obj.blobData);
-      await fs.file(path).chmod(treeEntry.mode.val);
+      var _ = await fs.directory(p.dirname(path)).create(recursive: true);
+      var __ = await fs.file(path).writeAsBytes(obj.blobData);
+      var ___ = await fs.file(path).chmod(treeEntry.mode.val);
 
       return Result(1);
     }
@@ -56,7 +56,7 @@ extension Checkout on GitRepository {
     assert(!relativePath.startsWith(p.separator));
 
     var dir = fs.directory(p.join(workTree, relativePath));
-    await dir.create(recursive: true);
+    var _ = await dir.create(recursive: true);
 
     var updated = 0;
     for (var leaf in tree.entries) {
@@ -81,8 +81,8 @@ extension Checkout on GitRepository {
       var blob = obj as GitBlob;
       var blobPath = p.join(workTree, leafRelativePath);
 
-      await fs.directory(p.dirname(blobPath)).create(recursive: true);
-      await fs.file(blobPath).writeAsBytes(blob.blobData);
+      var _ = await fs.directory(p.dirname(blobPath)).create(recursive: true);
+      var __ = await fs.file(blobPath).writeAsBytes(blob.blobData);
       await fs.file(blobPath).chmod(leaf.mode.val);
 
       var res = await addFileToIndex(index, blobPath);
@@ -140,20 +140,21 @@ extension Checkout on GitRepository {
         var to = change.to!;
         var blobObj = await objStorage.readBlob(to.hash).getOrThrow();
 
-        await fs
+        var _ = await fs
             .directory(p.join(workTree, p.dirname(to.path)))
             .create(recursive: true);
 
         var filePath = p.join(workTree, to.path);
-        await fs.file(filePath).writeAsBytes(blobObj.blobData);
+        var __ = await fs.file(filePath).writeAsBytes(blobObj.blobData);
         await fs.file(filePath).chmod(change.to!.mode.val);
 
         await index.updatePath(to.path, to.hash);
       } else if (change.deleted) {
         var from = change.from!;
 
-        await fs.file(p.join(workTree, from.path)).delete(recursive: true);
-        index.removePath(from.path);
+        var _ =
+            await fs.file(p.join(workTree, from.path)).delete(recursive: true);
+        var __ = index.removePath(from.path);
         await _deleteEmptyDirectories(workTree, from.path);
       }
     }
@@ -179,7 +180,7 @@ extension Checkout on GitRepository {
         break;
       }
       if (isEmpty) {
-        await dir.delete();
+        var _ = await dir.delete();
       }
 
       path = p.dirname(path);

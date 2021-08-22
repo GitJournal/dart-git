@@ -126,7 +126,7 @@ extension Index on GitRepository {
         return fail(r);
       }
       if (rmFromFs) {
-        await fs.file(pathSpec).delete();
+        var _ = await fs.file(pathSpec).delete();
       }
     } else if (stat.type == FileSystemEntityType.directory) {
       var r = await rmDirectoryFromIndex(index, pathSpec, recursive: true);
@@ -134,7 +134,7 @@ extension Index on GitRepository {
         return fail(r);
       }
       if (rmFromFs) {
-        await fs.directory(pathSpec).delete(recursive: true);
+        var _ = await fs.directory(pathSpec).delete(recursive: true);
       }
     } else {
       var ex = InvalidFileType(pathSpec);

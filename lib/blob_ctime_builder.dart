@@ -25,7 +25,7 @@ class BlobCTimeBuilder {
     await _processTree(commit.treeHash, dt);
     for (var parent in commit.parents) {
       var c = await repo.objStorage.readCommit(parent).getOrThrow();
-      await _build(from: c);
+      await _build(from: c).throwOnError();
     }
 
     return Result(null);
@@ -36,7 +36,7 @@ class BlobCTimeBuilder {
     if (_processedTrees.contains(treeHash)) {
       return;
     }
-    _processedTrees.add(treeHash);
+    var _ = _processedTrees.add(treeHash);
 
     var tree = await repo.objStorage.readTree(treeHash).getOrThrow();
     for (var entry in tree.entries) {

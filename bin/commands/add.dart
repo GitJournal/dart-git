@@ -18,7 +18,7 @@ class AddCommand extends Command {
     var repo = await GitRepository.load(gitRootDir).getOrThrow();
 
     var pathSpec = argResults!.arguments[0];
-    await repo.add(pathSpec);
+    await repo.add(pathSpec).throwOnError();
 
     // FIXME: Get proper pathSpec
     // FIXME: Handle glob patterns

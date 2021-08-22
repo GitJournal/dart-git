@@ -97,7 +97,7 @@ class GitIndex {
 
     if (_listEq(header, _reucHeader)) {
       var length = reader.readUint32();
-      reader.read(length); // Ignoring the data for now
+      var _ = reader.read(length); // Ignoring the data for now
       return true;
     }
 
@@ -410,7 +410,7 @@ class GitIndexEntry {
       var endingBytes = indexFileSize - reader.remainingLength;
       var entrySize = endingBytes - startingBytes;
       var padLength = 8 - (entrySize % 8);
-      reader.read(padLength);
+      var _ = reader.read(padLength);
     }
 
     return GitIndexEntry(

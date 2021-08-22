@@ -26,6 +26,7 @@ dependencies:
 dev_dependencies:
   archive: ^3.1.2
   build_runner:
+  dart_code_metrics: ^4.2.0
   freezed: ^0.14.1+2
   import_sorter: ^4.6.0
   pedantic: ^1.11.0

@@ -65,7 +65,7 @@ extension MergeBase on GitRepository {
         return Result.fail(ex);
       }
 
-      all.add(commit.hash);
+      var _ = all.add(commit.hash);
     }
 
     return Result(all);
@@ -105,8 +105,7 @@ extension MergeBase on GitRepository {
     while (true) {
       var from = commits[pos];
 
-      var others = List<GitCommit>.from(commits);
-      others.remove(from);
+      var others = List<GitCommit>.from(commits)..remove(from);
 
       var fromHistoryIter = commitIteratorBFSFiltered(
         objStorage: objStorage,
@@ -121,7 +120,7 @@ extension MergeBase on GitRepository {
         var fromAncestor = fromAncestorR.getOrThrow();
         others.removeWhere((other) {
           if (fromAncestor.hash == other.hash) {
-            commits.remove(other);
+            var _ = commits.remove(other);
             return true;
           }
           return false;
@@ -132,7 +131,7 @@ extension MergeBase on GitRepository {
           throw Exception('Stop?');
         }
 
-        seen.add(fromAncestor.hash);
+        var _ = seen.add(fromAncestor.hash);
       }
 
       pos = commits.indexOf(from) + 1;
@@ -154,7 +153,7 @@ void _removeDuplicates(List<GitCommit> commits) {
   commits.removeWhere((c) {
     var contains = seen.contains(c.hash);
     if (!contains) {
-      seen.add(c.hash);
+      var _ = seen.add(c.hash);
     }
     return contains;
   });

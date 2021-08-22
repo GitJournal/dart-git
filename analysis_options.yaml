@@ -23,15 +23,15 @@ analyzer:
     missing_required_param: error
     missing_return: error
     todo: ignore
-  # plugins:
-  # - dart_code_metrics
+  plugins:
+  - dart_code_metrics
 
 dart_code_metrics:
   metrics-exclude:
     - bin/**
-    - lib/**
     - test/**
   rules:
+    - avoid-ignoring-return-values
     # - avoid-unused-parameters
     - double-literal-format
     - no-boolean-literal-compare

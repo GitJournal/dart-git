@@ -153,12 +153,12 @@ class GitRepository {
       'refs/tags',
     ];
     for (var dir in dirsToCreate) {
-      await fs.directory(p.join(gitDir, dir)).create(recursive: true);
+      var _ = await fs.directory(p.join(gitDir, dir)).create(recursive: true);
     }
 
-    await fs.file(p.join(gitDir, 'description')).writeAsString(
+    var _ = await fs.file(p.join(gitDir, 'description')).writeAsString(
         "Unnamed repository; edit this file 'description' to name the repository.\n");
-    await fs
+    var __ = await fs
         .file(p.join(gitDir, 'HEAD'))
         .writeAsString('ref: refs/heads/$defaultBranch\n');
 
@@ -168,7 +168,9 @@ class GitRepository {
     core.options['filemode'] = 'false';
     core.options['bare'] = 'false';
 
-    await fs.file(p.join(gitDir, 'config')).writeAsString(config.serialize());
+    var ___ = await fs
+        .file(p.join(gitDir, 'config'))
+        .writeAsString(config.serialize());
   }
 
   Future<Result<void>> saveConfig() {
@@ -427,14 +429,14 @@ class GitRepository {
   Future<Result<int>> countTillAncestor(GitHash from, GitHash ancestor) async {
     var seen = <GitHash>{};
     var parents = <GitHash>[];
-    parents.add(from);
+    var _ = parents.add(from);
     while (parents.isNotEmpty) {
       var sha = parents[0];
       if (sha == ancestor) {
         break;
       }
-      parents.removeAt(0);
-      seen.add(sha);
+      var _ = parents.removeAt(0);
+      var __ = seen.add(sha);
 
       var commitR = await objStorage.readCommit(sha);
       if (commitR.isFailure) {

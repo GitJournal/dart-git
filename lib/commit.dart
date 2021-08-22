@@ -20,7 +20,10 @@ extension Commit on GitRepository {
     committer ??= author;
 
     if (addAll) {
-      await add(workTree);
+      var r = await add(workTree);
+      if (r.isFailure) {
+        return fail(r);
+      }
     }
 
     var index = await indexStorage.readIndex().getOrThrow();
@@ -115,7 +118,7 @@ extension Commit on GitRepository {
       // Construct all the tree objects
       var allDirs = <String>[];
       while (dirName != '.') {
-        allTreeDirs.add(dirName);
+        var _ = allTreeDirs.add(dirName);
         allDirs.add(dirName);
 
         dirName = p.dirname(dirName);

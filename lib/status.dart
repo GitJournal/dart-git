@@ -90,7 +90,7 @@ extension Status on GitRepository {
         continue;
       }
 
-      newFilesAdded.remove(fsEntity.path);
+      var _ = newFilesAdded.remove(fsEntity.path);
 
       if (_ignoreEntity(fsEntity)) {
         continue;

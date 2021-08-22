@@ -84,7 +84,7 @@ class PackFile {
 
   Future<GitObject?> _getObject(int offset) async {
     var file = await fs.file(filePath).open(mode: FileMode.read);
-    await file.setPosition(offset);
+    var _ = await file.setPosition(offset);
 
     var headByte = await file.readByte();
     var type = (0x70 & headByte) >> 4;

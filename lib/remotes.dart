@@ -76,8 +76,7 @@ extension Remotes on GitRepository {
       return Result.fail(ex);
     }
 
-    var remote = config.remotes[i];
-    config.remotes.removeAt(i);
+    var remote = config.remotes.removeAt(i);
     var cfgResult = await saveConfig();
     if (cfgResult.isFailure) {
       return fail(cfgResult);

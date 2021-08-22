@@ -120,14 +120,14 @@ class ObjectStorageFS implements ObjectStorage {
 
     var path =
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    await _fs.directory(p.dirname(path)).create(recursive: true);
+    var _ = await _fs.directory(p.dirname(path)).create(recursive: true);
 
     var exists = await _fs.isFile(path);
     if (exists) {
       return Result(hash);
     }
     var file = await _fs.file(path).open(mode: FileMode.writeOnly);
-    await file.writeFrom(zlib.encode(result));
+    var __ = await file.writeFrom(zlib.encode(result));
     await file.close();
 
     return Result(hash);

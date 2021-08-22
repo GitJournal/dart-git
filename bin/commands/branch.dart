@@ -101,7 +101,9 @@ class BranchCommand extends Command {
           await repo.createBranch(branchName, hash: ref.hash).throwOnError();
 
           var remote = repo.config.remote(remoteName)!;
-          await repo.setBranchUpstreamTo(branchName, remote, remoteBranchName);
+          await repo
+              .setBranchUpstreamTo(branchName, remote, remoteBranchName)
+              .throwOnError();
 
           print(
               "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");

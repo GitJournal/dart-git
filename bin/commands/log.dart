@@ -36,9 +36,8 @@ class LogCommand extends Command {
     parents.add(sha);
 
     while (parents.isNotEmpty) {
-      var sha = parents[0]!;
-      parents.removeAt(0);
-      seen.add(sha);
+      var sha = parents.removeAt(0)!;
+      var _ = seen.add(sha);
 
       var objRes = await repo.objStorage.readCommit(sha);
       if (objRes.isFailure) {

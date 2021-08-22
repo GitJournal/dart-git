@@ -13,7 +13,7 @@ void main() {
 
   setUp(() async {
     gitDir = (await Directory.systemTemp.createTemp('_git_')).path;
-    await cloneGittedFixture('merge', gitDir);
+    var _ = await cloneGittedFixture('merge', gitDir);
   });
 
   test('Basic', () async {

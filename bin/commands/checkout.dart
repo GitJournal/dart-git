@@ -29,7 +29,7 @@ class CheckoutCommand extends Command {
       } else {
         var branches = await repo.branches().getOrThrow();
         if (branches.contains(branchName)) {
-          await repo.checkoutBranch(branchName);
+          await repo.checkoutBranch(branchName).throwOnError();
           return;
         } else {
           // FIXME: This should lookup which remote has it

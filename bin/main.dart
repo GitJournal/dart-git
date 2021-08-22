@@ -54,7 +54,7 @@ Future<int> mainWithExitCode(List<String> args) async {
     ..addCommand(LsTreeCommand());
 
   try {
-    await runner.run(args);
+    var _ = await runner.run(args);
   } on GitException catch (e) {
     print(e);
     return 1;

@@ -275,7 +275,7 @@ Future<String> cloneGittedFixture(String fixtureName, String newDirPath) async {
 
   await copyDirectory(fixtureDirPath, newDirPath);
   assert(Directory('$newDirPath/.gitted').existsSync());
-  await Directory('$newDirPath/.gitted').rename('$newDirPath/.git');
+  var _ = await Directory('$newDirPath/.gitted').rename('$newDirPath/.git');
 
   return newDirPath;
 }

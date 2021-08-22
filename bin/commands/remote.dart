@@ -17,8 +17,8 @@ class RemoteCommand extends Command {
 
   RemoteCommand() {
     argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
-    argParser.addCommand('add', addArgParser);
-    argParser.addCommand('rm', rmArgParser);
+    var _ = argParser.addCommand('add', addArgParser);
+    var __ = argParser.addCommand('rm', rmArgParser);
   }
 
   @override

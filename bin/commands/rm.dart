@@ -26,9 +26,9 @@ class RmCommand extends Command {
       return;
     }
     if (File(filePath).existsSync()) {
-      await File(filePath).delete(recursive: true);
+      var _ = await File(filePath).delete(recursive: true);
     }
-    await repo.indexStorage.writeIndex(index);
+    await repo.indexStorage.writeIndex(index).throwOnError();
 
     print("rm '${repo.toPathSpec(filePath)}'");
 

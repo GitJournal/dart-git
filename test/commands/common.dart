@@ -21,7 +21,7 @@ Future<GitCommandSetupResult> gitCommandTestSetupAll() async {
   result.tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;
 
   var cloneUrl = 'https://github.com/GitJournal/dart_git.git';
-  await runGitCommand('clone $cloneUrl', result.tmpDir);
+  var _ = await runGitCommand('clone $cloneUrl', result.tmpDir);
 
   var repoName = p.basename(cloneUrl);
   if (cloneUrl.endsWith('.git')) {

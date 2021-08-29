@@ -38,7 +38,7 @@ class RemoteCommand extends Command {
         var name = result.arguments[0];
         var url = result.arguments[1];
 
-        await repo.addRemote(name, url);
+        await repo.addRemote(name, url).throwOnError();
         return;
       }
 

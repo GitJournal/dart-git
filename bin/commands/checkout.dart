@@ -47,10 +47,11 @@ class CheckoutCommand extends Command {
       }
       var remoteRef = remoteRefR.getOrThrow();
 
-      await repo.createBranch(branchName, hash: remoteRef.hash);
-      await repo.checkout('.');
-      await repo.setUpstreamTo(
-          repo.config.remote(remoteName)!, remoteBranchName);
+      await repo.createBranch(branchName, hash: remoteRef.hash).throwOnError();
+      await repo.checkout('.').throwOnError();
+      await repo
+          .setUpstreamTo(repo.config.remote(remoteName)!, remoteBranchName)
+          .throwOnError();
       print(
           "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
 

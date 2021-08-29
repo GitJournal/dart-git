@@ -39,8 +39,8 @@ Future<String> runGitCommand(String command, String dir,
 Future<void> createFile(String basePath, String path, String contents) async {
   var fullPath = p.join(basePath, path);
 
-  await Directory(p.dirname(fullPath)).create(recursive: true);
-  await File(fullPath).writeAsString(contents);
+  var _ = await Directory(p.dirname(fullPath)).create(recursive: true);
+  var __ = await File(fullPath).writeAsString(contents);
 }
 
 Future<void> testRepoEquals(String repo1, String repo2) async {

@@ -5,7 +5,6 @@ import 'package:test/test.dart';
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/commit_iterator.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
-import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/storage/interfaces.dart';
 import '../lib.dart';
 
@@ -34,7 +33,7 @@ import '../lib.dart';
 void main() {
   String gitDir;
   late ObjectStorage objStorage;
-  late GitCommit headCommit;
+  late GitHash headHash;
 
   setUpAll(() async {
     gitDir = await openFixture(
@@ -42,7 +41,7 @@ void main() {
 
     var repo = await GitRepository.load(gitDir).getOrThrow();
     objStorage = repo.objStorage;
-    headCommit = await repo.headCommit().getOrThrow();
+    headHash = await repo.headHash().getOrThrow();
   });
 
   /// We should get all commits from the history but,
@@ -50,7 +49,7 @@ void main() {
   test('Basic', () async {
     var iter = commitIteratorBFSFiltered(
       objStorage: objStorage,
-      from: headCommit,
+      from: headHash,
     );
 
     var expected = <String>[
@@ -70,7 +69,7 @@ void main() {
   test('Filter All But One', () async {
     var iter = commitIteratorBFSFiltered(
       objStorage: objStorage,
-      from: headCommit,
+      from: headHash,
       isValid: (commit) =>
           commit.hash == GitHash('35e85108805c84807bc66a02d91535e1e24b38b9'),
     );
@@ -85,7 +84,7 @@ void main() {
   test('Filter All', () async {
     var iter = commitIteratorBFSFiltered(
       objStorage: objStorage,
-      from: headCommit,
+      from: headHash,
       isValid: (commit) => commit.hash == GitHash.zero(),
     );
 
@@ -95,7 +94,7 @@ void main() {
   test('isLimit', () async {
     var iter = commitIteratorBFSFiltered(
       objStorage: objStorage,
-      from: headCommit,
+      from: headHash,
       isLimit: (commit) =>
           commit.hash == GitHash('a5b8b09e2f8fcb0bb99d3ccb0958157b40890d69'),
     );
@@ -116,7 +115,7 @@ void main() {
   test('isValid and isLimit', () async {
     var iter = commitIteratorBFSFiltered(
       objStorage: objStorage,
-      from: headCommit,
+      from: headHash,
       isValid: (commit) =>
           commit.hash != GitHash('35e85108805c84807bc66a02d91535e1e24b38b9'),
       isLimit: (commit) =>

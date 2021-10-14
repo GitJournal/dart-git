@@ -9,9 +9,9 @@ import 'package:dart_git/utils/result.dart';
 
 Stream<Result<GitCommit>> commitIteratorBFS({
   required ObjectStorage objStorage,
-  required GitCommit from,
+  required GitHash from,
 }) async* {
-  var queue = Queue<GitHash>.from([from.hash]);
+  var queue = Queue<GitHash>.from([from]);
   var seen = <GitHash>{};
 
   while (queue.isNotEmpty) {
@@ -39,14 +39,14 @@ final _allCommitsNotValidFilter = (GitCommit _) => false;
 
 Stream<Result<GitCommit>> commitIteratorBFSFiltered({
   required ObjectStorage objStorage,
-  required GitCommit from,
+  required GitHash from,
   CommitFilter? isValid,
   CommitFilter? isLimit,
 }) async* {
   isValid ??= _allCommitsValidFilter;
   isLimit ??= _allCommitsNotValidFilter;
 
-  var queue = Queue<GitHash>.from([from.hash]);
+  var queue = Queue<GitHash>.from([from]);
   var seen = <GitHash>{};
 
   while (queue.isNotEmpty) {
@@ -74,9 +74,9 @@ Stream<Result<GitCommit>> commitIteratorBFSFiltered({
 
 Stream<Result<GitCommit>> commitPreOrderIterator({
   required ObjectStorage objStorage,
-  required GitCommit from,
+  required GitHash from,
 }) async* {
-  var stack = List<GitHash>.from([from.hash]);
+  var stack = List<GitHash>.from([from]);
   var seen = <GitHash>{};
 
   while (stack.isNotEmpty) {

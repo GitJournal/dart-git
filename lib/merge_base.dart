@@ -29,7 +29,7 @@ extension MergeBase on GitRepository {
     var results = <GitCommit>[];
     var iter = commitIteratorBFSFiltered(
       objStorage: objStorage,
-      from: older,
+      from: older.hash,
       isValid: inNewerHistory,
       isLimit: inNewerHistory,
     );
@@ -54,7 +54,7 @@ extension MergeBase on GitRepository {
     }
 
     var all = <GitHash>{};
-    var iter = commitIteratorBFS(objStorage: objStorage, from: start);
+    var iter = commitIteratorBFS(objStorage: objStorage, from: start.hash);
     await for (var commitR in iter) {
       if (commitR.isFailure) {
         return fail(commitR);
@@ -75,7 +75,7 @@ extension MergeBase on GitRepository {
   /// It returns an error if the history is not transversable
   /// It mimics the behavior of `git merge --is-ancestor actual other`
   Future<Result<bool>> isAncestor(GitCommit ancestor, GitCommit child) async {
-    var iter = commitPreOrderIterator(objStorage: objStorage, from: child);
+    var iter = commitPreOrderIterator(objStorage: objStorage, from: child.hash);
     await for (var commitR in iter) {
       if (commitR.isFailure) {
         return fail(commitR);
@@ -109,7 +109,7 @@ extension MergeBase on GitRepository {
 
       var fromHistoryIter = commitIteratorBFSFiltered(
         objStorage: objStorage,
-        from: from,
+        from: from.hash,
         isLimit: isLimit,
       );
 

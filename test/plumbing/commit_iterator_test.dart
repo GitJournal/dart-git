@@ -2,14 +2,14 @@ import 'package:test/test.dart';
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/commit_iterator.dart';
-import 'package:dart_git/plumbing/objects/commit.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/storage/interfaces.dart';
 import '../lib.dart';
 
 void main() {
   String gitDir;
   late ObjectStorage objStorage;
-  late GitCommit headCommit;
+  late GitHash headHash;
 
   setUpAll(() async {
     gitDir = await openFixture(
@@ -17,13 +17,13 @@ void main() {
 
     var repo = await GitRepository.load(gitDir).getOrThrow();
     objStorage = repo.objStorage;
-    headCommit = await repo.headCommit().getOrThrow();
+    headHash = await repo.headHash().getOrThrow();
   });
 
   test('BFS', () async {
     var iter = commitIteratorBFS(
       objStorage: objStorage,
-      from: headCommit,
+      from: headHash,
     );
 
     var expected = <String>[
@@ -43,7 +43,7 @@ void main() {
   test('PreOrder', () async {
     var iter = commitPreOrderIterator(
       objStorage: objStorage,
-      from: headCommit,
+      from: headHash,
     );
 
     var expected = <String>[

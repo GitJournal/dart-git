@@ -43,6 +43,7 @@ class Change {
   // This could crash, no?
   String get path => from != null ? from!.path : to!.path;
   GitFileMode get mode => from != null ? from!.mode : to!.mode;
+  GitHash get hash => from != null ? from!.hash : to!.hash;
 
   @override
   String toString() {

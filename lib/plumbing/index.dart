@@ -65,7 +65,9 @@ class GitIndex {
     }
 
     var hashBytesBuilder = BytesBuilder(copy: false);
-    hashBytesBuilder..add(extensionHeader)..add(reader.read(16));
+    hashBytesBuilder
+      ..add(extensionHeader)
+      ..add(reader.read(16));
 
     var expectedHash = GitHash.fromBytes(hashBytesBuilder.toBytes());
     var actualHash = GitHash.compute(bytes.sublistView(0, bytes.length - 20));
@@ -240,6 +242,11 @@ class GitIndex {
 
     var indexEntry = entries.removeAt(i);
     return indexEntry.hash;
+  }
+
+  GitIndexEntry? entryWhere(bool Function(GitIndexEntry) filter) {
+    var i = entries.indexWhere(filter);
+    return i != -1 ? entries[i] : null;
   }
 }
 

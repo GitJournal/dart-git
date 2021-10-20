@@ -83,3 +83,60 @@ extension Visitors on GitRepository {
     }
   }
 }
+
+class MultiTreeEntryVisitor extends TreeEntryVisitor {
+  final List<TreeEntryVisitor> visitors;
+
+  MultiTreeEntryVisitor(this.visitors);
+
+  @override
+  Future<bool> visitTreeEntry({
+    required GitCommit commit,
+    required GitTree tree,
+    required GitTreeEntry entry,
+    required String filePath,
+  }) async {
+    var ret = false;
+    for (var visitor in visitors) {
+      ret = ret ||
+          await visitor.visitTreeEntry(
+              commit: commit, tree: tree, entry: entry, filePath: filePath);
+    }
+
+    return ret;
+  }
+
+  @override
+  bool beforeTree(GitHash treeHash) {
+    var ret = false;
+    for (var visitor in visitors) {
+      ret = ret || visitor.beforeTree(treeHash);
+    }
+
+    return ret;
+  }
+
+  @override
+  bool beforeCommit(GitHash commitHash) {
+    var ret = false;
+    for (var visitor in visitors) {
+      ret = ret || visitor.beforeCommit(commitHash);
+    }
+
+    return ret;
+  }
+
+  @override
+  void afterTree(GitTree tree) {
+    for (var visitor in visitors) {
+      visitor.afterTree(tree);
+    }
+  }
+
+  @override
+  void afterCommit(GitCommit commit) {
+    for (var visitor in visitors) {
+      visitor.afterCommit(commit);
+    }
+  }
+}

@@ -5,20 +5,26 @@ import 'package:dart_git/utils/date_time_tz_offset.dart';
 
 /// Fetches the creation time for each blob
 class BlobCTimeBuilder extends TreeEntryVisitor {
-  final Map<GitHash, DateTimeWithTzOffset> map = {};
-  final Set<GitHash> _processedTrees = {};
+  final BlobCTimeBuilderData data;
+
+  BlobCTimeBuilder({BlobCTimeBuilderData? data})
+      : data = data ?? BlobCTimeBuilderData();
 
   @override
-  bool beforeTree(GitHash treeHash) {
-    var c = _processedTrees.contains(treeHash);
-
-    // skip if already processed
-    return !c;
-  }
+  bool beforeTree(GitHash treeHash) => !data.processedTrees.contains(treeHash);
 
   @override
   void afterTree(GitTree tree) {
-    var _ = _processedTrees.add(tree.hash);
+    var _ = data.processedTrees.add(tree.hash);
+  }
+
+  @override
+  bool beforeCommit(GitHash commitHash) =>
+      !data.processedCommits.contains(commitHash);
+
+  @override
+  void afterCommit(GitCommit commit) {
+    var _ = data.processedCommits.add(commit.hash);
   }
 
   @override
@@ -34,14 +40,20 @@ class BlobCTimeBuilder extends TreeEntryVisitor {
     );
 
     var time = commitTime;
-    var et = map[entry.hash];
+    var et = data.map[entry.hash];
     if (et != null) {
       time = et.isBefore(time) ? et : time;
     }
 
-    map[entry.hash] = time;
+    data.map[entry.hash] = time;
     return true;
   }
 
-  DateTimeWithTzOffset? cTime(GitHash hash) => map[hash];
+  DateTimeWithTzOffset? cTime(GitHash hash) => data.map[hash];
+}
+
+class BlobCTimeBuilderData {
+  var processedTrees = <GitHash>{};
+  var processedCommits = <GitHash>{};
+  var map = <GitHash, DateTimeWithTzOffset>{};
 }

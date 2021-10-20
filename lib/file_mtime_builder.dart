@@ -19,20 +19,26 @@ class FileMTimeInfo {
 
 /// Fetches the last time a path was modified
 class FileMTimeBuilder extends TreeEntryVisitor {
-  final Map<String, FileMTimeInfo> map = {};
-  final Set<GitHash> _processedTrees = {};
+  final FileMTimeBuilderData data;
+
+  FileMTimeBuilder({FileMTimeBuilderData? data})
+      : data = data ?? FileMTimeBuilderData();
 
   @override
-  bool beforeTree(GitHash treeHash) {
-    var c = _processedTrees.contains(treeHash);
-
-    // skip if already processed
-    return !c;
-  }
+  bool beforeTree(GitHash treeHash) => !data.processedTrees.contains(treeHash);
 
   @override
   void afterTree(GitTree tree) {
-    var _ = _processedTrees.add(tree.hash);
+    var _ = data.processedTrees.add(tree.hash);
+  }
+
+  @override
+  bool beforeCommit(GitHash commitHash) =>
+      !data.processedCommits.contains(commitHash);
+
+  @override
+  void afterCommit(GitCommit commit) {
+    var _ = data.processedCommits.add(commit.hash);
   }
 
   @override
@@ -47,7 +53,7 @@ class FileMTimeBuilder extends TreeEntryVisitor {
       commit.author.date,
     );
 
-    var info = map[filePath];
+    var info = data.map[filePath];
     if (info == null) {
       info = FileMTimeInfo(filePath, entry.hash, commitTime);
     } else {
@@ -58,10 +64,16 @@ class FileMTimeBuilder extends TreeEntryVisitor {
       }
     }
 
-    map[filePath] = info;
+    data.map[filePath] = info;
     return true;
   }
 
-  DateTimeWithTzOffset? mTime(String filePath) => map[filePath]?.dt;
-  FileMTimeInfo? info(String filePath) => map[filePath];
+  DateTimeWithTzOffset? mTime(String filePath) => data.map[filePath]?.dt;
+  FileMTimeInfo? info(String filePath) => data.map[filePath];
+}
+
+class FileMTimeBuilderData {
+  var processedTrees = <GitHash>{};
+  var processedCommits = <GitHash>{};
+  var map = <String, FileMTimeInfo>{};
 }

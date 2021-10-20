@@ -2,13 +2,16 @@
 class Result<DataType> {
   DataType? data;
 
-  Exception? error;
+  Object? error;
   StackTrace? stackTrace;
 
   Result(DataType data) : data = data;
-  Result.fail(Exception error, [StackTrace? stackTrace])
+  Result.fail(Object error, [StackTrace? stackTrace])
       : error = error,
-        stackTrace = stackTrace ?? StackTrace.current;
+        stackTrace = stackTrace ?? StackTrace.current {
+    assert(error is Error || error is Exception);
+  }
+
   Result._(this.data, this.error, this.stackTrace);
 
   DataType getOrThrow() {
@@ -18,7 +21,7 @@ class Result<DataType> {
       return data!;
     } else {
       if (stackTrace != null) {
-        throw ResultException(error!, stackTrace!);
+        throw ResultException(exception, stackTrace!);
       }
       throw error!;
     }
@@ -32,6 +35,14 @@ class Result<DataType> {
 
   bool get isFailure => error != null;
   bool get isSuccess => error == null;
+
+  Exception get exception {
+    if (error is Exception) {
+      return error as Exception;
+    }
+
+    return Exception(error.toString());
+  }
 }
 
 class ResultException implements Exception {
@@ -49,7 +60,7 @@ Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
     return await catchFn();
   } on ResultException catch (e) {
     return Result.fail(e, e.stackTrace);
-  } on Exception catch (e, stackTrace) {
+  } catch (e, stackTrace) {
     return Result.fail(e, stackTrace);
   }
 }

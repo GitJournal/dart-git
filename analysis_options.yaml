@@ -37,5 +37,4 @@ dart_code_metrics:
     - no-boolean-literal-compare
     # - no-equal-arguments
     # - no-magic-number
-    - no-object-declaration
     - prefer-conditional-expressions

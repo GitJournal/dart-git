@@ -68,8 +68,10 @@ for o in [0-9a-f][0-9a-f]/*([0-9a-f]) ; do
     echo ${o/\/}
 done''';
 
+  dynamic _;
+
   var script = p.join(Directory.systemTemp.path, 'list-objects');
-  await File(script).writeAsString(listObjScript);
+  _ = await File(script).writeAsString(listObjScript);
 
   var repo1Result =
       await runExecutableArguments('bash', [script], workingDirectory: repo1);
@@ -86,7 +88,7 @@ done''';
   // Test if all the references are the same
   var listRefScript = 'git show-ref --head';
   script = p.join(Directory.systemTemp.path, 'list-refs');
-  await File(script).writeAsString(listRefScript);
+  _ = await File(script).writeAsString(listRefScript);
 
   repo1Result =
       await runExecutableArguments('bash', [script], workingDirectory: repo1);
@@ -103,7 +105,7 @@ done''';
   // Test if the index is the same
   var listIndexScript = 'git ls-files --stage';
   script = p.join(Directory.systemTemp.path, 'list-index');
-  await File(script).writeAsString(listIndexScript);
+  _ = await File(script).writeAsString(listIndexScript);
 
   repo1Result =
       await runExecutableArguments('bash', [script], workingDirectory: repo1);
@@ -216,7 +218,7 @@ Future<List<String>> runDartGitCommand(
     Directory.current = workingDir;
     // FIXME: There could be a space inside quotes
     try {
-      await git.mainWithExitCode(command.split(' '));
+      var _ = await git.mainWithExitCode(command.split(' '));
     } catch (e) {
       printLog = ['$e'];
     }
@@ -232,7 +234,8 @@ Future<List<String>> runDartGitCommand(
 }
 
 Future<void> copyDirectory(String source, String destination) async {
-  await Directory(destination).create(recursive: true);
+  dynamic _;
+  _ = await Directory(destination).create(recursive: true);
   await for (var entity in Directory(source).list(recursive: false)) {
     if (entity is Directory) {
       var newDirectory = Directory(p.join(
@@ -240,7 +243,7 @@ Future<void> copyDirectory(String source, String destination) async {
       await newDirectory.create();
       await copyDirectory(entity.absolute.path, newDirectory.path);
     } else if (entity is File) {
-      await entity.copy(p.join(destination, p.basename(entity.path)));
+      _ = await entity.copy(p.join(destination, p.basename(entity.path)));
     }
   }
 }
@@ -257,11 +260,12 @@ Future<String> openFixture(String filePath) async {
     var filename = file.name;
     if (file.isFile) {
       var data = file.content as List<int>;
-      File(p.join(gitDotDir, filename))
+      var _ = File(p.join(gitDotDir, filename))
         ..createSync(recursive: true)
         ..writeAsBytesSync(data);
     } else {
-      await Directory(p.join(gitDotDir, filename)).create(recursive: true);
+      var _ =
+          await Directory(p.join(gitDotDir, filename)).create(recursive: true);
     }
   }
 

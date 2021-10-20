@@ -107,11 +107,12 @@ Future<void> testCommands(
   bool ignoreOutput = false,
 }) async {
   if (emptyDirs) {
-    await Directory(s.dartGitDir).delete(recursive: true);
-    await Directory(s.realGitDir).delete(recursive: true);
+    dynamic _;
+    _ = await Directory(s.dartGitDir).delete(recursive: true);
+    _ = await Directory(s.realGitDir).delete(recursive: true);
 
-    await Directory(s.dartGitDir).create();
-    await Directory(s.realGitDir).create();
+    _ = await Directory(s.dartGitDir).create();
+    _ = await Directory(s.realGitDir).create();
   }
 
   for (var c in commands) {

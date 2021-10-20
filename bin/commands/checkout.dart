@@ -77,7 +77,7 @@ class CheckoutCommand extends Command {
     var pathSpec = argResults!.arguments[0];
     var branches = await repo.branches().getOrThrow();
     if (branches.contains(pathSpec)) {
-      await repo.checkoutBranch(pathSpec);
+      var _ = await repo.checkoutBranch(pathSpec);
       return;
     }
 

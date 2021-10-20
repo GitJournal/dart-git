@@ -18,7 +18,7 @@ class BlobCTimeBuilder {
     var commit = from;
 
     var dt = DateTimeWithTzOffset.fromDt(
-      commit.author.timezoneOffset / 100,
+      commit.author.timezoneOffset / 100.0,
       commit.author.date,
     );
 

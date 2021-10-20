@@ -63,6 +63,7 @@ class GitHash {
     return buf.toString();
   }
 
+  /// Only returns the first 7 characters of the hash
   String toOid() {
     var buf = StringBuffer();
     for (var i = 0; i < _bytes.length; i++) {
@@ -79,6 +80,11 @@ class GitHash {
   @override
   bool operator ==(Object other) {
     if (other is! GitHash) return false;
+    if (_bytes.isEmpty && other._bytes.isNotEmpty) {
+      return other._bytes.every((e) => e == 0);
+    } else if (_bytes.isNotEmpty && other._bytes.isEmpty) {
+      return _bytes.every((e) => e == 0);
+    }
     return _listEq(_bytes, other._bytes);
   }
 

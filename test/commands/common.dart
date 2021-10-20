@@ -122,7 +122,8 @@ Future<void> testCommands(
     } else {
       var sink = NullStreamSink<List<int>>();
 
-      await shell.run(
+      dynamic _;
+      _ = await shell.run(
         c,
         workingDirectory: s.dartGitDir,
         includeParentEnvironment: false,
@@ -132,7 +133,7 @@ Future<void> testCommands(
         stderr: silenceShellOutput ? sink : null,
       );
 
-      await shell.run(
+      _ = await shell.run(
         c,
         workingDirectory: s.realGitDir,
         includeParentEnvironment: false,

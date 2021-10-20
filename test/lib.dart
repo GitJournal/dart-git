@@ -240,7 +240,7 @@ Future<void> copyDirectory(String source, String destination) async {
     if (entity is Directory) {
       var newDirectory = Directory(p.join(
           Directory(destination).absolute.path, p.basename(entity.path)));
-      await newDirectory.create();
+      _ = await newDirectory.create();
       await copyDirectory(entity.absolute.path, newDirectory.path);
     } else if (entity is File) {
       _ = await entity.copy(p.join(destination, p.basename(entity.path)));

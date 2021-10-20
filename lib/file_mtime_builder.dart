@@ -1,9 +1,8 @@
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
+import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/date_time_tz_offset.dart';
-import 'package:dart_git/utils/file_mode.dart';
-
-import 'package:path/path.dart' as p;
+import 'package:dart_git/vistors.dart';
 
 class FileMTimeInfo {
   String filePath;
@@ -19,62 +18,44 @@ class FileMTimeInfo {
 }
 
 /// Fetches the last time a path was modified
-class FileMTimeBuilder {
-  GitRepository repo;
+class FileMTimeBuilder implements TreeEntryVisitor {
   final Map<String, FileMTimeInfo> map = {};
   final Set<GitHash> _processedTrees = {};
 
-  FileMTimeBuilder(this.repo);
+  @override
+  bool beforeTree(GitHash treeHash) {
+    var c = _processedTrees.contains(treeHash);
+    var _ = _processedTrees.add(treeHash);
 
-  Future<Result<void>> build({required GitCommit from}) =>
-      catchAll(() => _build(from: from));
+    // skip if already processed
+    return !c;
+  }
 
-  Future<Result<void>> _build({required GitCommit from}) async {
-    var commit = from;
-
-    var dt = DateTimeWithTzOffset.fromDt(
+  @override
+  Future<bool> visitTreeEntry({
+    required GitCommit commit,
+    required GitTree tree,
+    required GitTreeEntry entry,
+    required String filePath,
+  }) async {
+    var commitTime = DateTimeWithTzOffset.fromDt(
       commit.author.timezoneOffset / 100.0,
       commit.author.date,
     );
 
-    // Go over all the co
-    await _processTree(commit.treeHash, dt, '');
-    for (var parent in commit.parents) {
-      var c = await repo.objStorage.readCommit(parent).getOrThrow();
-      await _build(from: c).throwOnError();
-    }
-
-    return Result(null);
-  }
-
-  Future<void> _processTree(GitHash treeHash, DateTimeWithTzOffset commitTime,
-      String parentPath) async {
-    if (_processedTrees.contains(treeHash)) {
-      return;
-    }
-    var _ = _processedTrees.add(treeHash);
-
-    var tree = await repo.objStorage.readTree(treeHash).getOrThrow();
-    for (var entry in tree.entries) {
-      if (entry.mode == GitFileMode.Dir) {
-        var path = p.join(parentPath, entry.name);
-        await _processTree(entry.hash, commitTime, path);
-      } else {
-        var filePath = p.join(parentPath, entry.name);
-        var info = map[filePath];
-        if (info == null) {
+    var info = map[filePath];
+    if (info == null) {
+      info = FileMTimeInfo(filePath, entry.hash, commitTime);
+    } else {
+      if (info.hash == entry.hash) {
+        if (commitTime.isAfter(info.dt)) {
           info = FileMTimeInfo(filePath, entry.hash, commitTime);
-        } else {
-          if (info.hash == entry.hash) {
-            if (commitTime.isAfter(info.dt)) {
-              info = FileMTimeInfo(filePath, entry.hash, commitTime);
-            }
-          }
         }
-
-        map[filePath] = info;
       }
     }
+
+    map[filePath] = info;
+    return true;
   }
 
   DateTimeWithTzOffset? mTime(String filePath) => map[filePath]?.dt;

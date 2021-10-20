@@ -29,6 +29,7 @@ export 'merge.dart';
 export 'remotes.dart';
 export 'utils/result.dart';
 export 'index.dart';
+export 'vistors.dart';
 
 export 'storage/object_storage_extensions.dart';
 

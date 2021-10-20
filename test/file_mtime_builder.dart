@@ -1,11 +1,9 @@
 import 'dart:io';
 
-import 'package:dart_git/file_mtime_builder.dart';
 import 'package:test/test.dart';
 
 import 'package:dart_git/dart_git.dart';
-import 'package:dart_git/plumbing/git_hash.dart';
-import 'package:dart_git/utils/date_time_tz_offset.dart';
+import 'package:dart_git/file_mtime_builder.dart';
 import 'lib.dart';
 
 void main() {
@@ -19,8 +17,13 @@ void main() {
   test('Basic', () async {
     var repo = await GitRepository.load(gitDir).getOrThrow();
 
-    var tf = FileMTimeBuilder(repo);
-    await tf.build(from: await repo.headCommit().getOrThrow()).throwOnError();
+    var tf = FileMTimeBuilder();
+    await repo
+        .visitTree(
+          fromCommitHash: await repo.headHash().getOrThrow(),
+          visitor: tf,
+        )
+        .throwOnError();
 
     expect(
       tf.mTime('1.md')!.toUtc().toIso8601String(),

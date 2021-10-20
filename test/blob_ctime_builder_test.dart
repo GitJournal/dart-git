@@ -19,8 +19,13 @@ void main() {
   test('Basic', () async {
     var repo = await GitRepository.load(gitDir).getOrThrow();
 
-    var tf = BlobCTimeBuilder(repo);
-    await tf.build(from: await repo.headCommit().getOrThrow()).throwOnError();
+    var tf = BlobCTimeBuilder();
+    await repo
+        .visitTree(
+          fromCommitHash: await repo.headHash().getOrThrow(),
+          visitor: tf,
+        )
+        .throwOnError();
 
     expect(
       tf.cTime(GitHash('12232253399c1483f1b8ef1488eb69be155aa2e8')),

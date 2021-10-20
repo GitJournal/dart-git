@@ -18,17 +18,21 @@ class FileMTimeInfo {
 }
 
 /// Fetches the last time a path was modified
-class FileMTimeBuilder implements TreeEntryVisitor {
+class FileMTimeBuilder extends TreeEntryVisitor {
   final Map<String, FileMTimeInfo> map = {};
   final Set<GitHash> _processedTrees = {};
 
   @override
   bool beforeTree(GitHash treeHash) {
     var c = _processedTrees.contains(treeHash);
-    var _ = _processedTrees.add(treeHash);
 
     // skip if already processed
     return !c;
+  }
+
+  @override
+  void afterTree(GitTree tree) {
+    var _ = _processedTrees.add(tree.hash);
   }
 
   @override

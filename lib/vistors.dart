@@ -9,21 +9,23 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
-class TreeEntryVisitor {
+abstract class TreeEntryVisitor {
   /// Return 'false' to skip this tree
   Future<bool> visitTreeEntry({
     required GitCommit commit,
     required GitTree tree,
     required GitTreeEntry entry,
     required String filePath,
-  }) async =>
-      false;
+  });
 
   /// Return 'false' to skip this 'Tree'
   bool beforeTree(GitHash treeHash) => true;
 
   /// Return 'false' to skip this 'Commit'
-  // bool beforeCommit(GitHash commitHash) => false;
+  bool beforeCommit(GitHash commitHash) => true;
+
+  void afterTree(GitTree tree) {}
+  void afterCommit(GitCommit commit) {}
 }
 
 extension Visitors on GitRepository {
@@ -34,9 +36,13 @@ extension Visitors on GitRepository {
       catchAll(() async => Result(await _visitTree(fromCommitHash, visitor)));
 
   Future<void> _visitTree(GitHash from, TreeEntryVisitor visitor) async {
-    var iter = commitIteratorBFS(objStorage: objStorage, from: from);
+    var iter = commitIteratorBFSFiltered(objStorage: objStorage, from: from);
     await for (var result in iter) {
       var commit = result.getOrThrow();
+
+      if (!visitor.beforeCommit(commit.hash)) {
+        continue;
+      }
 
       var queue = Queue<Tuple2<GitHash, String>>();
       queue.add(Tuple2(commit.treeHash, ''));
@@ -69,7 +75,11 @@ extension Visitors on GitRepository {
             return;
           }
         }
+
+        visitor.afterTree(tree);
       }
+
+      visitor.afterCommit(commit);
     }
   }
 }

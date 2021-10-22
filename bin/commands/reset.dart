@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 
 class ResetCommand extends Command {
   @override
@@ -27,13 +28,10 @@ class ResetCommand extends Command {
       print('No args provided');
       return 1;
     }
-    if (arg != 'HEAD^') {
-      print('Only supports HEAD^');
-      return;
-    }
 
     var headCommit = await repo.headCommit().getOrThrow();
-    var targetHash = headCommit.parents[0];
+    assert(headCommit.parents.length == 1);
+    var targetHash = arg == 'HEAD^' ? headCommit.parents[0] : GitHash(arg);
 
     var hard = argResults!['hard'] as bool;
     if (hard) {

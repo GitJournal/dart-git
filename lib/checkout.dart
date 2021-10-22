@@ -1,3 +1,4 @@
+import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/dart_git.dart';
@@ -36,7 +37,7 @@ extension Checkout on GitRepository {
     if (obj is GitBlob) {
       var _ = await fs.directory(p.dirname(path)).create(recursive: true);
       var __ = await fs.file(path).writeAsBytes(obj.blobData);
-      var ___ = await fs.file(path).chmod(treeEntry.mode.val);
+      await fs.file(path).chmod(treeEntry.mode.val);
 
       return Result(1);
     }
@@ -156,7 +157,7 @@ extension Checkout on GitRepository {
         var _ =
             await fs.file(p.join(workTree, from.path)).delete(recursive: true);
         var __ = index.removePath(from.path);
-        await _deleteEmptyDirectories(workTree, from.path);
+        await deleteEmptyDirectories(fs, workTree, from.path);
       }
     }
 
@@ -169,22 +170,23 @@ extension Checkout on GitRepository {
 
     return Result(ref);
   }
+}
 
-  Future<void> _deleteEmptyDirectories(String workTree, String path) async {
-    while (path != '.') {
-      var dirPath = p.join(workTree, p.dirname(path));
-      var dir = fs.directory(dirPath);
+Future<void> deleteEmptyDirectories(
+    FileSystem fs, String workTree, String path) async {
+  while (path != '.') {
+    var dirPath = p.join(workTree, p.dirname(path));
+    var dir = fs.directory(dirPath);
 
-      var isEmpty = true;
-      await for (var _ in dir.list()) {
-        isEmpty = false;
-        break;
-      }
-      if (isEmpty) {
-        var _ = await dir.delete();
-      }
-
-      path = p.dirname(path);
+    var isEmpty = true;
+    await for (var _ in dir.list()) {
+      isEmpty = false;
+      break;
     }
+    if (isEmpty) {
+      var _ = await dir.delete();
+    }
+
+    path = p.dirname(path);
   }
 }

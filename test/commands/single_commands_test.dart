@@ -103,7 +103,13 @@ void main() {
 
   test('reset --hard', () async {
     await testGitCommand(s, 'reset --hard HEAD^', ignoreOutput: true);
-  }, skip: true);
+  });
+
+  test('reset --hard', () async {
+    await testGitCommand(
+        s, 'reset --hard ef2118f9ed53fdc4c7c6104cbff7489612d76c0d',
+        ignoreOutput: true);
+  });
 
   test(
     'checkout 1 file',

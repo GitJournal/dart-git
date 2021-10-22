@@ -3,6 +3,7 @@ import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/reset.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Merge on GitRepository {
@@ -196,30 +197,6 @@ extension Merge on GitRepository {
       author: author,
       message: 'Merge ${branchConfig.remoteTrackingBranch()}',
     ).throwOnError();
-
-    return Result(null);
-  }
-
-  Future<Result<void>> resetHard(GitHash hash) async {
-    var headR = await head();
-    if (headR.isFailure) {
-      return fail(headR);
-    }
-    var headRef = headR.getOrThrow();
-
-    var branchNameRef = headRef.target!;
-    assert(branchNameRef.isBranch());
-
-    var newRef = Reference.hash(branchNameRef, hash);
-    var saveRefResult = await refStorage.saveRef(newRef);
-    if (saveRefResult.isFailure) {
-      return fail(saveRefResult);
-    }
-
-    var res = await checkout('.');
-    if (res.isFailure) {
-      return fail(res);
-    }
 
     return Result(null);
   }

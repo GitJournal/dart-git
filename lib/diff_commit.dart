@@ -26,6 +26,11 @@ class CommitBlobChanges {
   List<Change> merged() {
     return [...add, ...remove, ...modify];
   }
+
+  @override
+  String toString() {
+    return 'CommitBlobChanges{\nadd: $add\nremove: $remove\nmodify: $modify';
+  }
 }
 
 /// Applying this change on 'from' will produce 'to'.
@@ -180,7 +185,7 @@ Future<Result<CommitBlobChanges>> diffCommits({
 
           assert(result.to!.hash.isNotEmpty);
 
-          removedChanges.add(Change(from: null, to: to));
+          addedChanges.add(Change(from: null, to: to));
         } else if (result.delete) {
           var fromParentPath = pathMap[item.fromTreeHash]!;
           var fromPath = p.join(fromParentPath, result.from!.name);
@@ -188,7 +193,7 @@ Future<Result<CommitBlobChanges>> diffCommits({
 
           assert(result.from!.hash.isNotEmpty);
 
-          addedChanges.add(Change(from: from, to: null));
+          removedChanges.add(Change(from: from, to: null));
         }
       }
     }

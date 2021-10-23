@@ -21,7 +21,7 @@ class Result<DataType> {
       return data!;
     } else {
       if (stackTrace != null) {
-        throw ResultException(exception, stackTrace!);
+        throw ResultException(exception!, stackTrace!);
       }
       throw error!;
     }
@@ -36,7 +36,10 @@ class Result<DataType> {
   bool get isFailure => error != null;
   bool get isSuccess => error == null;
 
-  Exception get exception {
+  Exception? get exception {
+    if (error == null) {
+      return null;
+    }
     if (error is Exception) {
       return error as Exception;
     }

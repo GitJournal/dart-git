@@ -51,11 +51,11 @@ class DiffCommand extends Command {
       var newHash = ''.padLeft(40, '0');
 
       var state = 'M';
-      if (r.added) {
+      if (r.add) {
         state = 'A';
         newMode = r.to!.mode.toString().padLeft(6, '0');
         newHash = r.to!.hash.toString();
-      } else if (r.deleted) {
+      } else if (r.delete) {
         state = 'D';
         prevMode = r.from!.mode.toString().padLeft(6, '0');
         prevHash = r.from!.hash.toString();

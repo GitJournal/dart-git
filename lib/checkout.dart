@@ -138,7 +138,7 @@ extension Checkout on GitRepository {
     var index = await indexStorage.readIndex().getOrThrow();
 
     for (var change in blobChanges.merged()) {
-      if (change.added || change.modified) {
+      if (change.add || change.modify) {
         var to = change.to!;
         var blobObj = await objStorage.readBlob(to.hash).getOrThrow();
 
@@ -151,7 +151,7 @@ extension Checkout on GitRepository {
         await fs.file(filePath).chmod(change.to!.mode.val);
 
         await index.updatePath(to.path, to.hash);
-      } else if (change.deleted) {
+      } else if (change.delete) {
         var from = change.from!;
 
         var _ =

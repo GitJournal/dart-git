@@ -19,7 +19,7 @@ extension Reset on GitRepository {
       objStore: objStorage,
     ).getOrThrow();
 
-    for (var change in changes.added) {
+    for (var change in changes.add) {
       var obj = await objStorage.readBlob(change.hash).getOrThrow();
       var path = p.join(workTree, change.path);
 
@@ -29,14 +29,14 @@ extension Reset on GitRepository {
       await fs.file(path).chmod(change.mode.val);
     }
 
-    for (var change in changes.removed) {
+    for (var change in changes.remove) {
       var path = p.join(workTree, change.path);
       var _ = await fs.file(path).delete(recursive: true);
 
       await deleteEmptyDirectories(fs, workTree, change.path);
     }
 
-    for (var change in changes.modified) {
+    for (var change in changes.modify) {
       var obj = await objStorage.readBlob(change.to!.hash).getOrThrow();
       var path = p.join(workTree, change.to!.path);
 

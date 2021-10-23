@@ -40,7 +40,7 @@ class ShowCommand extends Command {
 
       printCommit(commit, hash);
 
-      for (var change in changes.modified) {
+      for (var change in changes.modify) {
         var newHash = change.from!.hash;
         var oldHash = change.to!.hash;
 

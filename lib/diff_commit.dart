@@ -11,20 +11,20 @@ import 'package:dart_git/utils/file_mode.dart';
 import 'package:dart_git/utils/result.dart';
 
 class CommitBlobChanges {
-  final List<Change> added;
-  final List<Change> removed;
-  final List<Change> modified;
+  final List<Change> add;
+  final List<Change> remove;
+  final List<Change> modify;
 
   CommitBlobChanges({
-    required this.added,
-    required this.removed,
-    required this.modified,
+    required this.add,
+    required this.remove,
+    required this.modify,
   });
 
-  bool get isEmpty => added.isEmpty && modified.isEmpty && removed.isEmpty;
+  bool get isEmpty => add.isEmpty && modify.isEmpty && remove.isEmpty;
 
   List<Change> merged() {
-    return [...added, ...removed, ...modified];
+    return [...add, ...remove, ...modify];
   }
 }
 
@@ -37,9 +37,9 @@ class Change {
     assert(from != null || to != null);
   }
 
-  bool get deleted => to == null;
-  bool get added => from == null;
-  bool get modified => to != null && from != null;
+  bool get delete => to == null;
+  bool get add => from == null;
+  bool get modify => to != null && from != null;
 
   String get path => from != null ? from!.path : to!.path;
   GitFileMode get mode => from != null ? from!.mode : to!.mode;
@@ -88,6 +88,8 @@ class _Item {
   });
 }
 
+/// Returns the changes that once applied on `fromCommit` to transform
+/// it to `toCommit`
 Future<Result<CommitBlobChanges>> diffCommits({
   required GitCommit fromCommit,
   required GitCommit toCommit,
@@ -193,9 +195,9 @@ Future<Result<CommitBlobChanges>> diffCommits({
   }
 
   var changes = CommitBlobChanges(
-    added: addedChanges,
-    removed: removedChanges,
-    modified: modifiedChanges,
+    add: addedChanges,
+    remove: removedChanges,
+    modify: modifiedChanges,
   );
   return Result(changes);
 }

@@ -19,8 +19,7 @@ extension Reset on GitRepository {
       objStore: objStorage,
     ).getOrThrow();
 
-    // FIXME: Isn't the added and removed the other way around?
-    for (var change in changes.removed) {
+    for (var change in changes.added) {
       var obj = await objStorage.readBlob(change.hash).getOrThrow();
       var path = p.join(workTree, change.path);
 
@@ -30,7 +29,7 @@ extension Reset on GitRepository {
       await fs.file(path).chmod(change.mode.val);
     }
 
-    for (var change in changes.added) {
+    for (var change in changes.removed) {
       var path = p.join(workTree, change.path);
       var _ = await fs.file(path).delete(recursive: true);
 

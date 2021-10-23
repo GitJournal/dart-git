@@ -37,14 +37,12 @@ class DiffTreeCommand extends Command {
     var parentHash = commit.parents.first;
     var parentObj = await repo.objStorage.readCommit(parentHash).getOrThrow();
 
-    var taHash = parentObj.treeHash;
-    var tbHash = obj.treeHash;
-
     var results = diffTree(
-      await repo.objStorage.readTree(taHash).getOrThrow(),
-      await repo.objStorage.readTree(tbHash).getOrThrow(),
+      from: await repo.objStorage.readTree(parentObj.treeHash).getOrThrow(),
+      to: await repo.objStorage.readTree(obj.treeHash).getOrThrow(),
     );
 
+    print(hash);
     for (var r in results.merged()) {
       var prevMode = ''.padLeft(6, '0');
       var newMode = ''.padLeft(6, '0');
@@ -52,11 +50,11 @@ class DiffTreeCommand extends Command {
       var newHash = ''.padLeft(40, '0');
 
       var state = 'M';
-      if (r.added) {
+      if (r.add) {
         state = 'A';
         newMode = r.to!.mode.toString().padLeft(6, '0');
         newHash = r.to!.hash.toString();
-      } else if (r.deleted) {
+      } else if (r.delete) {
         state = 'D';
         prevMode = r.from!.mode.toString().padLeft(6, '0');
         prevHash = r.from!.hash.toString();

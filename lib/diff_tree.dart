@@ -8,57 +8,64 @@ class DiffTreeChange {
   DiffTreeChange({
     required this.from,
     required this.to,
-  });
+  }) {
+    assert(from != null || to != null);
+  }
 
-  bool get deleted => to == null;
-  bool get added => from == null;
-  bool get modified => to != null && from != null;
+  bool get delete => to == null;
+  bool get add => from == null;
+  bool get modify => to != null && from != null;
 
   String get name => from != null ? from!.name : to!.name;
   GitFileMode get mode => from != null ? from!.mode : to!.mode;
+
+  @override
+  String toString() => 'DiffTreeChange{from: $from, to: $to}';
 }
 
+/// Change which should be applied on a tree to transform it to another tree
 class DiffTreeResults {
-  final List<DiffTreeChange> added;
-  final List<DiffTreeChange> modified;
-  final List<DiffTreeChange> removed;
+  final List<DiffTreeChange> add;
+  final List<DiffTreeChange> modify;
+  final List<DiffTreeChange> remove;
 
   DiffTreeResults({
-    required this.added,
-    required this.modified,
-    required this.removed,
+    required this.add,
+    required this.modify,
+    required this.remove,
   });
 
-  bool get isEmpty => added.isEmpty && modified.isEmpty && removed.isEmpty;
+  bool get isEmpty => add.isEmpty && modify.isEmpty && remove.isEmpty;
 
   List<DiffTreeChange> merged() {
-    return [...added, ...removed, ...modified];
+    return [...add, ...remove, ...modify];
   }
 }
 
-DiffTreeResults diffTree(GitTree? ta, GitTree? tb) {
-  if (ta == null && tb == null) {
-    return DiffTreeResults(added: [], modified: [], removed: []);
+/// Gives a list of changes that when applied on `from` will produce `to`.
+DiffTreeResults diffTree({required GitTree? from, required GitTree? to}) {
+  if (from == null && to == null) {
+    return DiffTreeResults(add: [], modify: [], remove: []);
   }
 
-  if (ta == null) {
-    var removed = tb!.entries.map((e) => DiffTreeChange(from: null, to: e));
-    return DiffTreeResults(added: [], modified: [], removed: removed.toList());
-  } else if (tb == null) {
-    var added = ta.entries.map((e) => DiffTreeChange(from: e, to: null));
-    return DiffTreeResults(added: added.toList(), modified: [], removed: []);
+  if (from == null) {
+    var add = to!.entries.map((e) => DiffTreeChange(from: null, to: e));
+    return DiffTreeResults(add: add.toList(), modify: [], remove: []);
+  } else if (to == null) {
+    var remove = from.entries.map((e) => DiffTreeChange(from: e, to: null));
+    return DiffTreeResults(add: [], modify: [], remove: remove.toList());
   }
 
   var aPaths = <String, GitTreeEntry>{};
   var aPathSet = <String>{};
-  for (var leaf in ta.entries) {
+  for (var leaf in from.entries) {
     var _ = aPathSet.add(leaf.name);
     aPaths[leaf.name] = leaf;
   }
 
   var bPaths = <String, GitTreeEntry>{};
   var bPathSet = <String>{};
-  for (var leaf in tb.entries) {
+  for (var leaf in to.entries) {
     var _ = bPathSet.add(leaf.name);
     bPaths[leaf.name] = leaf;
   }
@@ -67,18 +74,18 @@ DiffTreeResults diffTree(GitTree? ta, GitTree? tb) {
   var removedItems = <DiffTreeChange>[];
   var modifiedItems = <DiffTreeChange>[];
 
-  var removed = aPathSet.difference(bPathSet);
-  for (var path in removed) {
-    var item = DiffTreeChange(from: aPaths[path], to: null);
-    assert(item.deleted);
-    removedItems.add(item);
-  }
-
   var added = bPathSet.difference(aPathSet);
   for (var path in added) {
     var item = DiffTreeChange(from: null, to: bPaths[path]);
-    assert(item.added);
+    assert(item.add);
     addedItems.add(item);
+  }
+
+  var removed = aPathSet.difference(bPathSet);
+  for (var path in removed) {
+    var item = DiffTreeChange(from: aPaths[path], to: null);
+    assert(item.delete);
+    removedItems.add(item);
   }
 
   var maybeModified = aPathSet.intersection(bPathSet);
@@ -87,11 +94,14 @@ DiffTreeResults diffTree(GitTree? ta, GitTree? tb) {
     var bLeaf = bPaths[path]!;
     if (aLeaf.mode != bLeaf.mode || aLeaf.hash != bLeaf.hash) {
       var item = DiffTreeChange(from: aLeaf, to: bLeaf);
-      assert(item.modified);
+      assert(item.modify);
       modifiedItems.add(item);
     }
   }
 
   return DiffTreeResults(
-      added: addedItems, modified: modifiedItems, removed: removedItems);
+    add: addedItems,
+    modify: modifiedItems,
+    remove: removedItems,
+  );
 }

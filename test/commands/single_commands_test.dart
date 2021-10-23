@@ -20,6 +20,8 @@ void main() {
     'rm LICENSE',
     'rm does-not-exist',
     'branch -d not-existing',
+    'diff-tree 938c320fd826711ab4e3f5db5cf2f4557ff75522',
+    'diff-tree 6216f82ecd10cac78c2b90ddcc4d0d9dc6f3d711',
   ];
 
   for (var command in singleCommandTests) {

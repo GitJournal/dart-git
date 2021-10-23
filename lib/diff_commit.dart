@@ -28,6 +28,7 @@ class CommitBlobChanges {
   }
 }
 
+/// Applying this change on 'from' will produce 'to'.
 class Change {
   final ChangeEntry? from;
   final ChangeEntry? to;
@@ -40,7 +41,6 @@ class Change {
   bool get added => from == null;
   bool get modified => to != null && from != null;
 
-  // This could crash, no?
   String get path => from != null ? from!.path : to!.path;
   GitFileMode get mode => from != null ? from!.mode : to!.mode;
   GitHash get hash => from != null ? from!.hash : to!.hash;
@@ -48,11 +48,11 @@ class Change {
   @override
   String toString() {
     if (from == null) {
-      return 'ChangeAdded{$to}';
+      return 'ChangeAdd{$to}';
     } else if (to == null) {
-      return 'ChangeDeleted{$from}';
+      return 'ChangeDelete{$from}';
     } else {
-      return 'ChangeModified{$from, $to}';
+      return 'ChangeModify{$from, $to}';
     }
   }
 }
@@ -135,7 +135,7 @@ Future<Result<CommitBlobChanges>> diffCommits({
       toTree = toResult.getOrThrow();
     }
 
-    var diffTreeResults = diffTree(fromTree, toTree);
+    var diffTreeResults = diffTree(from: fromTree, to: toTree);
     for (var result in diffTreeResults.merged()) {
       if (result.mode == GitFileMode.Dir) {
         if (result.from != null) {
@@ -158,7 +158,7 @@ Future<Result<CommitBlobChanges>> diffCommits({
           toTreeHash: result.to?.hash,
         ));
       } else {
-        if (result.modified) {
+        if (result.modify) {
           var fromParentPath = pathMap[item.fromTreeHash]!;
           var toParentPath = pathMap[item.toTreeHash]!;
 
@@ -171,7 +171,7 @@ Future<Result<CommitBlobChanges>> diffCommits({
           assert(result.from!.hash.isNotEmpty && result.to!.hash.isNotEmpty);
 
           modifiedChanges.add(Change(from: from, to: to));
-        } else if (result.added) {
+        } else if (result.add) {
           var toParentPath = pathMap[item.toTreeHash]!;
           var toPath = p.join(toParentPath, result.to!.name);
           var to = ChangeEntry(toPath, toTree, result.to);
@@ -179,7 +179,7 @@ Future<Result<CommitBlobChanges>> diffCommits({
           assert(result.to!.hash.isNotEmpty);
 
           removedChanges.add(Change(from: null, to: to));
-        } else if (result.deleted) {
+        } else if (result.delete) {
           var fromParentPath = pathMap[item.fromTreeHash]!;
           var fromPath = p.join(fromParentPath, result.from!.name);
           var from = ChangeEntry(fromPath, fromTree, result.from);

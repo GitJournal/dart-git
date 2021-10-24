@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dart_git/plumbing/packp/capability.dart';
+import 'capability.dart';
 
 export 'capability.dart';
 

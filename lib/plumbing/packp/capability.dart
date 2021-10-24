@@ -36,10 +36,10 @@ class Capability {
   //
   // Without multi_ack the client would have sent that c-b-a chain anyway,
   // interleaved with S-R-Q.
-  static const String MultiACK = 'multi_ack';
+  static const MultiACK = 'multi_ack';
   // MultiACKDetailed is an extension of multi_ack that permits client to
   // better understand the server's in-memory state.
-  static const String MultiACKDetailed = 'multi_ack_detailed';
+  static const MultiACKDetailed = 'multi_ack_detailed';
   // NoDone should only be used with the smart HTTP protocol. If
   // multi_ack_detailed and no-done are both present, then the sender is
   // free to immediately send a pack following its first "ACK obj-id ready"
@@ -49,7 +49,7 @@ class Capability {
   // end and the client has to make another trip to send "done" before
   // the server can send the pack. no-done removes the last round and
   // thus slightly reduces latency.
-  static const String NoDone = 'no-done';
+  static const NoDone = 'no-done';
   // ThinPack is one with deltas which reference base objects not
   // contained within the pack (but are known to exist at the receiving
   // end). This can reduce the network traffic significantly, but it
@@ -73,7 +73,7 @@ class Capability {
   // historically the reference implementation of receive-pack always
   // understood thin packs. Adding 'no-thin' later allowed receive-pack
   // to disable the feature in a backwards-compatible manner.
-  static const String ThinPack = 'thin-pack';
+  static const ThinPack = 'thin-pack';
   // Sideband means that server can send, and client understand multiplexed
   // progress reports and error info interleaved with the packfile itself.
   //
@@ -105,12 +105,12 @@ class Capability {
   // The client MUST send only maximum of one of "side-band" and "side-
   // band-64k".  Server MUST diagnose it as an error if client requests
   // both.
-  static const String Sideband = 'side-band';
-  static const String Sideband64k = 'side-band-64k';
+  static const Sideband = 'side-band';
+  static const Sideband64k = 'side-band-64k';
   // OFSDelta server can send, and client understand PACKv2 with delta
   // referring to its base by position in pack rather than by an obj-id. That
   // is, they can send/read OBJ_OFS_DELTA (aka type 6) in a packfile.
-  static const String OFSDelta = 'ofs-delta';
+  static const OFSDelta = 'ofs-delta';
   // Agent the server may optionally send this capability to notify the client
   // that the server is running version `X`. The client may optionally return
   // its own agent string by responding with an `agent=Y` capability (but it
@@ -120,34 +120,34 @@ class Capability {
   // "package/version" (e.g., "git/1.8.3.1"). The agent strings are purely
   // informative for statistics and debugging purposes, and MUST NOT be used
   // to programmatically assume the presence or absence of particular features.
-  static const String Agent = 'agent';
+  static const Agent = 'agent';
   // Shallow capability adds "deepen", "shallow" and "unshallow" commands to
   // the  fetch-pack/upload-pack protocol so clients can request shallow
   // clones.
-  static const String Shallow = 'shallow';
+  static const Shallow = 'shallow';
   // DeepenSince adds "deepen-since" command to fetch-pack/upload-pack
   // protocol so the client can request shallow clones that are cut at a
   // specific time, instead of depth. Internally it's equivalent of doing
   // "rev-list --max-age=<timestamp>" on the server side. "deepen-since"
   // cannot be used with "deepen".
-  static const String DeepenSince = 'deepen-since';
+  static const DeepenSince = 'deepen-since';
   // DeepenNot adds "deepen-not" command to fetch-pack/upload-pack
   // protocol so the client can request shallow clones that are cut at a
   // specific revision, instead of depth. Internally it's equivalent of
   // doing "rev-list --not <rev>" on the server side. "deepen-not"
   // cannot be used with "deepen", but can be used with "deepen-since".
-  static const String DeepenNot = 'deepen-not';
+  static const DeepenNot = 'deepen-not';
   // DeepenRelative if this capability is requested by the client, the
   // semantics of "deepen" command is changed. The "depth" argument is the
   // depth from the current shallow boundary, instead of the depth from
   // remote refs.
-  static const String DeepenRelative = 'deepen-relative';
+  static const DeepenRelative = 'deepen-relative';
   // NoProgress the client was started with "git clone -q" or something, and
   // doesn't want that side band 2. Basically the client just says "I do not
   // wish to receive stream 2 on sideband, so do not send it to me, and if
   // you did, I will drop it on the floor anyway".  However, the sideband
   // channel 3 is still used for error responses.
-  static const String NoProgress = 'no-progress';
+  static const NoProgress = 'no-progress';
   // IncludeTag capability is about sending annotated tags if we are
   // sending objects they point to.  If we pack an object to the client, and
   // a tag object points exactly at that object, we pack the tag object too.
@@ -170,7 +170,7 @@ class Capability {
   //
   // The server SHOULD send include-tag, if it supports it, regardless
   // of whether or not there are tags available.
-  static const String IncludeTag = 'include-tag';
+  static const IncludeTag = 'include-tag';
   // ReportStatus the receive-pack process can receive a 'report-status'
   // capability, which tells it that the client wants a report of what
   // happened after a packfile upload and reference update. If the pushing
@@ -179,45 +179,45 @@ class Capability {
   // and if each reference was updated successfully. If any of those were not
   // successful, it will send back an error message.  See pack-protocol.txt
   // for example messages.
-  static const String ReportStatus = 'report-status';
+  static const ReportStatus = 'report-status';
   // DeleteRefs If the server sends back this capability, it means that
   // it is capable of accepting a zero-id value as the target
   // value of a reference update.  It is not sent back by the client, it
   // simply informs the client that it can be sent zero-id values
   // to delete references
-  static const String DeleteRefs = 'delete-refs';
+  static const DeleteRefs = 'delete-refs';
   // Quiet If the receive-pack server advertises this capability, it is
   // capable of silencing human-readable progress output which otherwise may
   // be shown when processing the received pack. A send-pack client should
   // respond with the 'quiet' capability to suppress server-side progress
   // reporting if the local progress reporting is also being suppressed
   // (e.g., via `push -q`, or if stderr does not go to a tty).
-  static const String Quiet = 'quiet';
+  static const Quiet = 'quiet';
   // Atomic If the server sends this capability it is capable of accepting
   // atomic pushes. If the pushing client requests this capability, the server
   // will update the refs in one atomic transaction. Either all refs are
   // updated or none.
-  static const String Atomic = 'atomic';
+  static const Atomic = 'atomic';
   // PushOptions If the server sends this capability it is able to accept
   // push options after the update commands have been sent, but before the
   // packfile is streamed. If the pushing client requests this capability,
   // the server will pass the options to the pre- and post- receive hooks
   // that process this push request.
-  static const String PushOptions = 'push-options';
+  static const PushOptions = 'push-options';
   // AllowTipSHA1InWant if the upload-pack server advertises this capability,
   // fetch-pack may send "want" lines with SHA-1s that exist at the server but
   // are not advertised by upload-pack.
-  static const String AllowTipSHA1InWant = 'allow-tip-sha1-in-want';
+  static const AllowTipSHA1InWant = 'allow-tip-sha1-in-want';
   // AllowReachableSHA1InWant if the upload-pack server advertises this
   // capability, fetch-pack may send "want" lines with SHA-1s that exist at
   // the server but are not advertised by upload-pack.
-  static const String AllowReachableSHA1InWant = 'allow-reachable-sha1-in-want';
+  static const AllowReachableSHA1InWant = 'allow-reachable-sha1-in-want';
   // PushCert the receive-pack server that advertises this capability is
   // willing to accept a signed push certificate, and asks the <nonce> to be
   // included in the push certificate.  A send-pack client MUST NOT
   // send a push-cert packet unless the receive-pack server advertises
   // this capability.
-  static const String PushCert = 'push-cert';
+  static const PushCert = 'push-cert';
   // SymRef symbolic reference support for better negotiation.
-  static const String SymRef = 'symref';
+  static const SymRef = 'symref';
 }

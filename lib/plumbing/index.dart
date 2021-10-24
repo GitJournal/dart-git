@@ -6,7 +6,6 @@ import 'package:buffer/buffer.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:quiver/core.dart';
 
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
@@ -504,7 +503,7 @@ class GitIndexEntry {
           skipWorkTree == other.skipWorkTree;
 
   @override
-  int get hashCode => hashObjects(serialize());
+  int get hashCode => Object.hashAll(serialize());
 
   @override
   String toString() {

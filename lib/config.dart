@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:quiver/core.dart';
 
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
@@ -359,7 +358,7 @@ class ConfigFile {
       other is ConfigFile && _listEq(sections, other.sections);
 
   @override
-  int get hashCode => hashObjects(sections);
+  int get hashCode => Object.hashAll(sections);
 
   @override
   String toString() => serialize();

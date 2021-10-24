@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
-import 'package:quiver/core.dart';
 
 import 'package:dart_git/exceptions.dart';
 
@@ -89,7 +88,7 @@ class GitHash {
   }
 
   @override
-  int get hashCode => hashObjects(_bytes);
+  int get hashCode => Object.hashAll(_bytes);
 
   static final Function _listEq = const ListEquality().equals;
 }

@@ -21,7 +21,6 @@ dependencies:
   os:
     git: https://github.com/GitJournal/os.git
   path: ^1.8.0
-  quiver: ^3.0.0
   tuple: ^2.0.0
 
 dev_dependencies:

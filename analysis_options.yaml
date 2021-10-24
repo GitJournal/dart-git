@@ -1,22 +1,26 @@
-include: package:pedantic/analysis_options.yaml
+include: package:lints/recommended.yaml
 
 linter:
   rules:
-    - avoid_slow_async_io
-    - unnecessary_brace_in_string_interps
-    #- hash_and_equals
-    - unnecessary_await_in_return
-    - unnecessary_const
-    - unnecessary_parenthesis
-    - use_string_buffers
-    - avoid_returning_null
-    - avoid_returning_null_for_future
-    - avoid_returning_null_for_void
-    - avoid_shadowing_type_parameters
-    - avoid_type_to_string
-    - avoid_types_as_parameter_names
-    - no_runtimeType_toString
-    - sort_pub_dependencies
+    non_constant_identifier_names: false
+    prefer_function_declarations_over_variables: false
+    constant_identifier_names: false
+    avoid_slow_async_io: true
+    unnecessary_brace_in_string_interps: true
+    unnecessary_await_in_return: true
+    unnecessary_const: true
+    unnecessary_parenthesis: true
+    use_string_buffers: true
+    avoid_returning_null: true
+    avoid_returning_null_for_future: true
+    avoid_returning_null_for_void: true
+    avoid_shadowing_type_parameters: true
+    avoid_type_to_string: true
+    avoid_types_as_parameter_names: true
+    no_runtimeType_toString: true
+    sort_pub_dependencies: true
+    always_declare_return_types: true
+    # avoid_dynamic_calls: true
 
 analyzer:
   errors:
@@ -24,7 +28,7 @@ analyzer:
     missing_return: error
     todo: ignore
   plugins:
-  - dart_code_metrics
+    - dart_code_metrics
 
 dart_code_metrics:
   metrics-exclude:

@@ -5,10 +5,9 @@ class Result<DataType> {
   Object? error;
   StackTrace? stackTrace;
 
-  Result(DataType data) : data = data;
-  Result.fail(Object error, [StackTrace? stackTrace])
-      : error = error,
-        stackTrace = stackTrace ?? StackTrace.current {
+  Result(this.data);
+  Result.fail(this.error, [StackTrace? stackTrace])
+      : stackTrace = stackTrace ?? StackTrace.current {
     assert(error is Error || error is Exception);
   }
 

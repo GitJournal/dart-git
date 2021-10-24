@@ -68,6 +68,7 @@ Uint8List kvlmSerialize(Map<String, dynamic> kvlm) {
     }
 
     for (var v in val) {
+      assert(v is String);
       bytesBuilder
         ..add(utf8.encode(key))
         ..addByte($space)

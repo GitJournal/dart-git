@@ -196,7 +196,9 @@ class GitIndex {
 
     // Entries
     entries.sort((a, b) => a.path.compareTo(b.path));
-    entries.forEach((e) => writer.write(e.serialize()));
+    for (var e in entries) {
+      writer.write(e.serialize());
+    }
 
     // Footer
     var hash = GitHash.compute(writer.toBytes());
@@ -297,6 +299,7 @@ class GitIndexEntry {
     var ino = 0;
     var dev = 0;
 
+    // ignore: exhaustive_cases
     switch (stat.type) {
       case FileSystemEntityType.file:
         mode = stat.mode == GitFileMode.Executable.val

@@ -142,12 +142,15 @@ class GitRepository {
     String path, {
     FileSystem? fs,
     String defaultBranch = 'master',
+    bool ignoreIfExists = false,
   }) async {
     fs ??= const LocalFileSystem();
 
-    // FIXME: Check if path has stuff and accordingly return
-
     var gitDir = p.join(path, '.git');
+    if (!ignoreIfExists && fs.directory(gitDir).existsSync()) {
+      throw GitRepoExists();
+    }
+
     var dirsToCreate = [
       'branches',
       'objects/pack',

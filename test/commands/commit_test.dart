@@ -19,7 +19,7 @@ void main() {
 
     var _ = '';
     _ = await runGitCommand('init .', tmpDir1);
-    await GitRepository.init(tmpDir2);
+    await GitRepository.init(tmpDir2).throwOnError();
 
     // Add the same file to both of them
     var contents = 'Hello there';

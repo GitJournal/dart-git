@@ -137,12 +137,25 @@ class GitRepository {
     return true;
   }
 
-  // FIXME: Handle FS exceptions!
-  static Future<void> init(
+  static Future<Result<void>> init(
     String path, {
     FileSystem? fs,
     String defaultBranch = 'master',
     bool ignoreIfExists = false,
+  }) {
+    return catchAll(() async => Result(await GitRepository._init(
+          path,
+          fs: fs,
+          defaultBranch: defaultBranch,
+          ignoreIfExists: ignoreIfExists,
+        )));
+  }
+
+  static Future<void> _init(
+    String path, {
+    required FileSystem? fs,
+    required String defaultBranch,
+    required bool ignoreIfExists,
   }) async {
     fs ??= const LocalFileSystem();
 

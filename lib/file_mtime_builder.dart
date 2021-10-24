@@ -19,26 +19,33 @@ class FileMTimeInfo {
 
 /// Fetches the last time a path was modified
 class FileMTimeBuilder extends TreeEntryVisitor {
-  final FileMTimeBuilderData data;
+  var processedTrees = <GitHash>{};
+  var processedCommits = <GitHash>{};
+  var map = <String, FileMTimeInfo>{};
 
-  FileMTimeBuilder({FileMTimeBuilderData? data})
-      : data = data ?? FileMTimeBuilderData();
+  FileMTimeBuilder({
+    Set<GitHash>? processedTrees,
+    Set<GitHash>? processedCommits,
+    Map<String, FileMTimeInfo>? map,
+  })  : processedTrees = processedTrees ?? {},
+        processedCommits = processedCommits ?? {},
+        map = map ?? {};
 
   @override
-  bool beforeTree(GitHash treeHash) => !data.processedTrees.contains(treeHash);
+  bool beforeTree(GitHash treeHash) => !processedTrees.contains(treeHash);
 
   @override
   void afterTree(GitTree tree) {
-    var _ = data.processedTrees.add(tree.hash);
+    var _ = processedTrees.add(tree.hash);
   }
 
   @override
   bool beforeCommit(GitHash commitHash) =>
-      !data.processedCommits.contains(commitHash);
+      !processedCommits.contains(commitHash);
 
   @override
   void afterCommit(GitCommit commit) {
-    var _ = data.processedCommits.add(commit.hash);
+    var _ = processedCommits.add(commit.hash);
   }
 
   @override
@@ -53,7 +60,7 @@ class FileMTimeBuilder extends TreeEntryVisitor {
       commit.author.date,
     );
 
-    var info = data.map[filePath];
+    var info = map[filePath];
     if (info == null) {
       info = FileMTimeInfo(filePath, entry.hash, commitTime);
     } else {
@@ -64,16 +71,10 @@ class FileMTimeBuilder extends TreeEntryVisitor {
       }
     }
 
-    data.map[filePath] = info;
+    map[filePath] = info;
     return true;
   }
 
-  DateTimeWithTzOffset? mTime(String filePath) => data.map[filePath]?.dt;
-  FileMTimeInfo? info(String filePath) => data.map[filePath];
-}
-
-class FileMTimeBuilderData {
-  var processedTrees = <GitHash>{};
-  var processedCommits = <GitHash>{};
-  var map = <String, FileMTimeInfo>{};
+  DateTimeWithTzOffset? mTime(String filePath) => map[filePath]?.dt;
+  FileMTimeInfo? info(String filePath) => map[filePath];
 }

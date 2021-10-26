@@ -41,10 +41,7 @@ class BlobCTimeBuilder extends TreeEntryVisitor {
     required GitTreeEntry entry,
     required String filePath,
   }) async {
-    final commitTime = DateTimeWithTzOffset.fromDt(
-      commit.author.timezoneOffset / 100.0,
-      commit.author.date,
-    );
+    final commitTime = commit.author.dateWithOffset;
 
     var time = commitTime;
     var et = map[entry.hash];

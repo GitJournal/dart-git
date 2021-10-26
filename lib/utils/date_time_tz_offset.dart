@@ -4,11 +4,11 @@
 class DateTimeWithTzOffset implements DateTime {
   final DateTime _native;
 
-  /// Milliseconds east of UTC.
-  final int offset;
+  /// East of UTC.
+  final Duration offset;
 
   DateTimeWithTzOffset(
-    double tzOffset,
+    Duration offset,
     int year, [
     int month = 1,
     int day = 1,
@@ -17,31 +17,32 @@ class DateTimeWithTzOffset implements DateTime {
     int second = 0,
     int millisecond = 0,
     int microsecond = 0,
-  ]) : this._internal(tzOffset, year, month, day, hour, minute, second,
+  ]) : this._internal(offset, year, month, day, hour, minute, second,
             millisecond, microsecond);
 
-  DateTimeWithTzOffset.fromDt(double tzOffset, DateTime dt)
-      : this._internal(tzOffset, dt.year, dt.month, dt.day, dt.hour, dt.minute,
+  DateTimeWithTzOffset.fromDt(Duration offset, DateTime dt)
+      : this._internal(offset, dt.year, dt.month, dt.day, dt.hour, dt.minute,
             dt.second, dt.millisecond, dt.microsecond);
 
-  DateTimeWithTzOffset.from(DateTime dt)
-      : this.fromDt(dt.timeZoneOffset.inMinutes / 60, dt);
+  DateTimeWithTzOffset.from(DateTime dt) : this.fromDt(dt.timeZoneOffset, dt);
 
-  DateTimeWithTzOffset.fromTimeStamp(double tzOffset, int timeStampInSecs)
-      : offset = (tzOffset * 1000 * 60 * 60).toInt(),
-        _native = DateTime.fromMillisecondsSinceEpoch(
+  DateTimeWithTzOffset.fromTimeStamp(this.offset, int timeStampInSecs)
+      : _native = DateTime.fromMillisecondsSinceEpoch(
           timeStampInSecs * 1000,
           isUtc: true,
-        );
+        ) {
+    assert(offset.inHours <= 14);
+  }
 
-  DateTimeWithTzOffset._internal(double tzOffset, int year, int month, int day,
+  DateTimeWithTzOffset._internal(this.offset, int year, int month, int day,
       int hour, int minute, int second, int millisecond, int microsecond)
-      : offset = (tzOffset * 1000 * 60 * 60).toInt(),
-        _native = DateTime.utc(
-            year, month, day, hour, minute, second, millisecond, microsecond);
+      : _native = DateTime.utc(
+            year, month, day, hour, minute, second, millisecond, microsecond) {
+    assert(offset.inHours <= 14);
+  }
 
   @override
-  bool get isUtc => offset == 0;
+  bool get isUtc => offset.inMicroseconds == 0;
 
   @override
   bool operator ==(Object other) {
@@ -63,8 +64,10 @@ class DateTimeWithTzOffset implements DateTime {
 
   @override
   int compareTo(DateTime other) {
-    // FIXME: IMplement me
-    throw UnimplementedError();
+    var a = toUtc().microsecondsSinceEpoch;
+    var b = other.toUtc().microsecondsSinceEpoch;
+
+    return a.compareTo(b);
   }
 
   @override
@@ -119,10 +122,10 @@ class DateTimeWithTzOffset implements DateTime {
     if (isUtc) {
       return '$y-$m-$d$sep$h:$min:$sec.$ms${us}Z';
     } else {
-      var offSign = offset.sign >= 0 ? '+' : '-';
-      var _offset = offset.abs() ~/ 1000;
-      var offH = _twoDigits(_offset ~/ 3600);
-      var offM = _twoDigits((_offset % 3600) ~/ 60);
+      var offSign = offset.isNegative ? '-' : '+';
+      var _offset = offset.abs();
+      var offH = _twoDigits(_offset.inHours);
+      var offM = _twoDigits(_offset.inMinutes % 60);
 
       return '$y-$m-$d$sep$h:$min:$sec.$ms$us$offSign$offH$offM';
     }
@@ -130,22 +133,25 @@ class DateTimeWithTzOffset implements DateTime {
 
   @override
   DateTime add(Duration duration) {
-    throw UnimplementedError();
-    // FIXME: IMplement me
+    var timestamp = _native.millisecondsSinceEpoch + duration.inMilliseconds;
+    return DateTimeWithTzOffset.fromDt(
+      offset,
+      DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: true),
+    );
   }
 
   @override
   DateTime subtract(Duration duration) {
-    // FIXME: IMplement me
-
-    throw UnimplementedError();
+    var timestamp = _native.millisecondsSinceEpoch - duration.inMilliseconds;
+    return DateTimeWithTzOffset.fromDt(
+      offset,
+      DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: true),
+    );
   }
 
   @override
   Duration difference(DateTime other) {
-    // FIXME: IMplement me
-
-    throw UnimplementedError();
+    return _native.toUtc().difference(other.toUtc());
   }
 
   @override
@@ -158,7 +164,7 @@ class DateTimeWithTzOffset implements DateTime {
   @override
   String get timeZoneName => '';
   @override
-  Duration get timeZoneOffset => Duration(milliseconds: offset);
+  Duration get timeZoneOffset => offset;
 
   @override
   int get year => _native.year;

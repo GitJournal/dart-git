@@ -3,13 +3,27 @@ import 'dart:typed_data';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
+import 'package:dart_git/utils/date_time_tz_offset.dart';
 import 'package:dart_git/utils/kvlm.dart';
 
 class GitAuthor {
   String name;
   String email;
+
+  /// timezone offset in format '0430'
   late int timezoneOffset;
   late DateTime date;
+
+  Duration get timezoneOffsetDuration {
+    return Duration(
+      hours: timezoneOffset ~/ 100,
+      minutes: timezoneOffset % 100,
+    );
+  }
+
+  DateTimeWithTzOffset get dateWithOffset {
+    return DateTimeWithTzOffset.fromDt(timezoneOffsetDuration, date);
+  }
 
   GitAuthor({
     required this.name,

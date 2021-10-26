@@ -55,10 +55,7 @@ class FileMTimeBuilder extends TreeEntryVisitor {
     required GitTreeEntry entry,
     required String filePath,
   }) async {
-    var commitTime = DateTimeWithTzOffset.fromDt(
-      commit.author.timezoneOffset / 100.0,
-      commit.author.date,
-    );
+    var commitTime = commit.author.dateWithOffset;
 
     var info = map[filePath];
     if (info == null) {

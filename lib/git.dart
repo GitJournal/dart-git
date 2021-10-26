@@ -41,7 +41,10 @@ export 'storage/object_storage_extensions.dart';
 // * Working Tree
 // * Config
 class GitRepository {
+  /// Always ends with a '/'
   late String workTree;
+
+  /// The .git directory path.
   late String gitDir;
 
   late Config config;

@@ -98,9 +98,9 @@ class MultiTreeEntryVisitor extends TreeEntryVisitor {
   }) async {
     var ret = false;
     for (var visitor in visitors) {
-      ret = ret ||
-          await visitor.visitTreeEntry(
-              commit: commit, tree: tree, entry: entry, filePath: filePath);
+      ret = await visitor.visitTreeEntry(
+              commit: commit, tree: tree, entry: entry, filePath: filePath) ||
+          ret;
     }
 
     return ret;
@@ -110,7 +110,7 @@ class MultiTreeEntryVisitor extends TreeEntryVisitor {
   bool beforeTree(GitHash treeHash) {
     var ret = false;
     for (var visitor in visitors) {
-      ret = ret || visitor.beforeTree(treeHash);
+      ret = visitor.beforeTree(treeHash) || ret;
     }
 
     return ret;
@@ -120,7 +120,7 @@ class MultiTreeEntryVisitor extends TreeEntryVisitor {
   bool beforeCommit(GitHash commitHash) {
     var ret = false;
     for (var visitor in visitors) {
-      ret = ret || visitor.beforeCommit(commitHash);
+      ret = visitor.beforeCommit(commitHash) || ret;
     }
 
     return ret;

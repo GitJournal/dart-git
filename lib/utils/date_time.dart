@@ -1,13 +1,14 @@
 // Some of the code has been adapted from -
 // https://github.com/srawlins/timezone/blob/master/lib/src/date_time.dart
 
-class DateTimeWithTzOffset implements DateTime {
+class GDateTime implements DateTime {
+  /// The timezone in this doesn't matter, so lets always keep it UTC
   final DateTime _native;
 
   /// East of UTC.
   final Duration offset;
 
-  DateTimeWithTzOffset(
+  GDateTime(
     Duration offset,
     int year, [
     int month = 1,
@@ -20,13 +21,13 @@ class DateTimeWithTzOffset implements DateTime {
   ]) : this._internal(offset, year, month, day, hour, minute, second,
             millisecond, microsecond);
 
-  DateTimeWithTzOffset.fromDt(Duration offset, DateTime dt)
+  GDateTime.fromDt(Duration offset, DateTime dt)
       : this._internal(offset, dt.year, dt.month, dt.day, dt.hour, dt.minute,
             dt.second, dt.millisecond, dt.microsecond);
 
-  DateTimeWithTzOffset.from(DateTime dt) : this.fromDt(dt.timeZoneOffset, dt);
+  GDateTime.from(DateTime dt) : this.fromDt(dt.timeZoneOffset, dt);
 
-  DateTimeWithTzOffset.fromTimeStamp(this.offset, int timeStampInSecs)
+  GDateTime.fromTimeStamp(this.offset, int timeStampInSecs)
       : _native = DateTime.fromMillisecondsSinceEpoch(
           timeStampInSecs * 1000,
           isUtc: true,
@@ -34,8 +35,8 @@ class DateTimeWithTzOffset implements DateTime {
     assert(offset.inHours <= 14);
   }
 
-  DateTimeWithTzOffset._internal(this.offset, int year, int month, int day,
-      int hour, int minute, int second, int millisecond, int microsecond)
+  GDateTime._internal(this.offset, int year, int month, int day, int hour,
+      int minute, int second, int millisecond, int microsecond)
       : _native = DateTime.utc(
             year, month, day, hour, minute, second, millisecond, microsecond) {
     assert(offset.inHours <= 14);
@@ -75,12 +76,15 @@ class DateTimeWithTzOffset implements DateTime {
 
   @override
   DateTime toLocal() {
-    // FIXME: Implement me
-    throw UnimplementedError();
+    var localOffset = DateTime.now().timeZoneOffset;
+    var utc = toUtc();
+    var dt = utc.add(localOffset);
+
+    return GDateTime.fromDt(localOffset, dt);
   }
 
   @override
-  DateTime toUtc() => _native;
+  DateTime toUtc() => _native.add(offset);
 
   static String _fourDigits(int n) {
     var absN = n.abs();
@@ -134,7 +138,7 @@ class DateTimeWithTzOffset implements DateTime {
   @override
   DateTime add(Duration duration) {
     var timestamp = _native.millisecondsSinceEpoch + duration.inMilliseconds;
-    return DateTimeWithTzOffset.fromDt(
+    return GDateTime.fromDt(
       offset,
       DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: true),
     );
@@ -143,7 +147,7 @@ class DateTimeWithTzOffset implements DateTime {
   @override
   DateTime subtract(Duration duration) {
     var timestamp = _native.millisecondsSinceEpoch - duration.inMilliseconds;
-    return DateTimeWithTzOffset.fromDt(
+    return GDateTime.fromDt(
       offset,
       DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: true),
     );
@@ -185,6 +189,5 @@ class DateTimeWithTzOffset implements DateTime {
   @override
   int get weekday => _native.weekday;
 
-  static DateTimeWithTzOffset now() =>
-      DateTimeWithTzOffset.from(DateTime.now());
+  static GDateTime now() => GDateTime.from(DateTime.now());
 }

@@ -1,13 +1,13 @@
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
-import 'package:dart_git/utils/date_time_tz_offset.dart';
+import 'package:dart_git/utils/date_time.dart';
 import 'package:dart_git/vistors.dart';
 
 class FileMTimeInfo {
   String filePath;
   GitHash hash;
-  DateTimeWithTzOffset dt;
+  GDateTime dt;
 
   FileMTimeInfo(this.filePath, this.hash, this.dt);
 
@@ -72,6 +72,6 @@ class FileMTimeBuilder extends TreeEntryVisitor {
     return true;
   }
 
-  DateTimeWithTzOffset? mTime(String filePath) => map[filePath]?.dt;
+  GDateTime? mTime(String filePath) => map[filePath]?.dt;
   FileMTimeInfo? info(String filePath) => map[filePath];
 }

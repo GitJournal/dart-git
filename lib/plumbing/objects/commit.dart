@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
-import 'package:dart_git/utils/date_time_tz_offset.dart';
+import 'package:dart_git/utils/date_time.dart';
 import 'package:dart_git/utils/kvlm.dart';
 
 class GitAuthor {
@@ -21,8 +21,8 @@ class GitAuthor {
     );
   }
 
-  DateTimeWithTzOffset get dateWithOffset {
-    return DateTimeWithTzOffset.fromDt(timezoneOffsetDuration, date);
+  GDateTime get dateWithOffset {
+    return GDateTime.fromDt(timezoneOffsetDuration, date);
   }
 
   GitAuthor({

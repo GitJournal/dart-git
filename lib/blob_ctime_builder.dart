@@ -1,18 +1,18 @@
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
-import 'package:dart_git/utils/date_time_tz_offset.dart';
+import 'package:dart_git/utils/date_time.dart';
 
 /// Fetches the creation time for each blob
 class BlobCTimeBuilder extends TreeEntryVisitor {
   var processedTrees = <GitHash>{};
   var processedCommits = <GitHash>{};
-  var map = <GitHash, DateTimeWithTzOffset>{};
+  var map = <GitHash, GDateTime>{};
 
   BlobCTimeBuilder({
     Set<GitHash>? processedTrees,
     Set<GitHash>? processedCommits,
-    Map<GitHash, DateTimeWithTzOffset>? map,
+    Map<GitHash, GDateTime>? map,
   })  : processedTrees = processedTrees ?? {},
         processedCommits = processedCommits ?? {},
         map = map ?? {};
@@ -53,5 +53,5 @@ class BlobCTimeBuilder extends TreeEntryVisitor {
     return true;
   }
 
-  DateTimeWithTzOffset? cTime(GitHash hash) => map[hash];
+  GDateTime? cTime(GitHash hash) => map[hash];
 }

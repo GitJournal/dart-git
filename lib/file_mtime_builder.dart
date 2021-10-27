@@ -15,6 +15,17 @@ class FileMTimeInfo {
   String toString() {
     return 'FileMtimeInfo{filePath: $filePath, hash: $hash, dt: $dt}';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FileMTimeInfo &&
+          filePath == other.filePath &&
+          hash == other.hash &&
+          dt == other.dt;
+
+  @override
+  int get hashCode => Object.hashAll([filePath, hash, dt]);
 }
 
 /// Fetches the last time a path was modified

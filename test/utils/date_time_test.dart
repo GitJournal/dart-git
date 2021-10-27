@@ -44,13 +44,30 @@ void main() {
 
   test('millisecondsSinceEpoch', () {
     final offset = Duration(hours: 2);
-    final t = GDateTime(offset, 2010, 1, 2, 3, 4, 5, 6, 7);
-    expect(t.millisecondsSinceEpoch, 1262408645006);
+    final t = GDateTime(offset, 2010, 1, 2, 3, 4, 5, 0, 0);
+    final t2 = GDateTime.fromTimeStamp(
+      offset,
+      t.millisecondsSinceEpoch ~/ 1000,
+    );
+
+    expect(t, t2);
   });
 
   test('microsecondsSinceEpoch', () {
     final offset = Duration(hours: 1);
-    final t = GDateTime(offset, 2010, 1, 2, 3, 4, 5, 6, 7);
-    expect(t.microsecondsSinceEpoch, 1262405045006007);
+    final t = GDateTime(offset, 2010, 1, 2, 3, 4, 5, 0, 0);
+    final t2 = GDateTime.fromTimeStamp(
+      offset,
+      t.microsecondsSinceEpoch ~/ 1000000,
+    );
+    expect(t, t2);
+  });
+
+  test('secondsSinceEpoch', () {
+    var offset = Duration(hours: -8);
+    var dt = GDateTime(offset, 2010, 1, 2, 3, 4, 5);
+
+    var dt2 = GDateTime.fromTimeStamp(offset, dt.secondsSinceEpoch);
+    expect(dt, dt2);
   });
 }

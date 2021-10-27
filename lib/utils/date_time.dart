@@ -159,11 +159,11 @@ class GDateTime implements DateTime {
   }
 
   @override
-  int get millisecondsSinceEpoch =>
-      _native.millisecondsSinceEpoch + timeZoneOffset.inMilliseconds;
+  int get millisecondsSinceEpoch => _native.millisecondsSinceEpoch;
   @override
-  int get microsecondsSinceEpoch =>
-      _native.microsecondsSinceEpoch + timeZoneOffset.inMicroseconds;
+  int get microsecondsSinceEpoch => _native.microsecondsSinceEpoch;
+
+  int get secondsSinceEpoch => _native.millisecondsSinceEpoch ~/ 1000;
 
   @override
   String get timeZoneName => '';

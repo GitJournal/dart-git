@@ -15,7 +15,7 @@ is supported by dart-git.
 | add                                   | ✔ | Plain add is supported. Any other flags aren't supported |
 | status                                | ✖ |
 | commit                                | ✔ |
-| reset                                 | ✖ |
+| reset                                 | ✔ |
 | rm                                    | ✔ |
 | mv                                    | ✖ |
 | **branching and merging** |

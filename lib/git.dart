@@ -184,7 +184,7 @@ class GitRepository {
         .writeAsString('ref: refs/heads/$defaultBranch\n');
 
     var config = Config('');
-    var core = config.section('core');
+    var core = config.getOrCreateSection('core');
     core.options['repositoryformatversion'] = '0';
     core.options['filemode'] = 'false';
     core.options['bare'] = 'false';

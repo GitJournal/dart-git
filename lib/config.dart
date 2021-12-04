@@ -138,7 +138,7 @@ class Config {
 
   String serialize() {
     // Remotes
-    var remoteSection = section('remote');
+    var remoteSection = getOrCreateSection('remote');
     var serializedRemotes = <String>{};
     for (var remote in remotes) {
       var rs = remoteSection.getOrCreateSection(remote.name);
@@ -150,7 +150,7 @@ class Config {
     remoteSection.keepSections(serializedRemotes);
 
     // Branches
-    var branchSection = section('branch');
+    var branchSection = getOrCreateSection('branch');
     var serializedBranches = <String>{};
     for (var branch in branches.values) {
       var bs = branchSection.getOrCreateSection(branch.name);
@@ -170,13 +170,13 @@ class Config {
 
     // Core
     if (bare != null) {
-      var coreSection = section('core');
+      var coreSection = getOrCreateSection('core');
       coreSection.options['bare'] = bare.toString();
     }
 
     // User
     if (user != null) {
-      var sec = section('user');
+      var sec = getOrCreateSection('user');
       sec.options['name'] = user!.name;
       sec.options['email'] = user!.email;
     }
@@ -184,7 +184,9 @@ class Config {
     return configFile.serialize();
   }
 
-  Section section(String name) {
+  Section getOrCreateSection(String name) {
+    assert(!name.contains(' '), "Section Names cannot contain spaces");
+
     var i = configFile.sections.indexWhere((s) => s.name == name);
     if (i == -1) {
       var s = Section(name);
@@ -205,6 +207,9 @@ class Section {
   List<Section> sections = [];
 
   Section(this.name);
+
+  bool get isEmpty => options.isEmpty && sections.isEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   Section getOrCreateSection(String name) {
     var i = sections.indexWhere((s) => s.name == name);
@@ -248,10 +253,6 @@ class Section {
       _writeSectionProps(buffer);
       buffer.write('\n');
       return;
-    }
-
-    if (name != 'branch' && name != 'remote') {
-      throw Exception('Unknown field $name');
     }
 
     for (var subSec in sections) {

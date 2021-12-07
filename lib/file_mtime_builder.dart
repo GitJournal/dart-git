@@ -68,18 +68,23 @@ class FileMTimeBuilder extends TreeEntryVisitor {
   }) async {
     var commitTime = commit.author.dateWithOffset;
 
+    var changed = false;
     var info = map[filePath];
     if (info == null) {
       info = FileMTimeInfo(filePath, entry.hash, commitTime);
+      changed = true;
     } else {
       if (info.hash == entry.hash) {
-        if (commitTime.isAfter(info.dt)) {
+        if (commitTime.isBefore(info.dt)) {
           info = FileMTimeInfo(filePath, entry.hash, commitTime);
+          changed = true;
         }
       }
     }
 
-    map[filePath] = info;
+    if (changed) {
+      map[filePath] = info;
+    }
     return true;
   }
 

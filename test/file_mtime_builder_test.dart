@@ -38,3 +38,4 @@ void main() {
 
 // FIXME: Do this for the dart-git repo
 // FIXME: Test that file moves do not count as modifications
+// FIXME: Test that deleted files are not in the cache

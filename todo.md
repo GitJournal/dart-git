@@ -32,7 +32,8 @@ Important -
 Low Energy Tasks -
 * Capabilities
 * PktLine Decoder
-* reset hard/soft
+* git clean
+* reset hard/soft - Hard test when there are modifications or some extra files.
 * Tests: Use a fixture instead of cloning
 * GitStatusResult structure - see SimpleGit
 

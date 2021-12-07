@@ -36,13 +36,13 @@ extension Visitors on GitRepository {
       catchAll(() async => Result(await _visitTree(fromCommitHash, visitor)));
 
   Future<void> _visitTree(GitHash from, TreeEntryVisitor visitor) async {
-    var iter = commitIteratorBFSFiltered(objStorage: objStorage, from: from);
+    var iter = commitIteratorBFSFiltered(
+      objStorage: objStorage,
+      from: from,
+      skipCommitHash: (hash) => !visitor.beforeCommit(hash),
+    );
     await for (var result in iter) {
       var commit = result.getOrThrow();
-
-      if (!visitor.beforeCommit(commit.hash)) {
-        continue;
-      }
 
       var queue = Queue<Tuple2<GitHash, String>>();
       queue.add(Tuple2(commit.treeHash, ''));

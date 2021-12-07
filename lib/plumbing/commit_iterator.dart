@@ -34,24 +34,29 @@ Stream<Result<GitCommit>> commitIteratorBFS({
 }
 
 typedef CommitFilter = bool Function(GitCommit commit);
+typedef CommitHashFilter = bool Function(GitHash commitHash);
+
 final _allCommitsValidFilter = (GitCommit _) => true;
 final _allCommitsNotValidFilter = (GitCommit _) => false;
+final _doNotSkip = (GitHash _) => false;
 
 Stream<Result<GitCommit>> commitIteratorBFSFiltered({
   required ObjectStorage objStorage,
   required GitHash from,
   CommitFilter? isValid,
   CommitFilter? isLimit,
+  CommitHashFilter? skipCommitHash,
 }) async* {
   isValid ??= _allCommitsValidFilter;
   isLimit ??= _allCommitsNotValidFilter;
+  skipCommitHash ??= _doNotSkip;
 
   var queue = Queue<GitHash>.from([from]);
   var seen = <GitHash>{};
 
   while (queue.isNotEmpty) {
     var hash = queue.removeFirst();
-    if (seen.contains(hash)) {
+    if (seen.contains(hash) || skipCommitHash(hash)) {
       continue;
     }
     var _ = seen.add(hash);

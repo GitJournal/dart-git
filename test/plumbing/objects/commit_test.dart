@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/storage/object_storage_fs.dart';
+import 'package:dart_git/utils/date_time.dart';
 import 'package:dart_git/utils/result.dart';
 
 void main() {
@@ -34,13 +35,15 @@ Also add tons of comments
 
     expect(commitObj.author.email, 'me@vhanda.in');
     expect(commitObj.author.name, 'Vishesh Handa');
-    expect(commitObj.author.date, DateTime.utc(2020, 9, 14, 20, 19, 56));
-    expect(commitObj.author.timeZoneOffset, 200);
+    expect(
+        commitObj.author.date.toUtc(), DateTime.utc(2020, 9, 14, 20, 19, 56));
+    expect(commitObj.author.date.timeZoneOffset, Duration(hours: 2));
 
     expect(commitObj.committer.email, 'me@vhanda.in');
     expect(commitObj.committer.name, 'Vishesh Handa');
-    expect(commitObj.committer.date, DateTime.utc(2020, 9, 14, 20, 19, 56));
-    expect(commitObj.committer.timeZoneOffset, 200);
+    expect(commitObj.committer.date.toUtc(),
+        DateTime.utc(2020, 9, 14, 20, 19, 56));
+    expect(commitObj.author.date.timeZoneOffset, Duration(hours: 2));
 
     expect(commitObj.treeHash,
         GitHash('272aca6dd8feabd4affc881c6cad18f396189344'));
@@ -87,8 +90,8 @@ Create first draft''';
 
     expect(author.name, 'Vishesh Handa');
     expect(author.email, 'me@vhanda.in');
-    expect(author.date, DateTime.utc(2020, 9, 14, 20, 19, 56));
-    expect(author.timeZoneOffset, -800);
+    expect(author.date.toUtc(), DateTime.utc(2020, 9, 14, 20, 19, 56));
+    expect(author.date.timeZoneOffset, Duration(hours: -8));
 
     expect(author.serialize(), str);
   });
@@ -97,8 +100,10 @@ Create first draft''';
     var author = GitAuthor(
       name: 'Vishesh Handa',
       email: 'me@vhanda.in',
-      date: DateTime.utc(2020, 9, 14, 20, 19, 56),
-      timezoneOffset: -800,
+      date: GDateTime.fromDt(
+        Duration(hours: -8),
+        DateTime.utc(2020, 9, 14, 20, 19, 56),
+      ),
     );
 
     var str = 'Vishesh Handa <me@vhanda.in> 1600114796 -0800';
@@ -109,8 +114,7 @@ Create first draft''';
     var author = GitAuthor(
       name: 'Vishesh Handa',
       email: 'me@vhanda.in',
-      date: DateTime.utc(2020, 9, 14, 20, 19, 56),
-      timezoneOffset: 0,
+      date: GDateTime.utc(2020, 9, 14, 20, 19, 56),
     );
 
     var str = 'Vishesh Handa <me@vhanda.in> 1600114796 +0000';

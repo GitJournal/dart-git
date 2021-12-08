@@ -10,32 +10,10 @@ class GitAuthor {
   String name;
   String email;
 
-  /// timezone offset in format '0430'
-  late int timeZoneOffset;
   late DateTime date;
 
-  Duration get timezoneOffsetDuration {
-    return Duration(
-      hours: timeZoneOffset ~/ 100,
-      minutes: timeZoneOffset % 100,
-    );
-  }
-
-  GDateTime get dateWithOffset {
-    return GDateTime.fromDt(timezoneOffsetDuration, date);
-  }
-
-  GitAuthor({
-    required this.name,
-    required this.email,
-    DateTime? date,
-    int? timezoneOffset,
-  }) {
+  GitAuthor({required this.name, required this.email, DateTime? date}) {
     this.date = date ?? DateTime.now();
-
-    this.timeZoneOffset = timezoneOffset ??
-        this.date.timeZoneOffset.inHours * 100 +
-            (this.date.timeZoneOffset.inMinutes % 60);
   }
 
   static GitAuthor? parse(String input) {
@@ -46,27 +24,34 @@ class GitAuthor {
       return null;
     }
 
-    var timestamp = (int.parse(match[0].group(3)!)) * 1000;
+    var timestamp = int.parse(match[0].group(3)!);
+    var offset = int.parse(match[0].group(4)!);
+    var offsetDuration = Duration(hours: offset ~/ 100, minutes: offset % 100);
+
     return GitAuthor(
       name: match[0].group(1)!,
       email: match[0].group(2)!,
-      date: DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: true),
-      timezoneOffset: int.parse(match[0].group(4)!),
+      date: GDateTime.fromTimeStamp(offsetDuration, timestamp),
     );
   }
 
   String serialize() {
     var timestamp = date.toUtc().millisecondsSinceEpoch / 1000;
-    var offset = timeZoneOffset >= 0
-        ? '+${timeZoneOffset.toString().padLeft(4, "0")}'
-        : '-${timeZoneOffset.abs().toString().padLeft(4, "0")}';
+
+    /// timezone offset in format '0430'
+    var gitTimeZoneOffset = date.timeZoneOffset.inHours * 100 +
+        (date.timeZoneOffset.inMinutes % 60);
+
+    var offset = gitTimeZoneOffset >= 0
+        ? '+${gitTimeZoneOffset.toString().padLeft(4, "0")}'
+        : '-${gitTimeZoneOffset.abs().toString().padLeft(4, "0")}';
 
     return '$name <$email> ${timestamp.toInt()} $offset';
   }
 
   @override
   String toString() {
-    return 'GitAuthor(name: $name, email: $email, date: $date, offset: $timeZoneOffset)';
+    return 'GitAuthor(name: $name, email: $email, date: $date)';
   }
 }
 

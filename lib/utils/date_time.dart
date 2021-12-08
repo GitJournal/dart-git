@@ -25,6 +25,21 @@ class GDateTime implements DateTime {
     assert(_native.timeZoneOffset.inMicroseconds == 0);
   }
 
+  GDateTime.utc(
+    int year, [
+    int month = 1,
+    int day = 1,
+    int hour = 0,
+    int minute = 0,
+    int second = 0,
+    int millisecond = 0,
+    int microsecond = 0,
+  ])  : _native = DateTime.utc(
+            year, month, day, hour, minute, second, millisecond, microsecond),
+        offset = Duration(hours: 0) {
+    assert(_native.timeZoneOffset.inMicroseconds == 0);
+  }
+
   GDateTime.fromDt(Duration timeZoneOffset, DateTime dt)
       : _native = dt.toUtc(),
         offset = timeZoneOffset;
@@ -190,4 +205,31 @@ class GDateTime implements DateTime {
   int get weekday => _native.add(offset).weekday;
 
   static GDateTime now() => GDateTime.from(DateTime.now());
+
+  static final _regex = RegExp(
+      r"(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})([+-])(\d{2})\:(\d{2})");
+
+  /// Accepts ISO 8601 with the timezone (without milliseconds)
+  static GDateTime parse(String formattedString) {
+    var m = _regex.firstMatch(formattedString);
+    if (m != null) {
+      var year = int.parse(m.group(1)!);
+      var month = int.parse(m.group(2)!);
+      var day = int.parse(m.group(3)!);
+      var hour = int.parse(m.group(4)!);
+      var minute = int.parse(m.group(5)!);
+      var second = int.parse(m.group(6)!);
+      var offsetSign = m.group(7);
+      var offsetHours = int.parse(m.group(8)!);
+      var offsetMinutes = int.parse(m.group(9)!);
+      var offsetDuration = Duration(hours: offsetHours, minutes: offsetMinutes);
+      if (offsetSign == '-') {
+        offsetDuration *= -1;
+      }
+
+      return GDateTime(offsetDuration, year, month, day, hour, minute, second);
+    }
+
+    return GDateTime.from(DateTime.parse(formattedString));
+  }
 }

@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/git.dart';
+import 'package:dart_git/utils/date_time.dart';
 
 class MergeCommand extends Command {
   @override
@@ -41,14 +42,13 @@ class MergeCommand extends Command {
 
     var authorDate = Platform.environment['GIT_AUTHOR_DATE'];
     if (authorDate != null) {
-      user.date = DateTime.parse(authorDate);
-      user.timeZoneOffset = 0; // FIXME: Parse this from the env variable
+      user.date = GDateTime.parse(authorDate);
     }
 
     var committer = user;
     var comitterDate = Platform.environment['GIT_COMMITTER_DATE'];
     if (comitterDate != null) {
-      committer.date = DateTime.parse(comitterDate);
+      committer.date = GDateTime.parse(comitterDate);
     }
 
     var msg = argResults!['message'] ?? "Merge branch '$branchName'\n";

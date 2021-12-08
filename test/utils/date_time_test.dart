@@ -70,4 +70,46 @@ void main() {
 
     expect(dt.toIso8601String(), '2010-01-02T02:04:05.000Z');
   });
+
+  test('Parse', () {
+    var dt = GDateTime.parse('2010-01-02T03:04:05Z');
+    expect(dt.year, 2010);
+    expect(dt.month, 1);
+    expect(dt.day, 2);
+    expect(dt.hour, 3);
+    expect(dt.minute, 4);
+    expect(dt.second, 5);
+    expect(dt.offset, Duration(hours: 0));
+
+    dt = GDateTime.parse('2010-01-02T03:04:05.006Z');
+    expect(dt.year, 2010);
+    expect(dt.month, 1);
+    expect(dt.day, 2);
+    expect(dt.hour, 3);
+    expect(dt.minute, 4);
+    expect(dt.second, 5);
+    expect(dt.millisecond, 6);
+    expect(dt.offset, Duration(hours: 0));
+
+    dt = GDateTime.parse('2010-01-02T03:04:05+02:00');
+    expect(dt.year, 2010);
+    expect(dt.month, 1);
+    expect(dt.day, 2);
+    expect(dt.hour, 3);
+    expect(dt.minute, 4);
+    expect(dt.second, 5);
+    expect(dt.offset, Duration(hours: 2));
+
+    dt = GDateTime.parse('2010-01-02T03:04:05-06:30');
+    expect(dt.year, 2010);
+    expect(dt.month, 1);
+    expect(dt.day, 2);
+    expect(dt.hour, 3);
+    expect(dt.minute, 4);
+    expect(dt.second, 5);
+    expect(dt.offset, Duration(hours: -6, minutes: -30));
+
+    dt = GDateTime.parse('2020-02-15T09:08:07.000Z');
+    expect(dt, DateTime.parse('2020-02-15T09:08:07.000Z'));
+  });
 }

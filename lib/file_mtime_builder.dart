@@ -66,25 +66,20 @@ class FileMTimeBuilder extends TreeEntryVisitor {
     required GitTreeEntry entry,
     required String filePath,
   }) async {
-    var commitTime = commit.author.dateWithOffset;
+    var commitTime = commit.author.date as GDateTime;
 
-    var changed = false;
     var info = map[filePath];
     if (info == null) {
       info = FileMTimeInfo(filePath, entry.hash, commitTime);
-      changed = true;
     } else {
       if (info.hash == entry.hash) {
-        if (commitTime.isBefore(info.dt)) {
+        if (commitTime.isAfter(info.dt)) {
           info = FileMTimeInfo(filePath, entry.hash, commitTime);
-          changed = true;
         }
       }
     }
 
-    if (changed) {
-      map[filePath] = info;
-    }
+    map[filePath] = info;
     return true;
   }
 

@@ -11,13 +11,13 @@ class GitAuthor {
   String email;
 
   /// timezone offset in format '0430'
-  late int timezoneOffset;
+  late int timeZoneOffset;
   late DateTime date;
 
   Duration get timezoneOffsetDuration {
     return Duration(
-      hours: timezoneOffset ~/ 100,
-      minutes: timezoneOffset % 100,
+      hours: timeZoneOffset ~/ 100,
+      minutes: timeZoneOffset % 100,
     );
   }
 
@@ -33,7 +33,7 @@ class GitAuthor {
   }) {
     this.date = date ?? DateTime.now();
 
-    this.timezoneOffset = timezoneOffset ??
+    this.timeZoneOffset = timezoneOffset ??
         this.date.timeZoneOffset.inHours * 100 +
             (this.date.timeZoneOffset.inMinutes % 60);
   }
@@ -57,16 +57,16 @@ class GitAuthor {
 
   String serialize() {
     var timestamp = date.toUtc().millisecondsSinceEpoch / 1000;
-    var offset = timezoneOffset >= 0
-        ? '+${timezoneOffset.toString().padLeft(4, "0")}'
-        : '-${timezoneOffset.abs().toString().padLeft(4, "0")}';
+    var offset = timeZoneOffset >= 0
+        ? '+${timeZoneOffset.toString().padLeft(4, "0")}'
+        : '-${timeZoneOffset.abs().toString().padLeft(4, "0")}';
 
     return '$name <$email> ${timestamp.toInt()} $offset';
   }
 
   @override
   String toString() {
-    return 'GitAuthor(name: $name, email: $email, date: $date, offset: $timezoneOffset)';
+    return 'GitAuthor(name: $name, email: $email, date: $date, offset: $timeZoneOffset)';
   }
 }
 

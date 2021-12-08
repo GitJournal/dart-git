@@ -35,12 +35,12 @@ Also add tons of comments
     expect(commitObj.author.email, 'me@vhanda.in');
     expect(commitObj.author.name, 'Vishesh Handa');
     expect(commitObj.author.date, DateTime.utc(2020, 9, 14, 20, 19, 56));
-    expect(commitObj.author.timezoneOffset, 200);
+    expect(commitObj.author.timeZoneOffset, 200);
 
     expect(commitObj.committer.email, 'me@vhanda.in');
     expect(commitObj.committer.name, 'Vishesh Handa');
     expect(commitObj.committer.date, DateTime.utc(2020, 9, 14, 20, 19, 56));
-    expect(commitObj.committer.timezoneOffset, 200);
+    expect(commitObj.committer.timeZoneOffset, 200);
 
     expect(commitObj.treeHash,
         GitHash('272aca6dd8feabd4affc881c6cad18f396189344'));
@@ -88,7 +88,7 @@ Create first draft''';
     expect(author.name, 'Vishesh Handa');
     expect(author.email, 'me@vhanda.in');
     expect(author.date, DateTime.utc(2020, 9, 14, 20, 19, 56));
-    expect(author.timezoneOffset, -800);
+    expect(author.timeZoneOffset, -800);
 
     expect(author.serialize(), str);
   });

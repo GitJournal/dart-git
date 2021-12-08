@@ -42,7 +42,7 @@ class MergeCommand extends Command {
     var authorDate = Platform.environment['GIT_AUTHOR_DATE'];
     if (authorDate != null) {
       user.date = DateTime.parse(authorDate);
-      user.timezoneOffset = 0; // FIXME: Parse this from the env variable
+      user.timeZoneOffset = 0; // FIXME: Parse this from the env variable
     }
 
     var committer = user;

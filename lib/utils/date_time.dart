@@ -2,14 +2,14 @@
 // https://github.com/srawlins/timezone/blob/master/lib/src/date_time.dart
 
 class GDateTime implements DateTime {
-  /// The timezone in this doesn't matter, so lets always keep it UTC
+  /// Always kept in UTC
   final DateTime _native;
 
   /// East of UTC.
   final Duration offset;
 
   GDateTime(
-    Duration offset,
+    this.offset,
     int year, [
     int month = 1,
     int day = 1,
@@ -18,14 +18,18 @@ class GDateTime implements DateTime {
     int second = 0,
     int millisecond = 0,
     int microsecond = 0,
-  ]) : this._internal(offset, year, month, day, hour, minute, second,
-            millisecond, microsecond);
+  ]) : _native = DateTime.utc(year, month, day, hour, minute, second,
+                millisecond, microsecond)
+            .subtract(offset) {
+    assert(offset.inHours <= 14);
+    assert(_native.timeZoneOffset.inMicroseconds == 0);
+  }
 
-  GDateTime.fromDt(Duration offset, DateTime dt)
-      : this._internal(offset, dt.year, dt.month, dt.day, dt.hour, dt.minute,
-            dt.second, dt.millisecond, dt.microsecond);
+  GDateTime.fromDt(Duration timeZoneOffset, DateTime dt)
+      : _native = dt.toUtc(),
+        offset = timeZoneOffset;
 
-  GDateTime.from(DateTime dt) : this.fromDt(dt.timeZoneOffset, dt);
+  GDateTime.from(DateTime dt) : this.fromDt(dt.timeZoneOffset, dt.toUtc());
 
   GDateTime.fromTimeStamp(this.offset, int timeStampInSecs)
       : _native = DateTime.fromMillisecondsSinceEpoch(
@@ -33,13 +37,7 @@ class GDateTime implements DateTime {
           isUtc: true,
         ) {
     assert(offset.inHours <= 14);
-  }
-
-  GDateTime._internal(this.offset, int year, int month, int day, int hour,
-      int minute, int second, int millisecond, int microsecond)
-      : _native = DateTime.utc(
-            year, month, day, hour, minute, second, millisecond, microsecond) {
-    assert(offset.inHours <= 14);
+    assert(_native.timeZoneOffset.inMicroseconds == 0);
   }
 
   @override
@@ -84,7 +82,7 @@ class GDateTime implements DateTime {
   }
 
   @override
-  DateTime toUtc() => _native.add(offset);
+  DateTime toUtc() => _native;
 
   static String _fourDigits(int n) {
     var absN = n.abs();
@@ -113,15 +111,17 @@ class GDateTime implements DateTime {
   String toIso8601String() => _toString(iso8601: true);
 
   String _toString({bool iso8601 = true}) {
-    var y = _fourDigits(_native.year);
-    var m = _twoDigits(_native.month);
-    var d = _twoDigits(_native.day);
+    var dt = _native.add(offset);
+
+    var y = _fourDigits(dt.year);
+    var m = _twoDigits(dt.month);
+    var d = _twoDigits(dt.day);
     var sep = iso8601 ? 'T' : ' ';
-    var h = _twoDigits(_native.hour);
-    var min = _twoDigits(_native.minute);
-    var sec = _twoDigits(_native.second);
-    var ms = _threeDigits(_native.millisecond);
-    var us = _native.microsecond == 0 ? '' : _threeDigits(_native.microsecond);
+    var h = _twoDigits(dt.hour);
+    var min = _twoDigits(dt.minute);
+    var sec = _twoDigits(dt.second);
+    var ms = _threeDigits(dt.millisecond);
+    var us = dt.microsecond == 0 ? '' : _threeDigits(dt.microsecond);
 
     if (isUtc) {
       return '$y-$m-$d$sep$h:$min:$sec.$ms${us}Z';
@@ -171,23 +171,23 @@ class GDateTime implements DateTime {
   Duration get timeZoneOffset => offset;
 
   @override
-  int get year => _native.year;
+  int get year => _native.add(offset).year;
   @override
-  int get month => _native.month;
+  int get month => _native.add(offset).month;
   @override
-  int get day => _native.day;
+  int get day => _native.add(offset).day;
   @override
-  int get hour => _native.hour;
+  int get hour => _native.add(offset).hour;
   @override
-  int get minute => _native.minute;
+  int get minute => _native.add(offset).minute;
   @override
-  int get second => _native.second;
+  int get second => _native.add(offset).second;
   @override
-  int get millisecond => _native.millisecond;
+  int get millisecond => _native.add(offset).millisecond;
   @override
-  int get microsecond => _native.microsecond;
+  int get microsecond => _native.add(offset).microsecond;
   @override
-  int get weekday => _native.weekday;
+  int get weekday => _native.add(offset).weekday;
 
   static GDateTime now() => GDateTime.from(DateTime.now());
 }

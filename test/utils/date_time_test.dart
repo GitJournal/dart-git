@@ -20,14 +20,7 @@ void main() {
       final offset = Duration(hours: 11, minutes: 30);
       final utcTime = DateTime.utc(2010, 1, 2, 3, 4, 5, 6, 7);
       final t = GDateTime.fromDt(offset, utcTime);
-      expect(t.toString(), equals('2010-01-02 03:04:05.006007+1130'));
-    });
-
-    test('from local DateTime', () {
-      final offset = Duration(hours: -12, minutes: -30);
-      final localTime = DateTime(2010, 1, 2, 3, 4, 5, 6, 7);
-      final t = GDateTime.fromDt(offset, localTime);
-      expect(t.toString(), equals('2010-01-02 03:04:05.006007-1230'));
+      expect(t.toString(), equals('2010-01-02 14:34:05.006007+1130'));
     });
   });
 
@@ -69,5 +62,12 @@ void main() {
 
     var dt2 = GDateTime.fromTimeStamp(offset, dt.secondsSinceEpoch);
     expect(dt, dt2);
+  });
+
+  test('toUTC', () {
+    var offset = Duration(hours: 1);
+    var dt = GDateTime(offset, 2010, 1, 2, 3, 4, 5).toUtc();
+
+    expect(dt.toIso8601String(), '2010-01-02T02:04:05.000Z');
   });
 }

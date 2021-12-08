@@ -3,7 +3,6 @@ import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/reset.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Merge on GitRepository {

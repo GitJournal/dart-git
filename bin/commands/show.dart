@@ -7,7 +7,6 @@ import 'package:diff_match_patch/src/diff.dart';
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
-import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'log.dart';
 

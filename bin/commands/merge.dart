@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/dart_git.dart';
-import 'package:dart_git/git.dart';
 import 'package:dart_git/utils/date_time.dart';
 
 class MergeCommand extends Command {

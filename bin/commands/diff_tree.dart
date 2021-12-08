@@ -6,7 +6,6 @@ import 'package:dart_git/diff_tree.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
-import 'package:dart_git/utils/result.dart';
 
 class DiffTreeCommand extends Command {
   @override

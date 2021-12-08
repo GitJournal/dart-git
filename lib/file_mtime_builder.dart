@@ -2,7 +2,6 @@ import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/date_time.dart';
-import 'package:dart_git/vistors.dart';
 
 class FileMTimeInfo {
   String filePath;

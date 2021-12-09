@@ -6,6 +6,7 @@ import 'package:buffer/buffer.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:posix/posix.dart' as posix;
 
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
@@ -210,8 +211,9 @@ class GitIndex {
 
   Future<void> addPath(String path, GitHash hash) async {
     // FIXME: Do not use FS operations over here!
-    var stat = await FileStat.stat(path);
-    var entry = GitIndexEntry.fromFS(path, stat, hash);
+    var stat = posix.stat(path);
+
+    var entry = GitIndexEntry.fromFSStat(path, stat, hash);
     entries.add(entry);
   }
 
@@ -219,8 +221,7 @@ class GitIndex {
     var entry = entries.firstWhereOrNull((e) => e.path == path);
     if (entry == null) {
       // FIXME: Do not use FS operations over here!
-      var stat = await FileStat.stat(path);
-      var entry = GitIndexEntry.fromFS(path, stat, hash);
+      var entry = GitIndexEntry.fromFS(path, hash);
       entries.add(entry);
       return;
     }
@@ -289,47 +290,38 @@ class GitIndexEntry {
     this.intentToAdd = false,
   });
 
-  static GitIndexEntry fromFS(String path, FileStat stat, GitHash hash) {
-    var cTime = stat.changed;
-    var mTime = stat.modified;
-    var mode = GitFileMode(stat.mode);
+  static GitIndexEntry fromFS(String path, GitHash hash) {
+    var stat = posix.stat(path);
+    return fromFSStat(path, stat, hash);
+  }
 
-    // These don't seem to be exposed in Dart
-    var ino = 0;
-    var dev = 0;
+  static GitIndexEntry fromFSStat(String path, posix.Stat stat, GitHash hash) {
+    assert(!path.startsWith('/'));
 
-    // ignore: exhaustive_cases
-    switch (stat.type) {
-      case FileSystemEntityType.file:
-        mode = stat.mode == GitFileMode.Executable.val
-            ? GitFileMode.Executable
-            : GitFileMode.Regular;
-        break;
-      case FileSystemEntityType.directory:
-        mode = GitFileMode.Dir;
-        break;
-      case FileSystemEntityType.link:
-        mode = GitFileMode.Symlink;
-        break;
-    }
-
-    // FIXME: uid, gid don't seem accessible in Dart -https://github.com/dart-lang/sdk/issues/15078
-    var uid = 0;
-    var gid = 0;
-
-    var fileSize = stat.size;
+    var mode = GitFileMode(stat.mode.mode);
     var stage = GitFileStage(0);
 
-    assert(!path.startsWith('/'));
+    if (stat.mode.isFile) {
+      mode = stat.mode.isOwnerExecutable ||
+              stat.mode.isGroupExecutable ||
+              stat.mode.isOtherExecutable
+          ? GitFileMode.Executable
+          : GitFileMode.Regular;
+    } else if (stat.mode.isDirectory) {
+      mode = GitFileMode.Dir;
+    } else if (stat.mode.isLink) {
+      mode = GitFileMode.Symlink;
+    }
+
     return GitIndexEntry(
-      cTime: cTime,
-      mTime: mTime,
-      dev: dev,
-      ino: ino,
+      cTime: stat.lastStatusChange,
+      mTime: stat.lastModified,
+      dev: stat.deviceId,
+      ino: stat.inode,
       mode: mode,
-      uid: uid,
-      gid: gid,
-      fileSize: fileSize,
+      uid: stat.uid,
+      gid: stat.gid,
+      fileSize: stat.size,
       hash: hash,
       stage: stage,
       path: path,

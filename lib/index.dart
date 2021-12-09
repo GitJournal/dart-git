@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
+import 'package:posix/posix.dart' as posix;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/exceptions.dart';
@@ -64,7 +65,7 @@ extension Index on GitRepository {
 
     // Add it to the index
     var entry = index.entries.firstWhereOrNull((e) => e.path == pathSpec);
-    var stat = await FileStat.stat(filePath);
+    var stat = posix.stat(filePath);
 
     // Existing file
     if (entry != null) {
@@ -72,13 +73,13 @@ extension Index on GitRepository {
       entry.fileSize = data.length;
       assert(data.length == stat.size);
 
-      entry.cTime = stat.changed;
-      entry.mTime = stat.modified;
+      entry.cTime = stat.lastStatusChange;
+      entry.mTime = stat.lastModified;
       return Result(entry);
     }
 
     // New file
-    entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
+    entry = GitIndexEntry.fromFSStat(pathSpec, stat, hash);
     index.entries.add(entry);
     return Result(entry);
   }

@@ -16,7 +16,8 @@ abstract class TreeEntryVisitor {
     required GitTree tree,
     required GitTreeEntry entry,
     required String filePath,
-  });
+  }) async =>
+      true;
 
   /// Return 'false' to skip this 'Tree'
   bool beforeTree(GitHash treeHash) => true;
@@ -86,8 +87,9 @@ extension Visitors on GitRepository {
 
 class MultiTreeEntryVisitor extends TreeEntryVisitor {
   final List<TreeEntryVisitor> visitors;
+  final void Function(GitCommit)? afterCommitCallback;
 
-  MultiTreeEntryVisitor(this.visitors);
+  MultiTreeEntryVisitor(this.visitors, {this.afterCommitCallback});
 
   @override
   Future<bool> visitTreeEntry({
@@ -137,6 +139,9 @@ class MultiTreeEntryVisitor extends TreeEntryVisitor {
   void afterCommit(GitCommit commit) {
     for (var visitor in visitors) {
       visitor.afterCommit(commit);
+    }
+    if (afterCommitCallback != null) {
+      afterCommitCallback!(commit);
     }
   }
 }

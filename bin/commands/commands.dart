@@ -17,3 +17,4 @@ export 'merge_base.dart';
 export 'diff_tree.dart';
 export 'diff.dart';
 export 'show.dart';
+export 'mtime_builder.dart';

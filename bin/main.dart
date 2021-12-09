@@ -52,6 +52,7 @@ Future<int> mainWithExitCode(List<String> args) async {
     ..addCommand(DiffTreeCommand())
     ..addCommand(DiffCommand())
     ..addCommand(ShowCommand())
+    ..addCommand(MTimeBuilderCommand())
     ..addCommand(LsTreeCommand());
 
   try {

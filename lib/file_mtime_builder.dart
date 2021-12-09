@@ -29,25 +29,14 @@ class FileMTimeInfo {
 
 /// Fetches the last time a path was modified
 class FileMTimeBuilder extends TreeEntryVisitor {
-  var processedTrees = <GitHash>{};
   var processedCommits = <GitHash>{};
   var map = <String, FileMTimeInfo>{};
 
   FileMTimeBuilder({
-    Set<GitHash>? processedTrees,
     Set<GitHash>? processedCommits,
     Map<String, FileMTimeInfo>? map,
-  })  : processedTrees = processedTrees ?? {},
-        processedCommits = processedCommits ?? {},
+  })  : processedCommits = processedCommits ?? {},
         map = map ?? {};
-
-  @override
-  bool beforeTree(GitHash treeHash) => !processedTrees.contains(treeHash);
-
-  @override
-  void afterTree(GitTree tree) {
-    var _ = processedTrees.add(tree.hash);
-  }
 
   @override
   bool beforeCommit(GitHash commitHash) =>
@@ -67,18 +56,23 @@ class FileMTimeBuilder extends TreeEntryVisitor {
   }) async {
     var commitTime = commit.author.date as GDateTime;
 
+    var changed = false;
     var info = map[filePath];
     if (info == null) {
       info = FileMTimeInfo(filePath, entry.hash, commitTime);
+      changed = true;
     } else {
       if (info.hash == entry.hash) {
-        if (commitTime.isAfter(info.dt)) {
+        if (commitTime.isBefore(info.dt)) {
           info = FileMTimeInfo(filePath, entry.hash, commitTime);
+          changed = true;
         }
       }
     }
 
-    map[filePath] = info;
+    if (changed) {
+      map[filePath] = info;
+    }
     return true;
   }
 

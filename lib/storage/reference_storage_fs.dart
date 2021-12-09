@@ -136,12 +136,12 @@ class ReferenceStorageFS implements ReferenceStorage {
 List<Reference> _loadPackedRefs(String raw) {
   var refs = <Reference>[];
   for (var line in LineSplitter.split(raw)) {
-    if (line.startsWith('#')) {
+    if (line.startsWith('#') || line.startsWith('^')) {
       continue;
     }
 
     var parts = line.split(' ');
-    assert(parts.length == 2);
+    assert(parts.length == 2, 'Got $line');
     if (parts.length != 2) {
       continue;
     }

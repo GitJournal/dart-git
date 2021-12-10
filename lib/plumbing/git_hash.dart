@@ -11,6 +11,11 @@ class GitHash {
   Uint8List get bytes => _bytes;
 
   GitHash.fromBytes(List<int> bytes) {
+    if (bytes.isEmpty) {
+      _bytes = Uint8List(0);
+      return;
+    }
+
     if (bytes.length != 20) {
       throw Exception('Hash size must be 20');
     }

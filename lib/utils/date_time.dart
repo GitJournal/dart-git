@@ -125,7 +125,7 @@ class GDateTime implements DateTime {
   @override
   String toIso8601String() => _toString(iso8601: true);
 
-  String _toString({bool iso8601 = true}) {
+  String _toString({bool iso8601 = true, bool offsetColonSeperated = false}) {
     var dt = _native.add(offset);
 
     var y = _fourDigits(dt.year);
@@ -136,17 +136,24 @@ class GDateTime implements DateTime {
     var min = _twoDigits(dt.minute);
     var sec = _twoDigits(dt.second);
     var ms = _threeDigits(dt.millisecond);
-    var us = dt.microsecond == 0 ? '' : _threeDigits(dt.microsecond);
+    var us = _threeDigits(dt.microsecond);
+
+    var base = '$y-$m-$d$sep$h:$min:$sec.$ms';
+    if (dt.microsecond != 0) {
+      base += us;
+    }
 
     if (isUtc) {
-      return '$y-$m-$d$sep$h:$min:$sec.$ms${us}Z';
+      return '${base}Z';
     } else {
       var offSign = offset.isNegative ? '-' : '+';
       var _offset = offset.abs();
       var offH = _twoDigits(_offset.inHours);
       var offM = _twoDigits(_offset.inMinutes % 60);
 
-      return '$y-$m-$d$sep$h:$min:$sec.$ms$us$offSign$offH$offM';
+      return offsetColonSeperated
+          ? '$base$offSign$offH:$offM'
+          : '$base$offSign$offH$offM';
     }
   }
 
@@ -207,7 +214,7 @@ class GDateTime implements DateTime {
   static GDateTime now() => GDateTime.from(DateTime.now());
 
   static final _regex = RegExp(
-      r"(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})([+-])(\d{2})\:(\d{2})");
+      r"(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})([+-])(\d{2})[:]?(\d{2})");
 
   /// Accepts ISO 8601 with the timezone (without milliseconds)
   static GDateTime parse(String formattedString) {

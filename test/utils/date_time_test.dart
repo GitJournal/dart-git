@@ -18,9 +18,9 @@ void main() {
 
     test('from DateTime', () {
       final offset = Duration(hours: 11, minutes: 30);
-      final utcTime = DateTime.utc(2010, 1, 2, 3, 4, 5, 6, 7);
+      final utcTime = DateTime.utc(2010, 1, 2, 3, 4, 5, 6);
       final t = GDateTime.fromDt(offset, utcTime);
-      expect(t.toString(), equals('2010-01-02 14:34:05.006007+1130'));
+      expect(t.toString(), equals('2010-01-02 14:34:05.006+1130'));
     });
   });
 
@@ -100,7 +100,7 @@ void main() {
     expect(dt.second, 5);
     expect(dt.offset, Duration(hours: 2));
 
-    dt = GDateTime.parse('2010-01-02T03:04:05-06:30');
+    dt = GDateTime.parse('2010-01-02T03:04:05-0630');
     expect(dt.year, 2010);
     expect(dt.month, 1);
     expect(dt.day, 2);

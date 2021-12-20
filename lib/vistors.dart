@@ -7,6 +7,7 @@ import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/commit_iterator.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
+import 'package:dart_git/storage/object_storage_cache.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 abstract class TreeEntryVisitor {
@@ -37,8 +38,9 @@ extension Visitors on GitRepository {
       catchAll(() async => Result(await _visitTree(fromCommitHash, visitor)));
 
   Future<void> _visitTree(GitHash from, TreeEntryVisitor visitor) async {
+    var cachedObjStorage = ObjectStorageCache(storage: objStorage);
     var iter = commitIteratorBFSFiltered(
-      objStorage: objStorage,
+      objStorage: cachedObjStorage,
       from: from,
       skipCommitHash: (hash) => !visitor.beforeCommit(hash),
     );
@@ -57,7 +59,7 @@ extension Visitors on GitRepository {
           continue;
         }
 
-        var tree = await objStorage.readTree(treeHash).getOrThrow();
+        var tree = await cachedObjStorage.readTree(treeHash).getOrThrow();
         for (var treeEntry in tree.entries) {
           var fullPath = p.join(parentPath, treeEntry.name);
 

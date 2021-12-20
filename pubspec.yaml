@@ -21,6 +21,7 @@ dependencies:
   os:
     git: https://github.com/GitJournal/os.git
   path: ^1.8.0
+  stash_memory: ^3.2.1
   tuple: ^2.0.0
 
 dev_dependencies:

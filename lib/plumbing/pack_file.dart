@@ -73,12 +73,9 @@ class PackFile {
 
   Future<GitObject?> object(GitHash hash) async {
     // FIXME: The speed of this can be improved by using the fanout table
-    var i = idx.entries.indexWhere((e) => e.hash == hash);
-    if (i == -1) {
-      return null;
-    }
+    var entry = idx.entriesHash[hash];
+    if (entry == null) return null;
 
-    var entry = idx.entries[i];
     return _getObject(entry.offset);
   }
 

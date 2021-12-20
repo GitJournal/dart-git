@@ -8,6 +8,7 @@ import 'package:dart_git/utils/uint8list.dart';
 
 class IdxFile {
   var entries = <IdxFileEntry>[];
+  var entriesHash = <GitHash, IdxFileEntry>{};
   var fanTable = Uint32List(_FAN_TABLE_LENGTH);
   late GitHash packFileHash;
 
@@ -94,6 +95,9 @@ class IdxFile {
         offset: offsets[i],
       );
     });
+    for (var e in entries) {
+      entriesHash[e.hash] = e;
+    }
   }
 
   Uint8List encode() {

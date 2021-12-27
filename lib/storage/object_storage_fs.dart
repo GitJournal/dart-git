@@ -26,7 +26,7 @@ class ObjectStorageFS implements ObjectStorage {
   ObjectStorageFS(this._gitDir, this._fs);
 
   @override
-  Future<Result<GitObject>> read(GitHash hash) async {
+  Result<GitObject> read(GitHash hash) {
     var sha = hash.toString();
     var path =
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
@@ -38,14 +38,14 @@ class ObjectStorageFS implements ObjectStorage {
     var packDirPath = p.join(_gitDir, 'objects', 'pack');
     var stat = _fs.statSync(packDirPath);
     if (stat.changed != _packDirChanged || stat.modified != _packDirModified) {
-      await _loadPackFiles(packDirPath);
+      _loadPackFiles(packDirPath);
 
       _packDirChanged = stat.changed;
       _packDirModified = stat.modified;
     }
 
     for (var packFile in _packFiles) {
-      var obj = await packFile.object(hash);
+      var obj = packFile.object(hash);
       if (obj != null) {
         return Result<GitObject>(obj);
       }
@@ -54,11 +54,11 @@ class ObjectStorageFS implements ObjectStorage {
     return Result.fail(GitObjectNotFound(hash));
   }
 
-  Future<void> _loadPackFiles(String packDirPath) async {
+  void _loadPackFiles(String packDirPath) {
     _packFiles = [];
 
-    var fileStream = _fs.directory(packDirPath).list(followLinks: false);
-    await for (var fsEntity in fileStream) {
+    var fileStream = _fs.directory(packDirPath).listSync(followLinks: false);
+    for (var fsEntity in fileStream) {
       var st = fsEntity.statSync();
       if (st.type != FileSystemEntityType.file) {
         continue;
@@ -67,7 +67,7 @@ class ObjectStorageFS implements ObjectStorage {
         continue;
       }
 
-      var bytes = await _fs.file(fsEntity.path).readAsBytes();
+      var bytes = _fs.file(fsEntity.path).readAsBytesSync();
       var idxFile = IdxFile.decode(bytes);
 
       var packFilePath = fsEntity.path;
@@ -80,9 +80,9 @@ class ObjectStorageFS implements ObjectStorage {
   }
 
   // FIXME: This method should not be public
-  Future<Result<GitObject>> readObjectFromPath(String filePath) async {
+  Result<GitObject> readObjectFromPath(String filePath) {
     // FIXME: Handle zlib and fs exceptions
-    var contents = await _fs.file(filePath).readAsBytes();
+    var contents = _fs.file(filePath).readAsBytesSync();
     var raw = zlib.decode(contents) as Uint8List;
 
     // Read Object Type
@@ -113,21 +113,21 @@ class ObjectStorageFS implements ObjectStorage {
   }
 
   @override
-  Future<Result<GitHash>> writeObject(GitObject obj) async {
+  Result<GitHash> writeObject(GitObject obj) {
     var result = obj.serialize();
     var hash = GitHash.compute(result);
     var sha = hash.toString();
 
     var path =
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    var _ = await _fs.directory(p.dirname(path)).create(recursive: true);
+    _fs.directory(p.dirname(path)).createSync(recursive: true);
 
     var exists = _fs.isFileSync(path);
     if (exists) {
       return Result(hash);
     }
     var file = _fs.file(path).openSync(mode: FileMode.writeOnly);
-    var __ = await file.writeFrom(zlib.encode(result));
+    file.writeFromSync(zlib.encode(result));
     file.closeSync();
 
     return Result(hash);

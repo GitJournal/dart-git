@@ -10,9 +10,9 @@ class ObjectStorageExceptionCatcher implements ObjectStorage {
   ObjectStorageExceptionCatcher({required ObjectStorage storage}) : _ = storage;
 
   @override
-  Future<Result<GitObject>> read(GitHash hash) => catchAll(() => _.read(hash));
+  Result<GitObject> read(GitHash hash) => catchAllSync(() => _.read(hash));
 
   @override
-  Future<Result<GitHash>> writeObject(GitObject obj) =>
-      catchAll(() => _.writeObject(obj));
+  Result<GitHash> writeObject(GitObject obj) =>
+      catchAllSync(() => _.writeObject(obj));
 }

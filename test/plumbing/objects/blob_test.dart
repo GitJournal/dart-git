@@ -6,15 +6,13 @@ import 'package:test/test.dart';
 
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/storage/object_storage_fs.dart';
-import 'package:dart_git/utils/result.dart';
 
 void main() {
   test('Reads the blob file correctly', () async {
     const fs = LocalFileSystem();
     var objStorage = ObjectStorageFS('', fs);
 
-    var obj =
-        await objStorage.readObjectFromPath('test/data/blob').getOrThrow();
+    var obj = objStorage.readObjectFromPath('test/data/blob').getOrThrow();
 
     expect(obj is GitBlob, equals(true));
     expect(obj.serializeData(), equals(ascii.encode('FOO\n')));

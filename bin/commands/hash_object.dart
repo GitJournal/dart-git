@@ -30,7 +30,7 @@ class HashObjectCommand extends Command {
   }
 
   @override
-  Future run() async {
+  void run() {
     if (argResults!.rest.isEmpty) {
       print('Must provide file path');
       return;
@@ -39,13 +39,13 @@ class HashObjectCommand extends Command {
     var rawData = File(filePath).readAsBytesSync();
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var fmt = argResults!['type'] as String;
     var objRes = createObject(fmt, rawData);
     var obj = objRes.getOrThrow();
     var shouldWrite = argResults!['write'] as bool;
-    var hash = shouldWrite ? await repo.objStorage.writeObject(obj) : obj.hash;
+    var hash = shouldWrite ? repo.objStorage.writeObject(obj) : obj.hash;
 
     print(hash);
   }

@@ -35,12 +35,12 @@ class BlobCTimeBuilder extends TreeEntryVisitor {
   }
 
   @override
-  Future<bool> visitTreeEntry({
+  bool visitTreeEntry({
     required GitCommit commit,
     required GitTree tree,
     required GitTreeEntry entry,
     required String filePath,
-  }) async {
+  }) {
     final commitTime = commit.author.date as GDateTime;
 
     var time = commitTime;

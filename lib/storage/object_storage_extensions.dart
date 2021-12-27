@@ -10,7 +10,7 @@ import 'package:dart_git/utils/utils.dart';
 import 'interfaces.dart';
 
 extension ObjectStorageExtension on ObjectStorage {
-  Future<Result<GitTreeEntry>> refSpec(GitTree tree, String spec) async {
+  Result<GitTreeEntry> refSpec(GitTree tree, String spec) {
     assert(!spec.startsWith(p.separator));
 
     if (spec.isEmpty) {
@@ -27,14 +27,14 @@ extension ObjectStorageExtension on ObjectStorage {
           return Result(leaf);
         }
 
-        var result = await read(leaf.hash);
+        var result = read(leaf.hash);
         if (result.isFailure) {
           return fail(result);
         }
         var obj = result.getOrThrow();
 
         return obj is GitTree
-            ? await refSpec(obj, remainingName)
+            ? refSpec(obj, remainingName)
             : Result.fail(GitObjectWithRefSpecNotFound(spec));
       }
     }
@@ -42,12 +42,7 @@ extension ObjectStorageExtension on ObjectStorage {
   }
 
   // TODO: What happens when we call readBlob on a commit?
-  Future<Result<GitBlob>> readBlob(GitHash hash) async =>
-      downcast(await read(hash));
-
-  Future<Result<GitTree>> readTree(GitHash hash) async =>
-      downcast(await read(hash));
-
-  Future<Result<GitCommit>> readCommit(GitHash hash) async =>
-      downcast(await read(hash));
+  Result<GitBlob> readBlob(GitHash hash) => downcast(read(hash));
+  Result<GitTree> readTree(GitHash hash) => downcast(read(hash));
+  Result<GitCommit> readCommit(GitHash hash) => downcast(read(hash));
 }

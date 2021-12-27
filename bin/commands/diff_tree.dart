@@ -16,12 +16,12 @@ class DiffTreeCommand extends Command {
       'Compares the content and mode of blobs found via two tree objects';
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var hash = argResults!.arguments[0];
-    var objRes = await repo.objStorage.read(GitHash(hash));
+    var objRes = repo.objStorage.read(GitHash(hash));
     if (objRes.isFailure) {
       print('fatal: bad object $hash');
       return;
@@ -34,11 +34,11 @@ class DiffTreeCommand extends Command {
     }
     var commit = obj;
     var parentHash = commit.parents.first;
-    var parentObj = await repo.objStorage.readCommit(parentHash).getOrThrow();
+    var parentObj = repo.objStorage.readCommit(parentHash).getOrThrow();
 
     var results = diffTree(
-      from: await repo.objStorage.readTree(parentObj.treeHash).getOrThrow(),
-      to: await repo.objStorage.readTree(obj.treeHash).getOrThrow(),
+      from: repo.objStorage.readTree(parentObj.treeHash).getOrThrow(),
+      to: repo.objStorage.readTree(obj.treeHash).getOrThrow(),
     );
 
     print(hash);

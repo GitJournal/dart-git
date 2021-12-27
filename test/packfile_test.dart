@@ -29,7 +29,7 @@ void main() {
       'e965047ad7c57865823c7d992b1d046ea66edf78',
     ];
     var i = 0;
-    var objects = await packfile.getAll();
+    var objects = packfile.getAll();
     for (var obj in objects) {
       expect(obj.hash.toString(), expectedHashes[i]);
       i++;
@@ -61,7 +61,7 @@ void main() {
       '30f4be7940c11385ab785b057843a45513ca0eb1',
     ];
 
-    var objects = await packfile.getAll();
+    var objects = packfile.getAll();
 
     var actualHashes = <String>[];
     for (var obj in objects) {
@@ -82,8 +82,8 @@ void main() {
     var packfile =
         PackFile.fromFile(idxFile, '$basePath/$packFileName.pack', fs);
 
-    var obj = await packfile
-        .object(GitHash('0d2a7502772ce4d1afdec4ed380181acd7ea91f0'));
+    var obj =
+        packfile.object(GitHash('0d2a7502772ce4d1afdec4ed380181acd7ea91f0'));
 
     expect(obj, isNotNull);
   });
@@ -101,8 +101,8 @@ void main() {
     var packfile =
         PackFile.fromFile(idxFile, '$basePath/$packFileName.pack', fs);
 
-    var obj = await packfile
-        .object(GitHash('6ecf0ef2c2dffb796033e5a02219af86ec6584e5'));
+    var obj =
+        packfile.object(GitHash('6ecf0ef2c2dffb796033e5a02219af86ec6584e5'));
 
     expect(obj, isNotNull);
   });

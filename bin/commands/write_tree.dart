@@ -12,12 +12,12 @@ class WriteTreeCommand extends Command {
   final description = 'Create a tree object from the current index';
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
-    var index = await repo.indexStorage.readIndex().getOrThrow();
-    var hash = await repo.writeTree(index).getOrThrow();
+    var index = repo.indexStorage.readIndex().getOrThrow();
+    var hash = repo.writeTree(index).getOrThrow();
     print(hash);
   }
 }

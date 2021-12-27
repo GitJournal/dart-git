@@ -12,13 +12,13 @@ class AddCommand extends Command {
   final description = 'Add file contents to the index';
 
   @override
-  Future run() async {
+  void run() {
     // FIXME: if gitRootDir is not valid give an error!
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var pathSpec = argResults!.arguments[0];
-    await repo.add(pathSpec).throwOnError();
+    repo.add(pathSpec).throwOnError();
 
     // FIXME: Get proper pathSpec
     // FIXME: Handle glob patterns

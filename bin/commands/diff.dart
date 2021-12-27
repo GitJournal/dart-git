@@ -19,7 +19,7 @@ class DiffCommand extends Command {
   }
 
   @override
-  Future run() async {
+  int run() {
     var raw = argResults!['raw'] as bool?;
     if (raw == false) {
       print('Only supported with --raw');
@@ -27,18 +27,18 @@ class DiffCommand extends Command {
     }
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var fromStr = argResults!.arguments[0];
     var toStr = argResults!.arguments[1];
 
-    var fromCommitRes = await repo.objStorage.readCommit(GitHash(fromStr));
-    var toCommitRes = await repo.objStorage.readCommit(GitHash(toStr));
+    var fromCommitRes = repo.objStorage.readCommit(GitHash(fromStr));
+    var toCommitRes = repo.objStorage.readCommit(GitHash(toStr));
 
     var fromCommit = fromCommitRes.getOrThrow();
     var toCommit = toCommitRes.getOrThrow();
 
-    var changes = await diffCommits(
+    var changes = diffCommits(
       fromCommit: fromCommit,
       toCommit: toCommit,
       objStore: repo.objStorage,
@@ -68,5 +68,6 @@ class DiffCommand extends Command {
 
       print(':$prevMode $newMode $prevHash $newHash $state\t${r.path}');
     }
+    return 0;
   }
 }

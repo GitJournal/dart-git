@@ -8,12 +8,12 @@ class ConfigStorageExceptionCatcher implements ConfigStorage {
   ConfigStorageExceptionCatcher({required ConfigStorage storage}) : _ = storage;
 
   @override
-  Future<Result<Config>> readConfig() => catchAll(() => _.readConfig());
+  Result<Config> readConfig() => catchAllSync(() => _.readConfig());
 
   @override
   Result<bool> exists() => catchAllSync(() => _.exists());
 
   @override
-  Future<Result<void>> writeConfig(Config config) =>
-      catchAll(() => _.writeConfig(config));
+  Result<void> writeConfig(Config config) =>
+      catchAllSync(() => _.writeConfig(config));
 }

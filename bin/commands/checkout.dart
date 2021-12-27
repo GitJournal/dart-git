@@ -17,9 +17,9 @@ class CheckoutCommand extends Command {
   }
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var branchName = argResults!['branch'] as String;
     if (branchName.isNotEmpty) {
@@ -27,9 +27,9 @@ class CheckoutCommand extends Command {
       if (argResults!.rest.isNotEmpty) {
         remoteFullBranchName = argResults!.rest[0];
       } else {
-        var branches = await repo.branches().getOrThrow();
+        var branches = repo.branches().getOrThrow();
         if (branches.contains(branchName)) {
-          await repo.checkoutBranch(branchName).throwOnError();
+          repo.checkoutBranch(branchName).throwOnError();
           return;
         } else {
           // FIXME: This should lookup which remote has it
@@ -40,22 +40,22 @@ class CheckoutCommand extends Command {
       var remoteName = splitPath(remoteFullBranchName).item1;
       var remoteBranchName = splitPath(remoteFullBranchName).item2;
 
-      var remoteRefR = await repo.remoteBranch(remoteName, remoteBranchName);
+      var remoteRefR = repo.remoteBranch(remoteName, remoteBranchName);
       if (remoteRefR.isFailure) {
         print('fatal: remote $remoteName branch $remoteBranchName not found');
         return;
       }
       var remoteRef = remoteRefR.getOrThrow();
 
-      await repo.createBranch(branchName, hash: remoteRef.hash).throwOnError();
-      await repo.checkout('.').throwOnError();
-      await repo
+      repo.createBranch(branchName, hash: remoteRef.hash).throwOnError();
+      repo.checkout('.').throwOnError();
+      repo
           .setUpstreamTo(repo.config.remote(remoteName)!, remoteBranchName)
           .throwOnError();
       print(
           "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
 
-      var headRefResult = await repo.head();
+      var headRefResult = repo.head();
       if (headRefResult.isFailure) {
         print('fatal: head not found');
         return;
@@ -75,15 +75,15 @@ class CheckoutCommand extends Command {
     }
 
     var pathSpec = argResults!.arguments[0];
-    var branches = await repo.branches().getOrThrow();
+    var branches = repo.branches().getOrThrow();
     if (branches.contains(pathSpec)) {
-      var _ = await repo.checkoutBranch(pathSpec);
+      var _ = repo.checkoutBranch(pathSpec);
       return;
     }
 
     // TODO: Check if one of the remotes contains this branch
 
-    var objectsUpdatedR = await repo.checkout(pathSpec);
+    var objectsUpdatedR = repo.checkout(pathSpec);
 
     if (objectsUpdatedR.isFailure) {
       print(

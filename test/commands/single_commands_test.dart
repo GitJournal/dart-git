@@ -99,10 +99,6 @@ void main() {
         ignoreOutput: true),
   );
 
-  test('rm /outside-rep', () async {
-    await testGitCommand(s, 'rm /outside-repo', containsMatch: true);
-  });
-
   test('reset --hard', () async {
     await testGitCommand(s, 'reset --hard HEAD^', ignoreOutput: true);
   });

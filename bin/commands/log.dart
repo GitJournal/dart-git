@@ -16,15 +16,15 @@ class LogCommand extends Command {
   final description = 'Show commit logs';
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     GitHash? sha;
     if (argResults!.rest.isNotEmpty) {
       sha = GitHash(argResults!.rest.first);
     } else {
-      var result = await repo.headHash();
+      var result = repo.headHash();
       if (result.isFailure) {
         print('fatal: head hash not found');
         return;
@@ -33,7 +33,7 @@ class LogCommand extends Command {
     }
 
     var iter = commitIteratorBFS(objStorage: repo.objStorage, from: sha);
-    await for (var result in iter) {
+    for (var result in iter) {
       if (result.isFailure) {
         print('panic: object with sha $sha not found');
         return;

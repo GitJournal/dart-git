@@ -15,9 +15,9 @@ void main() {
     gitDir = await openFixture(
         'test/data/git-7a725350b88b05ca03541b59dd0649fda7f521f2.tgz');
 
-    var repo = await GitRepository.load(gitDir).getOrThrow();
+    var repo = GitRepository.load(gitDir).getOrThrow();
     objStorage = repo.objStorage;
-    headHash = await repo.headHash().getOrThrow();
+    headHash = repo.headHash().getOrThrow();
   });
 
   test('BFS', () async {
@@ -37,7 +37,7 @@ void main() {
       'b8e471f58bcbca63b07bda20e428190409c2db47',
     ];
 
-    expect(await iter.asHashStrings(), expected);
+    expect(iter.asHashStrings(), expected);
   });
 
   test('PreOrder', () async {
@@ -57,6 +57,6 @@ void main() {
       'b8e471f58bcbca63b07bda20e428190409c2db47',
     ];
 
-    expect(await iter.asHashStrings(), expected);
+    expect(iter.asHashStrings(), expected);
   });
 }

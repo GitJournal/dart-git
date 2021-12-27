@@ -60,24 +60,24 @@ class GitStatusResult {
 }
 
 extension Status on GitRepository {
-  Future<Result<GitStatusResult>> status() async {
-    var rootTreeR = await headTree();
+  Result<GitStatusResult> status() {
+    var rootTreeR = headTree();
     if (rootTreeR.isFailure) {
       return fail(rootTreeR);
     }
 
     var result = GitStatusResult();
-    return catchAll(() => _status(rootTreeR.getOrThrow(), workTree, result));
+    return catchAllSync(
+        () => _status(rootTreeR.getOrThrow(), workTree, result));
   }
 
   // FIXME: vHanda: Return unchanged stuff
-  Future<Result<GitStatusResult>> _status(
+  Result<GitStatusResult> _status(
     GitTree tree,
     String? treePath,
     GitStatusResult result,
-  ) async {
-    var dirContents =
-        await fs.directory(treePath).list(followLinks: false).toList();
+  ) {
+    var dirContents = fs.directory(treePath).listSync(followLinks: false);
     var newFilesAdded = dirContents.map((e) => e.path).toSet();
 
     for (var entry in tree.entries) {
@@ -102,8 +102,8 @@ extension Status on GitRepository {
         continue;
       }
 
-      var subTree = await objStorage.readTree(entry.hash).getOrThrow();
-      var r = await _status(subTree, fsEntity.path, result).getOrThrow();
+      var subTree = objStorage.readTree(entry.hash).getOrThrow();
+      var r = _status(subTree, fsEntity.path, result).getOrThrow();
       result.add(r);
     }
 

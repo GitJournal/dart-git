@@ -10,38 +10,38 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Commit on GitRepository {
-  Future<Result<GitCommit>> commit({
+  Result<GitCommit> commit({
     required String message,
     required GitAuthor author,
     GitAuthor? committer,
     bool addAll = false,
-  }) async {
+  }) {
     committer ??= author;
 
     if (addAll) {
-      var r = await add(workTree);
+      var r = add(workTree);
       if (r.isFailure) {
         return fail(r);
       }
     }
 
-    var index = await indexStorage.readIndex().getOrThrow();
+    var index = indexStorage.readIndex().getOrThrow();
 
-    var treeHashR = await writeTree(index);
+    var treeHashR = writeTree(index);
     if (treeHashR.isFailure) {
       return fail(treeHashR);
     }
     var treeHash = treeHashR.getOrThrow();
     var parents = <GitHash>[];
 
-    var headRefResult = await head();
+    var headRefResult = head();
     if (headRefResult.isFailure) {
       if (headRefResult.error is! GitRefNotFound) {
         return fail(headRefResult);
       }
     } else {
       var headRef = headRefResult.getOrThrow();
-      var parentRefResult = await resolveReference(headRef);
+      var parentRefResult = resolveReference(headRef);
       if (parentRefResult.isSuccess) {
         var parentRef = parentRefResult.getOrThrow();
         parents.add(parentRef.hash!);
@@ -49,7 +49,7 @@ extension Commit on GitRepository {
     }
 
     for (var parent in parents) {
-      var parentCommitR = await objStorage.readCommit(parent);
+      var parentCommitR = objStorage.readCommit(parent);
       if (parentCommitR.isFailure) {
         return fail(parentCommitR);
       }
@@ -67,7 +67,7 @@ extension Commit on GitRepository {
       message: message,
       treeHash: treeHash,
     );
-    var hashR = await objStorage.writeObject(commit);
+    var hashR = objStorage.writeObject(commit);
     if (hashR.isFailure) {
       return fail(hashR);
     }
@@ -76,10 +76,10 @@ extension Commit on GitRepository {
     // Update the ref of the current branch
     late String branchName;
 
-    var branchNameResult = await currentBranch();
+    var branchNameResult = currentBranch();
     if (branchNameResult.isFailure) {
       if (branchNameResult.error is GitHeadDetached) {
-        var result = await head();
+        var result = head();
         if (result.isFailure) {
           return fail(result);
         }
@@ -96,7 +96,7 @@ extension Commit on GitRepository {
     }
 
     var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
-    var saveRefResult = await refStorage.saveRef(newRef);
+    var saveRefResult = refStorage.saveRef(newRef);
     if (saveRefResult.isFailure) {
       return fail(saveRefResult);
     }
@@ -104,7 +104,7 @@ extension Commit on GitRepository {
     return Result(commit);
   }
 
-  Future<Result<GitHash>> writeTree(GitIndex index) async {
+  Result<GitHash> writeTree(GitIndex index) {
     var allTreeDirs = {''};
     var treeObjects = {'': GitTree.empty()};
     var treeObjFullPath = <GitTree, String>{};
@@ -179,8 +179,8 @@ extension Commit on GitRepository {
           //
           // Making sure the leaf is a blob
           //
-          assert(await () async {
-            var leafObjRes = await objStorage.read(leaf.hash);
+          assert(() {
+            var leafObjRes = objStorage.read(leaf.hash);
             var leafObj = leafObjRes.getOrThrow();
             return leafObj.formatStr() == 'blob';
           }());
@@ -198,7 +198,7 @@ extension Commit on GitRepository {
         );
       }
 
-      var hashR = await objStorage.writeObject(tree);
+      var hashR = objStorage.writeObject(tree);
       if (hashR.isFailure) {
         return fail(hashR);
       }

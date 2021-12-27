@@ -8,27 +8,27 @@ import 'package:dart_git/utils/result.dart';
 export 'object_storage_extensions.dart';
 
 abstract class ConfigStorage {
-  Future<Result<Config>> readConfig();
+  Result<Config> readConfig();
   Result<bool> exists();
 
-  Future<Result<void>> writeConfig(Config config);
+  Result<void> writeConfig(Config config);
 }
 
 abstract class ReferenceStorage {
-  Future<Result<Reference>> reference(ReferenceName refName);
-  Future<Result<List<Reference>>> listReferences(String prefix);
+  Result<Reference> reference(ReferenceName refName);
+  Result<List<Reference>> listReferences(String prefix);
 
-  Future<Result<void>> saveRef(Reference ref);
-  Future<Result<void>> removeReferences(String prefix);
-  Future<Result<void>> deleteReference(ReferenceName refName);
+  Result<void> saveRef(Reference ref);
+  Result<void> removeReferences(String prefix);
+  Result<void> deleteReference(ReferenceName refName);
 }
 
 abstract class ObjectStorage {
-  Future<Result<GitObject>> read(GitHash hash);
-  Future<Result<GitHash>> writeObject(GitObject obj);
+  Result<GitObject> read(GitHash hash);
+  Result<GitHash> writeObject(GitObject obj);
 }
 
 abstract class IndexStorage {
-  Future<Result<GitIndex>> readIndex();
-  Future<Result<void>> writeIndex(GitIndex index);
+  Result<GitIndex> readIndex();
+  Result<void> writeIndex(GitIndex index);
 }

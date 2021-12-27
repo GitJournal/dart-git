@@ -7,14 +7,14 @@ extension MergeBase on GitRepository {
   /// mergeBase mimics the behavior of `git merge-base actual other`, returning the
   /// best common ancestor between the actual and the passed one.
   /// The best common ancestors can not be reached from other common ancestors.
-  Future<Result<List<GitCommit>>> mergeBase(GitCommit a, GitCommit b) async {
+  Result<List<GitCommit>> mergeBase(GitCommit a, GitCommit b) {
     var clist = [a, b];
     clist.sort(_commitDateDec);
 
     var newer = clist[0];
     var older = clist[1];
 
-    var newerHistoryR = await allAncestors(newer, shouldNotContain: older);
+    var newerHistoryR = allAncestors(newer, shouldNotContain: older);
     if (newerHistoryR.isFailure) {
       if (newerHistoryR.error is GitShouldNotContainFound) {
         return Result([older]);
@@ -32,7 +32,7 @@ extension MergeBase on GitRepository {
       isValid: inNewerHistory,
       isLimit: inNewerHistory,
     );
-    await for (var r in iter) {
+    for (var r in iter) {
       if (r.isFailure) {
         return fail(r);
       }
@@ -43,10 +43,10 @@ extension MergeBase on GitRepository {
     return independents(results);
   }
 
-  Future<Result<Set<GitHash>>> allAncestors(
+  Result<Set<GitHash>> allAncestors(
     GitCommit start, {
     required GitCommit shouldNotContain,
-  }) async {
+  }) {
     if (start.hash == shouldNotContain.hash) {
       var ex = GitShouldNotContainFound();
       return Result.fail(ex);
@@ -54,7 +54,7 @@ extension MergeBase on GitRepository {
 
     var all = <GitHash>{};
     var iter = commitIteratorBFS(objStorage: objStorage, from: start.hash);
-    await for (var commitR in iter) {
+    for (var commitR in iter) {
       if (commitR.isFailure) {
         return fail(commitR);
       }
@@ -73,9 +73,9 @@ extension MergeBase on GitRepository {
   /// isAncestor returns true if the actual commit is ancestor of the passed one.
   /// It returns an error if the history is not transversable
   /// It mimics the behavior of `git merge --is-ancestor actual other`
-  Future<Result<bool>> isAncestor(GitCommit ancestor, GitCommit child) async {
+  Result<bool> isAncestor(GitCommit ancestor, GitCommit child) {
     var iter = commitPreOrderIterator(objStorage: objStorage, from: child.hash);
-    await for (var commitR in iter) {
+    for (var commitR in iter) {
       if (commitR.isFailure) {
         return fail(commitR);
       }
@@ -89,7 +89,7 @@ extension MergeBase on GitRepository {
 
   /// Independents returns a subset of the passed commits, that are not reachable the others
   /// It mimics the behavior of `git merge-base --independent commit...`.
-  Future<Result<List<GitCommit>>> independents(List<GitCommit> commits) async {
+  Result<List<GitCommit>> independents(List<GitCommit> commits) {
     commits.sort(_commitDateDec);
     _removeDuplicates(commits);
 
@@ -112,7 +112,7 @@ extension MergeBase on GitRepository {
         isLimit: isLimit,
       );
 
-      await for (var fromAncestorR in fromHistoryIter) {
+      for (var fromAncestorR in fromHistoryIter) {
         if (fromAncestorR.isFailure) {
           return fail(fromAncestorR);
         }

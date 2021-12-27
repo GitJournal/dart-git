@@ -8,9 +8,9 @@ class IndexStorageExceptionCatcher implements IndexStorage {
   IndexStorageExceptionCatcher({required IndexStorage storage}) : _ = storage;
 
   @override
-  Future<Result<GitIndex>> readIndex() => catchAll(() => _.readIndex());
+  Result<GitIndex> readIndex() => catchAllSync(() => _.readIndex());
 
   @override
-  Future<Result<void>> writeIndex(GitIndex index) =>
-      catchAll(() => _.writeIndex(index));
+  Result<void> writeIndex(GitIndex index) =>
+      catchAllSync(() => _.writeIndex(index));
 }

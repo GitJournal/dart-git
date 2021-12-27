@@ -12,11 +12,11 @@ class DumpIndexCommand extends Command {
   final description = 'Prints the contents of the .git/index';
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
-    var index = await repo.indexStorage.readIndex().getOrThrow();
+    var index = repo.indexStorage.readIndex().getOrThrow();
     print('Index Version: ${index.versionNo}');
     for (var entry in index.entries) {
       var str = entry.toString();

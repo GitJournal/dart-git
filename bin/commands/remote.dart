@@ -22,9 +22,9 @@ class RemoteCommand extends Command {
   }
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var verbose = argResults!['verbose'] as bool?;
 
@@ -38,7 +38,7 @@ class RemoteCommand extends Command {
         var name = result.arguments[0];
         var url = result.arguments[1];
 
-        await repo.addRemote(name, url).throwOnError();
+        repo.addRemote(name, url).throwOnError();
         return;
       }
 
@@ -49,7 +49,7 @@ class RemoteCommand extends Command {
         }
 
         var name = result.arguments[0];
-        var configResult = await repo.removeRemote(name);
+        var configResult = repo.removeRemote(name);
         if (configResult.isFailure) {
           print("fatal: No such remote: '$name'");
           return;

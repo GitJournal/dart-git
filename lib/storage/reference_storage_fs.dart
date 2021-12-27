@@ -18,14 +18,14 @@ class ReferenceStorageFS implements ReferenceStorage {
   ReferenceStorageFS(this._dotGitDir, this._fs);
 
   @override
-  Future<Result<Reference>> reference(ReferenceName refName) async {
+  Result<Reference> reference(ReferenceName refName) {
     var file = _fs.file(p.join(_dotGitDir, refName.value));
     if (file.existsSync()) {
-      var contents = await file.readAsString();
+      var contents = file.readAsStringSync();
       return Result(Reference(refName.value, contents.trimRight()));
     }
 
-    for (var ref in await _packedRefs()) {
+    for (var ref in _packedRefs()) {
       if (ref.name == refName) {
         return Result(ref);
       }
@@ -35,7 +35,7 @@ class ReferenceStorageFS implements ReferenceStorage {
   }
 
   @override
-  Future<Result<List<Reference>>> listReferences(String prefix) async {
+  Result<List<Reference>> listReferences(String prefix) {
     assert(prefix.startsWith(refPrefix));
 
     var refs = <Reference>[];
@@ -47,8 +47,8 @@ class ReferenceStorageFS implements ReferenceStorage {
       return Result(refs);
     }
 
-    var stream = dir.list(recursive: true);
-    await for (var fsEntity in stream) {
+    var stream = dir.listSync(recursive: true);
+    for (var fsEntity in stream) {
       if (fsEntity.statSync().type != FileSystemEntityType.file) {
         continue;
       }
@@ -58,15 +58,16 @@ class ReferenceStorageFS implements ReferenceStorage {
 
       var refName =
           ReferenceName(fsEntity.path.substring(_dotGitDir.length + 1));
-      var result = await reference(refName);
+      var result = reference(refName);
       if (result.isSuccess) {
         var ref = result.getOrThrow();
         refs.add(ref);
         var _ = processedRefNames.add(refName);
       }
+      // FIXME: Handle the error!
     }
 
-    for (var ref in await _packedRefs()) {
+    for (var ref in _packedRefs()) {
       if (processedRefNames.contains(ref.name)) {
         continue;
       }
@@ -80,7 +81,7 @@ class ReferenceStorageFS implements ReferenceStorage {
 
   // FIXME: removeRef should also look into packed-ref files?
   @override
-  Future<Result<void>> removeReferences(String prefix) async {
+  Result<void> removeReferences(String prefix) {
     assert(prefix.startsWith(refPrefix));
 
     var refLocation = p.join(_dotGitDir, prefix);
@@ -89,43 +90,43 @@ class ReferenceStorageFS implements ReferenceStorage {
       return Result(null);
     }
 
-    var _ = await dir.delete(recursive: true);
+    dir.deleteSync(recursive: true);
     return Result(null);
   }
 
   @override
-  Future<Result<void>> saveRef(Reference ref) async {
+  Result<void> saveRef(Reference ref) {
     var refFileName = p.join(_dotGitDir, ref.name.value);
     var refFileName2 = refFileName + '_';
 
-    var _ = await _fs.directory(p.dirname(refFileName)).create(recursive: true);
+    var _ = _fs.directory(p.dirname(refFileName)).createSync(recursive: true);
     var file = _fs.file(refFileName2);
     if (ref.isHash) {
-      file = await file.writeAsString(ref.hash.toString() + '\n', flush: true);
+      file.writeAsStringSync(ref.hash.toString() + '\n', flush: true);
     } else if (ref.isSymbolic) {
       var val = symbolicRefPrefix + ref.target!.value;
-      file = await file.writeAsString(val + '\n', flush: true);
+      file.writeAsStringSync(val + '\n', flush: true);
     }
-    file = await file.rename(refFileName);
+    file = file.renameSync(refFileName);
 
     return Result(null);
   }
 
   // FIXME: Maybe this doesn't need to read each time!
-  Future<List<Reference>> _packedRefs() async {
+  List<Reference> _packedRefs() {
     var packedRefsFile = _fs.file(p.join(_dotGitDir, 'packed-refs'));
     if (!packedRefsFile.existsSync()) {
       return [];
     }
 
-    var contents = await packedRefsFile.readAsString();
+    var contents = packedRefsFile.readAsStringSync();
     return _loadPackedRefs(contents);
   }
 
   @override
-  Future<Result<void>> deleteReference(ReferenceName refName) async {
+  Result<void> deleteReference(ReferenceName refName) {
     var refFileName = p.join(_dotGitDir, refName.value);
-    var _ = await _fs.file(refFileName).delete();
+    var _ = _fs.file(refFileName).deleteSync();
 
     return Result(null);
     // FIXME: What if the deleted ref is in the packed-refs?

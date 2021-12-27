@@ -48,12 +48,12 @@ class FileMTimeBuilder extends TreeEntryVisitor {
   }
 
   @override
-  Future<bool> visitTreeEntry({
+  bool visitTreeEntry({
     required GitCommit commit,
     required GitTree tree,
     required GitTreeEntry entry,
     required String filePath,
-  }) async {
+  }) {
     var commitTime = commit.author.date as GDateTime;
 
     var changed = false;

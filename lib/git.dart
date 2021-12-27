@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:path/path.dart' as p;
@@ -82,13 +80,13 @@ class GitRepository {
     return null;
   }
 
-  static Future<Result<GitRepository>> load(
+  static Result<GitRepository> load(
     String gitRootDir, {
     FileSystem? fs,
-  }) async {
+  }) {
     fs ??= const LocalFileSystemWithChecks();
 
-    if (!(await isValidRepo(gitRootDir, fs: fs))) {
+    if (!isValidRepo(gitRootDir, fs: fs)) {
       var ex = InvalidRepoException(gitRootDir);
       return Result.fail(ex);
     }
@@ -108,7 +106,7 @@ class GitRepository {
       storage: ConfigStorageFS(repo.gitDir, fs),
     );
 
-    var configResult = await repo.configStorage.readConfig();
+    var configResult = repo.configStorage.readConfig();
     if (configResult.isFailure) {
       return fail(configResult);
     }
@@ -117,7 +115,7 @@ class GitRepository {
     return Result(repo);
   }
 
-  static Future<bool> isValidRepo(String gitRootDir, {FileSystem? fs}) async {
+  static bool isValidRepo(String gitRootDir, {FileSystem? fs}) {
     fs ??= const LocalFileSystemWithChecks();
 
     var isDir = fs.isDirectorySync(gitRootDir);
@@ -140,13 +138,13 @@ class GitRepository {
     return true;
   }
 
-  static Future<Result<void>> init(
+  static Result<void> init(
     String path, {
     FileSystem? fs,
     String defaultBranch = 'master',
     bool ignoreIfExists = false,
   }) {
-    return catchAll(() async => Result(await GitRepository._init(
+    return catchAllSync(() => Result(GitRepository._init(
           path,
           fs: fs,
           defaultBranch: defaultBranch,
@@ -154,12 +152,12 @@ class GitRepository {
         )));
   }
 
-  static Future<void> _init(
+  static void _init(
     String path, {
     required FileSystem? fs,
     required String defaultBranch,
     required bool ignoreIfExists,
-  }) async {
+  }) {
     fs ??= const LocalFileSystem();
 
     var gitDir = p.join(path, '.git');
@@ -174,14 +172,14 @@ class GitRepository {
       'refs/tags',
     ];
     for (var dir in dirsToCreate) {
-      var _ = await fs.directory(p.join(gitDir, dir)).create(recursive: true);
+      var _ = fs.directory(p.join(gitDir, dir)).createSync(recursive: true);
     }
 
-    var _ = await fs.file(p.join(gitDir, 'description')).writeAsString(
+    fs.file(p.join(gitDir, 'description')).writeAsStringSync(
         "Unnamed repository; edit this file 'description' to name the repository.\n");
-    var __ = await fs
+    fs
         .file(p.join(gitDir, 'HEAD'))
-        .writeAsString('ref: refs/heads/$defaultBranch\n');
+        .writeAsStringSync('ref: refs/heads/$defaultBranch\n');
 
     var config = Config('');
     var core = config.getOrCreateSection('core');
@@ -189,17 +187,15 @@ class GitRepository {
     core.options['filemode'] = 'false';
     core.options['bare'] = 'false';
 
-    var ___ = await fs
-        .file(p.join(gitDir, 'config'))
-        .writeAsString(config.serialize());
+    fs.file(p.join(gitDir, 'config')).writeAsStringSync(config.serialize());
   }
 
-  Future<Result<void>> saveConfig() {
+  Result<void> saveConfig() {
     return configStorage.writeConfig(config);
   }
 
-  Future<Result<List<String>>> branches() async {
-    var refsResult = await refStorage.listReferences(refHeadPrefix);
+  Result<List<String>> branches() {
+    var refsResult = refStorage.listReferences(refHeadPrefix);
     if (refsResult.isFailure) {
       return fail(refsResult);
     }
@@ -211,8 +207,8 @@ class GitRepository {
     return Result(branchNames);
   }
 
-  Future<Result<String>> currentBranch() async {
-    var headResult = await head();
+  Result<String> currentBranch() {
+    var headResult = head();
     if (headResult.isFailure) {
       return fail(headResult);
     }
@@ -228,11 +224,11 @@ class GitRepository {
     return Result(name);
   }
 
-  Future<Result<BranchConfig>> setUpstreamTo(
+  Result<BranchConfig> setUpstreamTo(
     GitRemoteConfig remote,
     String remoteBranchName,
-  ) async {
-    var branchNameResult = await currentBranch();
+  ) {
+    var branchNameResult = currentBranch();
     if (branchNameResult.isFailure) {
       return fail(branchNameResult);
     }
@@ -241,8 +237,8 @@ class GitRepository {
     return setBranchUpstreamTo(branchName, remote, remoteBranchName);
   }
 
-  Future<Result<BranchConfig>> setBranchUpstreamTo(String branchName,
-      GitRemoteConfig remote, String remoteBranchName) async {
+  Result<BranchConfig> setBranchUpstreamTo(
+      String branchName, GitRemoteConfig remote, String remoteBranchName) {
     var brConfig = config.branch(branchName);
     if (brConfig == null) {
       brConfig = BranchConfig(name: branchName);
@@ -251,20 +247,20 @@ class GitRepository {
     brConfig.remote = remote.name;
     brConfig.merge = ReferenceName.branch(remoteBranchName);
 
-    var saveR = await saveConfig();
+    var saveR = saveConfig();
     if (saveR.isFailure) {
       return fail(saveR);
     }
     return Result(brConfig);
   }
 
-  Future<Result<GitHash>> createBranch(
+  Result<GitHash> createBranch(
     String name, {
     GitHash? hash,
     bool overwrite = false,
-  }) async {
+  }) {
     if (hash == null) {
-      var headHashResult = await headHash();
+      var headHashResult = headHash();
       if (headHashResult.isFailure) {
         return fail(headHashResult);
       }
@@ -272,7 +268,7 @@ class GitRepository {
     }
 
     var branch = ReferenceName.branch(name);
-    var refResult = await refStorage.reference(branch);
+    var refResult = refStorage.reference(branch);
     if (refResult.isFailure && refResult.error is! GitRefNotFound) {
       return fail(refResult);
     }
@@ -281,22 +277,22 @@ class GitRepository {
       return Result.fail(ex);
     }
 
-    var result = await refStorage.saveRef(Reference.hash(branch, hash));
+    var result = refStorage.saveRef(Reference.hash(branch, hash));
     if (result.isFailure) {
       return fail(result);
     }
     return Result(hash);
   }
 
-  Future<Result<GitHash>> deleteBranch(String branchName) async {
+  Result<GitHash> deleteBranch(String branchName) {
     var refName = ReferenceName.branch(branchName);
-    var refResult = await refStorage.reference(refName);
+    var refResult = refStorage.reference(refName);
     if (refResult.isFailure) {
       return fail(refResult);
     }
     var ref = refResult.getOrThrow();
 
-    var res = await refStorage.deleteReference(refName);
+    var res = refStorage.deleteReference(refName);
     if (res.isFailure) {
       return fail(res);
     }
@@ -304,15 +300,15 @@ class GitRepository {
     return Result(ref.hash!);
   }
 
-  Future<Result<GitCommit>> branchCommit(String branchName) async {
+  Result<GitCommit> branchCommit(String branchName) {
     var refName = ReferenceName.branch(branchName);
-    var refResult = await refStorage.reference(refName);
+    var refResult = refStorage.reference(refName);
     if (refResult.isFailure) {
       return fail(refResult);
     }
     var ref = refResult.getOrThrow();
 
-    var objR = await objStorage.readCommit(ref.hash!);
+    var objR = objStorage.readCommit(ref.hash!);
     if (objR.isFailure) {
       return fail(objR);
     }
@@ -320,8 +316,8 @@ class GitRepository {
     return Result(objR.getOrThrow());
   }
 
-  Future<Result<Reference>> head() async {
-    var result = await refStorage.reference(ReferenceName('HEAD'));
+  Result<Reference> head() {
+    var result = refStorage.reference(ReferenceName('HEAD'));
     if (result.isFailure) {
       return fail(result);
     }
@@ -329,14 +325,14 @@ class GitRepository {
     return Result(result.getOrThrow());
   }
 
-  Future<Result<GitHash>> headHash() async {
-    var result = await refStorage.reference(ReferenceName('HEAD'));
+  Result<GitHash> headHash() {
+    var result = refStorage.reference(ReferenceName('HEAD'));
     if (result.isFailure) {
       return fail(result);
     }
 
     var ref = result.getOrThrow();
-    result = await resolveReference(ref);
+    result = resolveReference(ref);
     if (result.isFailure) {
       return fail(result);
     }
@@ -345,55 +341,50 @@ class GitRepository {
     return Result(ref.hash!);
   }
 
-  Future<Result<GitCommit>> headCommit() async {
-    var hashResult = await headHash();
+  Result<GitCommit> headCommit() {
+    var hashResult = headHash();
     if (hashResult.isFailure) {
       return fail(hashResult);
     }
     var hash = hashResult.getOrThrow();
 
-    var result = await objStorage.readCommit(hash);
+    var result = objStorage.readCommit(hash);
     if (result.isFailure) {
       return fail(result);
     }
     return Result(result.getOrThrow());
   }
 
-  Future<Result<GitTree>> headTree() async {
-    var commitResult = await headCommit();
+  Result<GitTree> headTree() {
+    var commitResult = headCommit();
     if (commitResult.isFailure) {
       return fail(commitResult);
     }
     var commit = commitResult.getOrThrow();
 
-    var res = await objStorage.readTree(commit.treeHash);
+    var res = objStorage.readTree(commit.treeHash);
     if (res.isFailure) {
       return fail(res);
     }
     return Result(res.getOrThrow());
   }
 
-  Future<Result<Reference>> resolveReference(
-    Reference ref, {
-    bool recursive = true,
-  }) async {
+  Result<Reference> resolveReference(Reference ref, {bool recursive = true}) {
     if (ref.type == ReferenceType.Hash) {
       return Result(ref);
     }
 
-    var resolvedRefResult = await refStorage.reference(ref.target!);
+    var resolvedRefResult = refStorage.reference(ref.target!);
     if (resolvedRefResult.isFailure) {
       return fail(resolvedRefResult);
     }
 
     var resolvedRef = resolvedRefResult.getOrThrow();
-    return recursive
-        ? await resolveReference(resolvedRef)
-        : Result(resolvedRef);
+    return recursive ? resolveReference(resolvedRef) : Result(resolvedRef);
   }
 
-  Future<Result<Reference>> resolveReferenceName(ReferenceName refName) async {
-    var resolvedRefResult = await refStorage.reference(refName);
+  Result<Reference> resolveReferenceName(ReferenceName refName) {
+    var resolvedRefResult = refStorage.reference(refName);
     if (resolvedRefResult.isFailure) {
       return fail(resolvedRefResult);
     }
@@ -402,12 +393,12 @@ class GitRepository {
     return resolveReference(resolvedRef);
   }
 
-  Future<Result<bool>> canPush() async {
+  Result<bool> canPush() {
     if (config.remotes.isEmpty) {
       return Result(false);
     }
 
-    var headResult = await head();
+    var headResult = head();
     if (headResult.isFailure) {
       if (headResult.error is! GitRefNotFound) {
         return fail(headResult);
@@ -428,7 +419,7 @@ class GitRepository {
       return Result(false);
     }
 
-    var resolvedHeadResult = await resolveReference(_head);
+    var resolvedHeadResult = resolveReference(_head);
     if (resolvedHeadResult.isFailure) {
       return fail(resolvedHeadResult);
     }
@@ -437,7 +428,7 @@ class GitRepository {
     // Construct remote's branch
     var remoteBranchName = brConfigMerge.branchName()!;
     var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
-    var remoteRefResult = await resolveReferenceName(remoteRefName);
+    var remoteRefResult = resolveReferenceName(remoteRefName);
     if (remoteRefResult.isFailure) {
       return fail(remoteRefResult);
     }
@@ -447,7 +438,7 @@ class GitRepository {
   }
 
   /// Returns -1 if unreachable
-  Future<Result<int>> countTillAncestor(GitHash from, GitHash ancestor) async {
+  Result<int> countTillAncestor(GitHash from, GitHash ancestor) {
     var seen = <GitHash>{};
     var parents = <GitHash>[];
     var _ = parents.add(from);
@@ -459,7 +450,7 @@ class GitRepository {
       var _ = parents.removeAt(0);
       var __ = seen.add(sha);
 
-      var commitR = await objStorage.readCommit(sha);
+      var commitR = objStorage.readCommit(sha);
       if (commitR.isFailure) {
         return fail(commitR);
       }
@@ -474,8 +465,8 @@ class GitRepository {
     return Result(parents.isEmpty ? -1 : seen.length);
   }
 
-  Future<Result<int>> numChangesToPush() async {
-    var headR = await this.head();
+  Result<int> numChangesToPush() {
+    var headR = this.head();
     if (headR.isFailure) {
       return fail(headR);
     }
@@ -495,8 +486,8 @@ class GitRepository {
     var remoteBranchName = brConfigMerge.branchName()!;
     var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
 
-    var headRefResult = await resolveReference(head);
-    var remoteRefResult = await resolveReferenceName(remoteRefName);
+    var headRefResult = resolveReference(head);
+    var remoteRefResult = resolveReferenceName(remoteRefName);
     if (headRefResult.isFailure) {
       return fail(headRefResult);
     }
@@ -511,7 +502,7 @@ class GitRepository {
       return Result(0);
     }
 
-    var aheadByResult = await countTillAncestor(headHash, remoteHash);
+    var aheadByResult = countTillAncestor(headHash, remoteHash);
     if (aheadByResult.isFailure) {
       return fail(aheadByResult);
     }

@@ -95,11 +95,11 @@ class _Item {
 
 /// Returns the changes that once applied on `fromCommit` to transform
 /// it to `toCommit`
-Future<Result<CommitBlobChanges>> diffCommits({
+Result<CommitBlobChanges> diffCommits({
   required GitCommit fromCommit,
   required GitCommit toCommit,
   required ObjectStorage objStore,
-}) async {
+}) {
   var addedChanges = <Change>[];
   var removedChanges = <Change>[];
   var modifiedChanges = <Change>[];
@@ -128,14 +128,14 @@ Future<Result<CommitBlobChanges>> diffCommits({
     GitTree? toTree;
 
     if (item.fromTreeHash != null) {
-      var fromResult = await objStore.readTree(item.fromTreeHash!);
+      var fromResult = objStore.readTree(item.fromTreeHash!);
       if (fromResult.isFailure) {
         return fail(fromResult);
       }
       fromTree = fromResult.getOrThrow();
     }
     if (item.toTreeHash != null) {
-      var toResult = await objStore.readTree(item.toTreeHash!);
+      var toResult = objStore.readTree(item.toTreeHash!);
       if (toResult.isFailure) {
         return fail(toResult);
       }

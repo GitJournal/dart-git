@@ -15,12 +15,12 @@ void main() {
   });
 
   test('Basic', () async {
-    var repo = await GitRepository.load(gitDir).getOrThrow();
+    var repo = GitRepository.load(gitDir).getOrThrow();
 
     var tf = FileMTimeBuilder();
-    await repo
+    repo
         .visitTree(
-          fromCommitHash: await repo.headHash().getOrThrow(),
+          fromCommitHash: repo.headHash().getOrThrow(),
           visitor: tf,
         )
         .throwOnError();

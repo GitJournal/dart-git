@@ -19,7 +19,7 @@ void main() {
 
     var _ = '';
     _ = await runGitCommand('init .', tmpDir1);
-    await GitRepository.init(tmpDir2).throwOnError();
+    GitRepository.init(tmpDir2).throwOnError();
 
     // Add the same file to both of them
     var contents = 'Hello there';
@@ -37,8 +37,8 @@ void main() {
       'GIT_COMMITTER_DATE': date.toIso8601String(),
     });
 
-    var repo = await GitRepository.load(tmpDir2).getOrThrow();
-    var result = await repo.commit(
+    var repo = GitRepository.load(tmpDir2).getOrThrow();
+    var result = repo.commit(
       message: 'Message\n',
       author: GitAuthor(
         name: 'Vishesh Handa',
@@ -53,7 +53,7 @@ void main() {
     await testRepoEquals(tmpDir2, tmpDir1);
 
     // Make sure we cannot do empty commits
-    result = await repo.commit(
+    result = repo.commit(
       message: 'Message\n',
       author: GitAuthor(
         name: 'Vishesh Handa',

@@ -16,14 +16,14 @@ class InitCommand extends Command {
   }
 
   @override
-  Future run() async {
+  void run() {
     if (argResults!.rest.isEmpty) {
       print('Must provide a path');
-      return false;
+      return;
     }
 
     var path = argResults!.rest.first;
-    await GitRepository.init(path).throwOnError();
+    GitRepository.init(path).throwOnError();
 
     var quiet = argResults!['quiet'] as bool;
     if (quiet) {

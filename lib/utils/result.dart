@@ -57,15 +57,15 @@ class ResultException implements Exception {
   String toString() => exception.toString();
 }
 
-Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
-  try {
-    return await catchFn();
-  } on ResultException catch (e) {
-    return Result.fail(e, e.stackTrace);
-  } catch (e, stackTrace) {
-    return Result.fail(e, stackTrace);
-  }
-}
+// Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
+//   try {
+//     return await catchFn();
+//   } on ResultException catch (e) {
+//     return Result.fail(e, e.stackTrace);
+//   } catch (e, stackTrace) {
+//     return Result.fail(e, stackTrace);
+//   }
+// }
 
 Result<T> catchAllSync<T>(Result<T> Function() catchFn) {
   try {

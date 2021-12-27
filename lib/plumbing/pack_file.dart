@@ -71,14 +71,14 @@ class PackFile {
   // FIXME: Check the packFile hash from the idx?
   // FIXME: Verify that the crc32 is correct?
 
-  Future<GitObject?> object(GitHash hash) async {
+  GitObject? object(GitHash hash) {
     var entry = idx.entry(hash);
     if (entry == null) return null;
 
     return _getObject(entry.offset);
   }
 
-  Future<GitObject?> _getObject(int offset) async {
+  GitObject? _getObject(int offset) {
     var file = fs.file(filePath).openSync(mode: FileMode.read);
     file.setPositionSync(offset);
 
@@ -107,15 +107,15 @@ class PackFile {
       case ObjectTypes.OFS_DELTA:
         var n = file.readVariableWidthIntSync();
         var baseOffset = offset - n;
-        var deltaData = await _decodeObject(file, objHeader.size);
+        var deltaData = _decodeObject(file, objHeader.size);
 
         file.closeSync();
         return _fillOFSDeltaObject(baseOffset, deltaData);
 
       case ObjectTypes.REF_DELTA:
-        var hashBytes = await file.read(20);
+        var hashBytes = file.readSync(20);
         var hash = GitHash.fromBytes(hashBytes);
-        var deltaData = await _decodeObject(file, objHeader.size);
+        var deltaData = _decodeObject(file, objHeader.size);
 
         file.closeSync();
         return _fillRefDeltaObject(hash, deltaData);
@@ -125,14 +125,14 @@ class PackFile {
     }
 
     // The objHeader.size is the size of the data once expanded
-    var rawObjData = await _decodeObject(file, objHeader.size);
+    var rawObjData = _decodeObject(file, objHeader.size);
     file.closeSync();
 
     var typeStr = ObjectTypes.getTypeString(objHeader.type);
     return createObject(typeStr, rawObjData).getOrThrow();
   }
 
-  Future<Uint8List> _decodeObject(RandomAccessFile file, int objSize) async {
+  Uint8List _decodeObject(RandomAccessFile file, int objSize) {
     // FIXME: This is crashing in Sentry -
     // https://sentry.io/organizations/gitjournal/issues/2254310735/?project=5168082&query=is%3Aunresolved
     // - I'm getting there is a huge object cloned and we're loading all of
@@ -148,16 +148,15 @@ class PackFile {
 
     var outputSink = _BufferSink();
     var inputSink = zlib.decoder.startChunkedConversion(outputSink);
-    inputSink.add(await file.read(readSize));
+    inputSink.add(file.readSync(readSize));
     inputSink.close();
 
     assert(outputSink.builder.length >= objSize);
     return outputSink.builder.takeBytes();
   }
 
-  Future<GitObject?> _fillOFSDeltaObject(
-      int baseOffset, Uint8List deltaData) async {
-    var baseObject = await _getObject(baseOffset);
+  GitObject? _fillOFSDeltaObject(int baseOffset, Uint8List deltaData) {
+    var baseObject = _getObject(baseOffset);
     if (baseObject == null) {
       return null;
     }
@@ -167,9 +166,8 @@ class PackFile {
         .getOrThrow();
   }
 
-  Future<GitObject?> _fillRefDeltaObject(
-      GitHash baseHash, Uint8List deltaData) async {
-    var baseObject = await object(baseHash);
+  GitObject? _fillRefDeltaObject(GitHash baseHash, Uint8List deltaData) {
+    var baseObject = object(baseHash);
     if (baseObject == null) {
       return null;
     }
@@ -179,13 +177,13 @@ class PackFile {
         .getOrThrow();
   }
 
-  Future<Iterable<GitObject>> getAll() async {
+  Iterable<GitObject> getAll() {
     var objects = <GitObject>[];
 
     for (var i = 0; i < idx.entries.length; i++) {
       var entry = idx.entries[i];
 
-      var obj = await _getObject(entry.offset);
+      var obj = _getObject(entry.offset);
       if (obj == null) {
         continue;
       }

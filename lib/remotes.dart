@@ -6,7 +6,7 @@ import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
 extension Remotes on GitRepository {
-  Future<Result<List<Reference>>> remoteBranches(String remoteName) async {
+  Result<List<Reference>> remoteBranches(String remoteName) {
     if (config.remote(remoteName) == null) {
       var ex = GitRemoteNotFound(remoteName);
       return Result.fail(ex);
@@ -16,10 +16,10 @@ extension Remotes on GitRepository {
     return refStorage.listReferences(remoteRefsPrefix);
   }
 
-  Future<Result<Reference>> remoteBranch(
+  Result<Reference> remoteBranch(
     String remoteName,
     String branchName,
-  ) async {
+  ) {
     if (config.remote(remoteName) == null) {
       var ex = GitRemoteNotFound(remoteName);
       return Result.fail(ex);
@@ -29,7 +29,7 @@ extension Remotes on GitRepository {
     return refStorage.reference(remoteRef);
   }
 
-  Future<Result<GitRemoteConfig>> addRemote(String name, String url) async {
+  Result<GitRemoteConfig> addRemote(String name, String url) {
     var existingRemote = config.remotes.firstWhereOrNull((r) => r.name == name);
     if (existingRemote != null) {
       var ex = GitRemoteAlreadyExists(name);
@@ -39,7 +39,7 @@ extension Remotes on GitRepository {
     var remote = GitRemoteConfig.create(name: name, url: url);
     config.remotes.add(remote);
 
-    var result = await saveConfig();
+    var result = saveConfig();
     if (result.isFailure) {
       return fail(result);
     }
@@ -47,10 +47,10 @@ extension Remotes on GitRepository {
     return Result(remote);
   }
 
-  Future<Result<GitRemoteConfig>> addOrUpdateRemote(
+  Result<GitRemoteConfig> addOrUpdateRemote(
     String name,
     String url,
-  ) async {
+  ) {
     var i = config.remotes.indexWhere((r) => r.name == name);
     if (i == -1) {
       return addRemote(name, url);
@@ -61,7 +61,7 @@ extension Remotes on GitRepository {
       fetch: config.remotes[i].fetch,
       url: url,
     );
-    var result = await saveConfig();
+    var result = saveConfig();
     if (result.isFailure) {
       return fail(result);
     }
@@ -69,7 +69,7 @@ extension Remotes on GitRepository {
     return Result(config.remotes[i]);
   }
 
-  Future<Result<GitRemoteConfig>> removeRemote(String name) async {
+  Result<GitRemoteConfig> removeRemote(String name) {
     var i = config.remotes.indexWhere((r) => r.name == name);
     if (i == -1) {
       var ex = GitRemoteNotFound(name);
@@ -77,12 +77,12 @@ extension Remotes on GitRepository {
     }
 
     var remote = config.remotes.removeAt(i);
-    var cfgResult = await saveConfig();
+    var cfgResult = saveConfig();
     if (cfgResult.isFailure) {
       return fail(cfgResult);
     }
 
-    var result = await refStorage.removeReferences(refRemotePrefix + name);
+    var result = refStorage.removeReferences(refRemotePrefix + name);
     if (result.isFailure) {
       return fail(result);
     }
@@ -91,13 +91,13 @@ extension Remotes on GitRepository {
     return Result(remote);
   }
 
-  Future<Reference?> guessRemoteHead(String remoteName) async {
+  Reference? guessRemoteHead(String remoteName) {
     // See: https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/25430727#25430727
     //      https://stackoverflow.com/questions/8839958/how-does-origin-head-get-set/8841024#8841024
     //
     // The ideal way is to use https://libgit2.org/libgit2/#HEAD/group/remote/git_remote_default_branch
     //
-    var branches = await remoteBranches(remoteName).getOrThrow();
+    var branches = remoteBranches(remoteName).getOrThrow();
     if (branches.isEmpty) {
       return null;
     }

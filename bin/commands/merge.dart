@@ -18,7 +18,7 @@ class MergeCommand extends Command {
   }
 
   @override
-  Future run() async {
+  void run() {
     var args = argResults!.rest;
     if (args.length != 1) {
       print('Incorrect usage');
@@ -27,8 +27,8 @@ class MergeCommand extends Command {
 
     var branchName = args[0];
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
-    var branchCommit = await repo.branchCommit(branchName).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var branchCommit = repo.branchCommit(branchName).getOrThrow();
 
     var user = repo.config.user;
     if (user == null) {
@@ -52,7 +52,7 @@ class MergeCommand extends Command {
 
     var msg = argResults!['message'] ?? "Merge branch '$branchName'\n";
 
-    await repo
+    repo
         .merge(
           theirCommit: branchCommit,
           author: user,

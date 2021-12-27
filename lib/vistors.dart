@@ -12,12 +12,12 @@ import 'package:dart_git/utils/file_mode.dart';
 
 abstract class TreeEntryVisitor {
   /// Return 'false' to skip this tree
-  Future<bool> visitTreeEntry({
+  bool visitTreeEntry({
     required GitCommit commit,
     required GitTree tree,
     required GitTreeEntry entry,
     required String filePath,
-  }) async =>
+  }) =>
       true;
 
   /// Return 'false' to skip this 'Tree'
@@ -31,20 +31,20 @@ abstract class TreeEntryVisitor {
 }
 
 extension Visitors on GitRepository {
-  Future<Result<void>> visitTree({
+  Result<void> visitTree({
     required GitHash fromCommitHash,
     required TreeEntryVisitor visitor,
-  }) async =>
-      catchAll(() async => Result(await _visitTree(fromCommitHash, visitor)));
+  }) =>
+      catchAllSync(() => Result(_visitTree(fromCommitHash, visitor)));
 
-  Future<void> _visitTree(GitHash from, TreeEntryVisitor visitor) async {
+  void _visitTree(GitHash from, TreeEntryVisitor visitor) {
     var cachedObjStorage = ObjectStorageCache(storage: objStorage);
     var iter = commitIteratorBFSFiltered(
       objStorage: cachedObjStorage,
       from: from,
       skipCommitHash: (hash) => !visitor.beforeCommit(hash),
     );
-    await for (var result in iter) {
+    for (var result in iter) {
       var commit = result.getOrThrow();
 
       var queue = Queue<Tuple2<GitHash, String>>();
@@ -59,7 +59,7 @@ extension Visitors on GitRepository {
           continue;
         }
 
-        var tree = await cachedObjStorage.readTree(treeHash).getOrThrow();
+        var tree = cachedObjStorage.readTree(treeHash).getOrThrow();
         for (var treeEntry in tree.entries) {
           var fullPath = p.join(parentPath, treeEntry.name);
 
@@ -68,7 +68,7 @@ extension Visitors on GitRepository {
             continue;
           }
 
-          var shouldContinue = await visitor.visitTreeEntry(
+          var shouldContinue = visitor.visitTreeEntry(
             commit: commit,
             tree: tree,
             entry: treeEntry,
@@ -94,15 +94,15 @@ class MultiTreeEntryVisitor extends TreeEntryVisitor {
   MultiTreeEntryVisitor(this.visitors, {this.afterCommitCallback});
 
   @override
-  Future<bool> visitTreeEntry({
+  bool visitTreeEntry({
     required GitCommit commit,
     required GitTree tree,
     required GitTreeEntry entry,
     required String filePath,
-  }) async {
+  }) {
     var ret = false;
     for (var visitor in visitors) {
-      ret = await visitor.visitTreeEntry(
+      ret = visitor.visitTreeEntry(
               commit: commit, tree: tree, entry: entry, filePath: filePath) ||
           ret;
     }

@@ -13,7 +13,7 @@ class MergeBaseCommand extends Command {
   final description = 'Find as good common ancestors as possible for a merge';
 
   @override
-  Future run() async {
+  void run() {
     var args = argResults!.rest;
     if (args.length != 2) {
       print('Incorrect usage');
@@ -21,16 +21,16 @@ class MergeBaseCommand extends Command {
     }
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var aHash = GitHash(args[0]);
     var bHash = GitHash(args[1]);
 
-    var aRes = await repo.objStorage.readCommit(aHash);
-    var bRes = await repo.objStorage.readCommit(bHash);
+    var aRes = repo.objStorage.readCommit(aHash);
+    var bRes = repo.objStorage.readCommit(bHash);
 
     var commits =
-        await repo.mergeBase(aRes.getOrThrow(), bRes.getOrThrow()).getOrThrow();
+        repo.mergeBase(aRes.getOrThrow(), bRes.getOrThrow()).getOrThrow();
     for (var c in commits) {
       print(c.hash);
     }

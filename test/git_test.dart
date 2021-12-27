@@ -8,8 +8,8 @@ void main() {
   test('Test can Push', () async {
     var tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;
 
-    await GitRepository.init(tmpDir).throwOnError();
-    var repo = await GitRepository.load(tmpDir).getOrThrow();
-    expect(await repo.canPush().getOrThrow(), false);
+    GitRepository.init(tmpDir).throwOnError();
+    var repo = GitRepository.load(tmpDir).getOrThrow();
+    expect(repo.canPush().getOrThrow(), false);
   });
 }

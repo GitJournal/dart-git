@@ -13,11 +13,11 @@ class StatusCommand extends Command {
   final description = 'Show the working tree status';
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
-    var headResult = await repo.head();
+    var headResult = repo.head();
     if (headResult.isFailure) {
       print('fatal: no head found');
       return;
@@ -40,19 +40,17 @@ class StatusCommand extends Command {
     var remoteBranchName = branch.merge!.branchName()!;
     var remoteRef = ReferenceName.remote(branch.remote!, remoteBranchName);
 
-    var headHash = (await repo.resolveReference(head)).getOrThrow().hash;
-    var remoteHash =
-        (await repo.resolveReferenceName(remoteRef)).getOrThrow().hash;
+    var headHash = (repo.resolveReference(head)).getOrThrow().hash;
+    var remoteHash = (repo.resolveReferenceName(remoteRef)).getOrThrow().hash;
 
     var remoteStr = '${branch.remote}/$remoteBranchName';
     if (headHash != remoteHash) {
-      var aheadBy =
-          await repo.countTillAncestor(headHash!, remoteHash!).getOrThrow();
+      var aheadBy = repo.countTillAncestor(headHash!, remoteHash!).getOrThrow();
       if (aheadBy != -1) {
         print('Your branch is ahead of $remoteStr by $aheadBy commits');
       } else {
         var behindBy =
-            await repo.countTillAncestor(remoteHash, headHash).getOrThrow();
+            repo.countTillAncestor(remoteHash, headHash).getOrThrow();
         if (behindBy != -1) {
           print('Your branch is behind $remoteStr by $behindBy commits');
         } else {

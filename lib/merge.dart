@@ -6,17 +6,17 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Merge on GitRepository {
-  Future<Result<void>> merge({
+  Result<void> merge({
     required GitCommit theirCommit,
     required String message,
     required GitAuthor author,
     GitAuthor? committer,
-  }) async {
+  }) {
     committer ??= author;
     var commitB = theirCommit;
 
     // fetch the head commit
-    var headR = await head();
+    var headR = head();
     if (headR.isFailure) {
       return fail(headR);
     }
@@ -27,13 +27,13 @@ extension Merge on GitRepository {
       return Result.fail(ex);
     }
 
-    var headHashRefR = await resolveReference(headRef);
+    var headHashRefR = resolveReference(headRef);
     if (headHashRefR.isFailure) {
       return fail(headHashRefR);
     }
     var headHash = headHashRefR.getOrThrow().hash!;
 
-    var headCommitR = await objStorage.readCommit(headHash);
+    var headCommitR = objStorage.readCommit(headHash);
     if (headCommitR.isFailure) {
       return fail(headCommitR);
     }
@@ -44,7 +44,7 @@ extension Merge on GitRepository {
       return Result(null);
     }
 
-    var baseR = await mergeBase(headCommit, commitB);
+    var baseR = mergeBase(headCommit, commitB);
     if (baseR.isFailure) {
       return fail(baseR);
     }
@@ -67,12 +67,12 @@ extension Merge on GitRepository {
       assert(branchNameRef.isBranch());
 
       var newRef = Reference.hash(branchNameRef, commitB.hash);
-      var saveRefResult = await refStorage.saveRef(newRef);
+      var saveRefResult = refStorage.saveRef(newRef);
       if (saveRefResult.isFailure) {
         return fail(saveRefResult);
       }
 
-      var res = await checkout('.');
+      var res = checkout('.');
       if (res.isFailure) {
         return fail(res);
       }
@@ -80,8 +80,8 @@ extension Merge on GitRepository {
       return Result(null);
     }
 
-    var headTree = await objStorage.readTree(headCommit.treeHash).getOrThrow();
-    var bTree = await objStorage.readTree(commitB.treeHash).getOrThrow();
+    var headTree = objStorage.readTree(headCommit.treeHash).getOrThrow();
+    var bTree = objStorage.readTree(commitB.treeHash).getOrThrow();
 
     // TODO: Implement merge options -
     // - normal
@@ -93,14 +93,13 @@ extension Merge on GitRepository {
       committer: committer,
       parents: parents,
       message: message,
-      treeHash: await _combineTrees(headTree, bTree).getOrThrow(),
+      treeHash: _combineTrees(headTree, bTree).getOrThrow(),
     );
-    var hashR = await objStorage.writeObject(commit);
+    var hashR = objStorage.writeObject(commit);
     if (hashR.isFailure) {
       return fail(hashR);
     }
     var mergeCommitHash = hashR.getOrThrow();
-    print(mergeCommitHash);
     return resetHard(mergeCommitHash);
 
     // - unborn ?
@@ -110,7 +109,7 @@ extension Merge on GitRepository {
   }
 
   /// throws exceptions
-  Future<Result<GitHash>> _combineTrees(GitTree a, GitTree b) async {
+  Result<GitHash> _combineTrees(GitTree a, GitTree b) {
     // Get all the paths
     var names = a.entries.map((e) => e.name).toSet();
     names.addAll(b.entries.map((e) => e.name));
@@ -135,10 +134,10 @@ extension Merge on GitRepository {
         var bEntry = b.entries[bIndex];
 
         if (aEntry.mode == GitFileMode.Dir && bEntry.mode == GitFileMode.Dir) {
-          var aEntryTree = await objStorage.readTree(aEntry.hash).getOrThrow();
-          var bEntryTree = await objStorage.readTree(bEntry.hash).getOrThrow();
+          var aEntryTree = objStorage.readTree(aEntry.hash).getOrThrow();
+          var bEntryTree = objStorage.readTree(bEntry.hash).getOrThrow();
 
-          var newTreeHash = await _combineTrees(
+          var newTreeHash = _combineTrees(
             aEntryTree,
             bEntryTree,
           ).getOrThrow();
@@ -169,13 +168,13 @@ extension Merge on GitRepository {
   }
 
   // Convenience method
-  Future<Result<void>> mergeCurrentTrackingBranch({
+  Result<void> mergeCurrentTrackingBranch({
     required GitAuthor author,
   }) =>
-      catchAll(() => _mergeTrackingBranch(author: author));
+      catchAllSync(() => _mergeTrackingBranch(author: author));
 
-  Future<Result<void>> _mergeTrackingBranch({required GitAuthor author}) async {
-    var branch = await currentBranch().getOrThrow();
+  Result<void> _mergeTrackingBranch({required GitAuthor author}) {
+    var branch = currentBranch().getOrThrow();
     var branchConfig = config.branch(branch);
     if (branchConfig == null) {
       throw Exception("Branch '$branch' not in config");
@@ -184,14 +183,14 @@ extension Merge on GitRepository {
     if (branchConfig.trackingBranch() == null) {
       throw Exception("Branch '$branch' has no tracking branch");
     }
-    var remoteBranchRef = await remoteBranch(
+    var remoteBranchRef = remoteBranch(
       branchConfig.remote!,
       branchConfig.trackingBranch()!,
     ).getOrThrow();
 
     var hash = remoteBranchRef.hash!;
-    var commit = await objStorage.readCommit(hash).getOrThrow();
-    await merge(
+    var commit = objStorage.readCommit(hash).getOrThrow();
+    merge(
       theirCommit: commit,
       author: author,
       message: 'Merge ${branchConfig.remoteTrackingBranch()}',

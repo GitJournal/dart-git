@@ -39,9 +39,9 @@ void main() {
     gitDir = await openFixture(
         'test/data/git-7a725350b88b05ca03541b59dd0649fda7f521f2.tgz');
 
-    var repo = await GitRepository.load(gitDir).getOrThrow();
+    var repo = GitRepository.load(gitDir).getOrThrow();
     objStorage = repo.objStorage;
-    headHash = await repo.headHash().getOrThrow();
+    headHash = repo.headHash().getOrThrow();
   });
 
   /// We should get all commits from the history but,
@@ -63,7 +63,7 @@ void main() {
       'b8e471f58bcbca63b07bda20e428190409c2db47',
     ];
 
-    expect(await iter.asHashStrings(), expected);
+    expect(iter.asHashStrings(), expected);
   });
 
   test('Filter All But One', () async {
@@ -78,7 +78,7 @@ void main() {
       '35e85108805c84807bc66a02d91535e1e24b38b9',
     ];
 
-    expect(await iter.asHashStrings(), expected);
+    expect(iter.asHashStrings(), expected);
   });
 
   test('Filter All', () async {
@@ -88,7 +88,7 @@ void main() {
       isValid: (commit) => commit.hash == GitHash.zero(),
     );
 
-    expect(await iter.asHashStrings(), []);
+    expect(iter.asHashStrings(), []);
   });
 
   test('isLimit', () async {
@@ -109,7 +109,7 @@ void main() {
       'b029517f6300c2da0f4b651b8642506cd6aaf45d',
     ];
 
-    expect(await iter.asHashStrings(), expected);
+    expect(iter.asHashStrings(), expected);
   });
 
   test('isValid and isLimit', () async {
@@ -131,6 +131,6 @@ void main() {
       'b029517f6300c2da0f4b651b8642506cd6aaf45d',
     ];
 
-    expect(await iter.asHashStrings(), expected);
+    expect(iter.asHashStrings(), expected);
   });
 }

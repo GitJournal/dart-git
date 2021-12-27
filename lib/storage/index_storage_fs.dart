@@ -12,23 +12,24 @@ class IndexStorageFS implements IndexStorage {
   IndexStorageFS(this._gitDir, this._fs);
 
   @override
-  Future<Result<GitIndex>> readIndex() async {
+  Result<GitIndex> readIndex() {
     var file = _fs.file(p.join(_gitDir, 'index'));
     if (!file.existsSync()) {
       var index = GitIndex(versionNo: 2);
       return Result(index);
     }
 
-    var index = GitIndex.decode(await file.readAsBytes());
+    var index = GitIndex.decode(file.readAsBytesSync());
     return Result(index);
   }
 
   @override
-  Future<Result<void>> writeIndex(GitIndex index) async {
+  Result<void> writeIndex(GitIndex index) {
     var path = p.join(_gitDir, 'index.new');
     var file = _fs.file(path);
-    var _ = await file.writeAsBytes(index.serialize());
-    var __ = await file.rename(p.join(_gitDir, 'index'));
+
+    file.writeAsBytesSync(index.serialize());
+    var _ = file.renameSync(p.join(_gitDir, 'index'));
 
     return Result(null);
   }

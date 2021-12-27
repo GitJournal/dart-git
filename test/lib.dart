@@ -218,7 +218,7 @@ Future<List<String>> runDartGitCommand(
     Directory.current = workingDir;
     // FIXME: There could be a space inside quotes
     try {
-      var _ = await git.mainWithExitCode(command.split(' '));
+      var _ = git.mainWithExitCode(command.split(' '));
     } catch (e) {
       printLog = ['$e'];
     }
@@ -284,10 +284,10 @@ Future<String> cloneGittedFixture(String fixtureName, String newDirPath) async {
   return newDirPath;
 }
 
-extension GitStream on Stream<Result<GitCommit>> {
-  Future<List<String>> asHashStrings() async {
+extension GitIterable on Iterable<Result<GitCommit>> {
+  List<String> asHashStrings() {
     var list = <String>[];
-    await for (var commitR in this) {
+    for (var commitR in this) {
       var commit = commitR.getOrThrow();
       var hash = commit.hash.toString();
       list.add(hash);

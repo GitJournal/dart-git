@@ -12,23 +12,23 @@ class RmCommand extends Command {
   final description = 'Remove files from the working tree and from the index';
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var filePath = argResults!.arguments[0];
-    var index = await repo.indexStorage.readIndex().getOrThrow();
+    var index = repo.indexStorage.readIndex().getOrThrow();
 
     // FIXME: Use rm method, do we ever need to read the index?
-    var hashR = await repo.rmFileFromIndex(index, filePath);
+    var hashR = repo.rmFileFromIndex(index, filePath);
     if (hashR.isFailure) {
       print("fatal: pathspec '$filePath' did not match any files");
       return;
     }
     if (File(filePath).existsSync()) {
-      var _ = await File(filePath).delete(recursive: true);
+      File(filePath).deleteSync(recursive: true);
     }
-    await repo.indexStorage.writeIndex(index).throwOnError();
+    repo.indexStorage.writeIndex(index).throwOnError();
 
     print("rm '${repo.toPathSpec(filePath)}'");
 

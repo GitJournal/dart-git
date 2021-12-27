@@ -8,10 +8,10 @@ import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 
 extension Index on GitRepository {
-  Future<Result<void>> add(String pathSpec) async {
+  Result<void> add(String pathSpec) {
     pathSpec = normalizePath(pathSpec);
 
-    var indexR = await indexStorage.readIndex();
+    var indexR = indexStorage.readIndex();
     if (indexR.isFailure) {
       return fail(indexR);
     }
@@ -19,12 +19,12 @@ extension Index on GitRepository {
 
     var stat = fs.statSync(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
-      var result = await addFileToIndex(index, pathSpec);
+      var result = addFileToIndex(index, pathSpec);
       if (result.isFailure) {
         return fail(result);
       }
     } else if (stat.type == FileSystemEntityType.directory) {
-      var result = await addDirectoryToIndex(index, pathSpec, recursive: true);
+      var result = addDirectoryToIndex(index, pathSpec, recursive: true);
       if (result.isFailure) {
         return fail(result);
       }
@@ -36,10 +36,10 @@ extension Index on GitRepository {
     return indexStorage.writeIndex(index);
   }
 
-  Future<Result<GitIndexEntry>> addFileToIndex(
+  Result<GitIndexEntry> addFileToIndex(
     GitIndex index,
     String filePath,
-  ) async {
+  ) {
     filePath = normalizePath(filePath);
 
     var file = fs.file(filePath);
@@ -49,9 +49,9 @@ extension Index on GitRepository {
     }
 
     // Save that file as a blob
-    var data = await file.readAsBytes();
+    var data = file.readAsBytesSync();
     var blob = GitBlob(data, null);
-    var hashR = await objStorage.writeObject(blob);
+    var hashR = objStorage.writeObject(blob);
     if (hashR.isFailure) {
       return fail(hashR);
     }
@@ -64,7 +64,7 @@ extension Index on GitRepository {
 
     // Add it to the index
     var entry = index.entries.firstWhereOrNull((e) => e.path == pathSpec);
-    var stat = await FileStat.stat(filePath);
+    var stat = FileStat.statSync(filePath);
 
     // Existing file
     if (entry != null) {
@@ -83,16 +83,16 @@ extension Index on GitRepository {
     return Result(entry);
   }
 
-  Future<Result<void>> addDirectoryToIndex(
+  Result<void> addDirectoryToIndex(
     GitIndex index,
     String dirPath, {
     bool recursive = false,
-  }) async {
+  }) {
     dirPath = normalizePath(dirPath);
 
     var dir = fs.directory(dirPath);
-    await for (var fsEntity
-        in dir.list(recursive: recursive, followLinks: false)) {
+    for (var fsEntity
+        in dir.listSync(recursive: recursive, followLinks: false)) {
       if (fsEntity.path.startsWith(gitDir)) {
         continue;
       }
@@ -101,7 +101,7 @@ extension Index on GitRepository {
         continue;
       }
 
-      var r = await addFileToIndex(index, fsEntity.path);
+      var r = addFileToIndex(index, fsEntity.path);
       if (r.isFailure) {
         return fail(r);
       }
@@ -110,10 +110,10 @@ extension Index on GitRepository {
     return Result(null);
   }
 
-  Future<Result<void>> rm(String pathSpec, {bool rmFromFs = true}) async {
+  Result<void> rm(String pathSpec, {bool rmFromFs = true}) {
     pathSpec = normalizePath(pathSpec);
 
-    var indexR = await indexStorage.readIndex();
+    var indexR = indexStorage.readIndex();
     if (indexR.isFailure) {
       return fail(indexR);
     }
@@ -121,20 +121,20 @@ extension Index on GitRepository {
 
     var stat = fs.statSync(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
-      var r = await rmFileFromIndex(index, pathSpec);
+      var r = rmFileFromIndex(index, pathSpec);
       if (r.isFailure) {
         return fail(r);
       }
       if (rmFromFs) {
-        var _ = await fs.file(pathSpec).delete();
+        fs.file(pathSpec).deleteSync();
       }
     } else if (stat.type == FileSystemEntityType.directory) {
-      var r = await rmDirectoryFromIndex(index, pathSpec, recursive: true);
+      var r = rmDirectoryFromIndex(index, pathSpec, recursive: true);
       if (r.isFailure) {
         return fail(r);
       }
       if (rmFromFs) {
-        var _ = await fs.directory(pathSpec).delete(recursive: true);
+        fs.directory(pathSpec).deleteSync(recursive: true);
       }
     } else {
       var ex = InvalidFileType(pathSpec);
@@ -144,10 +144,10 @@ extension Index on GitRepository {
     return indexStorage.writeIndex(index);
   }
 
-  Future<Result<GitHash>> rmFileFromIndex(
+  Result<GitHash> rmFileFromIndex(
     GitIndex index,
     String filePath,
-  ) async {
+  ) {
     var pathSpec = toPathSpec(normalizePath(filePath));
     var hash = index.removePath(pathSpec);
     if (hash == null) {
@@ -157,15 +157,15 @@ extension Index on GitRepository {
     return Result(hash);
   }
 
-  Future<Result<void>> rmDirectoryFromIndex(
+  Result<void> rmDirectoryFromIndex(
     GitIndex index,
     String dirPath, {
     bool recursive = false,
-  }) async {
+  }) {
     dirPath = normalizePath(dirPath);
 
     var dir = fs.directory(dirPath);
-    await for (var fsEntity in dir.list(
+    for (var fsEntity in dir.listSync(
       recursive: recursive,
       followLinks: false,
     )) {
@@ -177,7 +177,7 @@ extension Index on GitRepository {
         continue;
       }
 
-      var r = await rmFileFromIndex(index, fsEntity.path);
+      var r = rmFileFromIndex(index, fsEntity.path);
       if (r.isFailure) {
         return fail(r);
       }

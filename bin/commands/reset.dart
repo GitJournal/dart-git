@@ -17,9 +17,9 @@ class ResetCommand extends Command {
   }
 
   @override
-  Future run() async {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     print(argResults!.rest);
 
@@ -29,15 +29,17 @@ class ResetCommand extends Command {
       return 1;
     }
 
-    var headCommit = await repo.headCommit().getOrThrow();
+    var headCommit = repo.headCommit().getOrThrow();
     assert(headCommit.parents.length == 1);
     var targetHash = arg == 'HEAD^' ? headCommit.parents[0] : GitHash(arg);
 
     var hard = argResults!['hard'] as bool;
     if (hard) {
       // do it
-      await repo.resetHard(targetHash).throwOnError();
+      repo.resetHard(targetHash).throwOnError();
       print('HEAD is now at $targetHash');
     }
+
+    return 0;
   }
 }

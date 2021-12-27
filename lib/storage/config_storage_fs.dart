@@ -14,8 +14,8 @@ class ConfigStorageFS implements ConfigStorage {
   String get _path => p.join(_gitDir, 'config');
 
   @override
-  Future<Result<Config>> readConfig() async {
-    var contents = await _fs.file(_path).readAsString();
+  Result<Config> readConfig() {
+    var contents = _fs.file(_path).readAsStringSync();
     var config = Config(contents);
 
     return Result(config);
@@ -28,9 +28,9 @@ class ConfigStorageFS implements ConfigStorage {
   }
 
   @override
-  Future<Result<void>> writeConfig(Config config) async {
+  Result<void> writeConfig(Config config) {
     // FIXME: Write to another file and then move it!!
-    var _ = await _fs.file(_path).writeAsString(config.serialize());
+    var _ = _fs.file(_path).writeAsString(config.serialize());
     return Result(null);
   }
 }

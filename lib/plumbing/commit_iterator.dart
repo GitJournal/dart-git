@@ -7,10 +7,10 @@ import 'package:dart_git/utils/result.dart';
 
 // FIXME: How to deal with missing objects?
 
-Stream<Result<GitCommit>> commitIteratorBFS({
+Iterable<Result<GitCommit>> commitIteratorBFS({
   required ObjectStorage objStorage,
   required GitHash from,
-}) async* {
+}) sync* {
   var queue = Queue<GitHash>.from([from]);
   var seen = <GitHash>{};
 
@@ -21,7 +21,7 @@ Stream<Result<GitCommit>> commitIteratorBFS({
     }
     var _ = seen.add(hash);
 
-    var result = await objStorage.readCommit(hash);
+    var result = objStorage.readCommit(hash);
     if (result.isFailure) {
       yield fail(result);
       continue;
@@ -40,13 +40,13 @@ final _allCommitsValidFilter = (GitCommit _) => true;
 final _allCommitsNotValidFilter = (GitCommit _) => false;
 final _doNotSkip = (GitHash _) => false;
 
-Stream<Result<GitCommit>> commitIteratorBFSFiltered({
+Iterable<Result<GitCommit>> commitIteratorBFSFiltered({
   required ObjectStorage objStorage,
   required GitHash from,
   CommitFilter? isValid,
   CommitFilter? isLimit,
   CommitHashFilter? skipCommitHash,
-}) async* {
+}) sync* {
   isValid ??= _allCommitsValidFilter;
   isLimit ??= _allCommitsNotValidFilter;
   skipCommitHash ??= _doNotSkip;
@@ -61,7 +61,7 @@ Stream<Result<GitCommit>> commitIteratorBFSFiltered({
     }
     var _ = seen.add(hash);
 
-    var result = await objStorage.readCommit(hash);
+    var result = objStorage.readCommit(hash);
     if (result.isFailure) {
       yield fail(result);
       continue;
@@ -77,10 +77,10 @@ Stream<Result<GitCommit>> commitIteratorBFSFiltered({
   }
 }
 
-Stream<Result<GitCommit>> commitPreOrderIterator({
+Iterable<Result<GitCommit>> commitPreOrderIterator({
   required ObjectStorage objStorage,
   required GitHash from,
-}) async* {
+}) sync* {
   var stack = List<GitHash>.from([from]);
   var seen = <GitHash>{};
 
@@ -91,7 +91,7 @@ Stream<Result<GitCommit>> commitPreOrderIterator({
     }
     var _ = seen.add(hash);
 
-    var result = await objStorage.readCommit(hash);
+    var result = objStorage.readCommit(hash);
     if (result.isFailure) {
       yield fail(result);
       continue;

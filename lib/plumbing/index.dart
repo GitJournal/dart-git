@@ -208,24 +208,24 @@ class GitIndex {
 
   static final _listEq = const ListEquality().equals;
 
-  Future<void> addPath(String path, GitHash hash) async {
+  void addPath(String path, GitHash hash) {
     // FIXME: Do not use FS operations over here!
-    var stat = await FileStat.stat(path);
+    var stat = FileStat.statSync(path);
     var entry = GitIndexEntry.fromFS(path, stat, hash);
     entries.add(entry);
   }
 
-  Future<void> updatePath(String path, GitHash hash) async {
+  void updatePath(String path, GitHash hash) {
     var entry = entries.firstWhereOrNull((e) => e.path == path);
     if (entry == null) {
       // FIXME: Do not use FS operations over here!
-      var stat = await FileStat.stat(path);
+      var stat = FileStat.statSync(path);
       var entry = GitIndexEntry.fromFS(path, stat, hash);
       entries.add(entry);
       return;
     }
 
-    var stat = await FileStat.stat(path);
+    var stat = FileStat.statSync(path);
 
     // Existing file
     entry.hash = hash;

@@ -20,9 +20,9 @@ class BranchCommand extends Command {
   }
 
   @override
-  Future run() async {
+  void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = await GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var showAll = argResults!['all'] as bool?;
     var delete = argResults!['delete'] as bool?;
@@ -30,7 +30,7 @@ class BranchCommand extends Command {
     var hasNoArgs = argResults!['set-upstream-to'] == null && delete == false;
     if (hasNoArgs) {
       if (argResults!.rest.isEmpty) {
-        var headResult = await repo.head();
+        var headResult = repo.head();
         if (headResult.isFailure) {
           print('fatal: no head');
           return;
@@ -41,7 +41,7 @@ class BranchCommand extends Command {
           print('* (HEAD detached at ${head.hash!.toOid()})');
         }
 
-        var branches = await repo.branches().getOrThrow();
+        var branches = repo.branches().getOrThrow();
         branches.sort();
 
         for (var branch in branches) {
@@ -54,7 +54,7 @@ class BranchCommand extends Command {
 
         if (showAll!) {
           for (var remote in repo.config.remotes) {
-            var refs = await repo.remoteBranches(remote.name).getOrThrow();
+            var refs = repo.remoteBranches(remote.name).getOrThrow();
             refs.sort((a, b) {
               return a.name.branchName()!.compareTo(b.name.branchName()!);
             });
@@ -79,7 +79,7 @@ class BranchCommand extends Command {
 
         if (rest.length == 1) {
           var name = argResults!.rest.first;
-          var hashR = await repo.createBranch(name);
+          var hashR = repo.createBranch(name);
           if (hashR.isFailure) {
             print("fatal: A branch named '$name' already exists.");
           }
@@ -90,7 +90,7 @@ class BranchCommand extends Command {
           var branchName = rest.first;
 
           var refName = ReferenceName.remote(remoteName, remoteBranchName);
-          var refResult = await repo.resolveReferenceName(refName);
+          var refResult = repo.resolveReferenceName(refName);
           if (refResult.isFailure) {
             print('fatal');
             return;
@@ -98,10 +98,10 @@ class BranchCommand extends Command {
 
           var ref = refResult.getOrThrow();
           assert(ref.isHash);
-          await repo.createBranch(branchName, hash: ref.hash).throwOnError();
+          repo.createBranch(branchName, hash: ref.hash).throwOnError();
 
           var remote = repo.config.remote(remoteName)!;
-          await repo
+          repo
               .setBranchUpstreamTo(branchName, remote, remoteBranchName)
               .throwOnError();
 
@@ -118,7 +118,7 @@ class BranchCommand extends Command {
         return;
       }
       var branchName = argResults!.rest.first;
-      var hashR = await repo.deleteBranch(branchName);
+      var hashR = repo.deleteBranch(branchName);
       if (hashR.isFailure) {
         print("error: branch '$branchName' not found.");
         return;
@@ -144,8 +144,7 @@ class BranchCommand extends Command {
       return;
     }
 
-    var localBranch =
-        await repo.setUpstreamTo(remote, remoteBranchName).getOrThrow();
+    var localBranch = repo.setUpstreamTo(remote, remoteBranchName).getOrThrow();
 
     print(
         "Branch '${localBranch.name}' set up to track remote branch '$remoteBranchName' from '$remoteName'.");

@@ -9,22 +9,21 @@ class ReferenceStorageExceptionCatcher implements ReferenceStorage {
       : _ = storage;
 
   @override
-  Future<Result<Reference>> reference(ReferenceName refName) =>
-      catchAll(() => _.reference(refName));
+  Result<Reference> reference(ReferenceName refName) =>
+      catchAllSync(() => _.reference(refName));
 
   @override
-  Future<Result<List<Reference>>> listReferences(String prefix) =>
-      catchAll(() => _.listReferences(prefix));
+  Result<List<Reference>> listReferences(String prefix) =>
+      catchAllSync(() => _.listReferences(prefix));
 
   @override
-  Future<Result<void>> saveRef(Reference ref) async =>
-      catchAll(() => _.saveRef(ref));
+  Result<void> saveRef(Reference ref) => catchAllSync(() => _.saveRef(ref));
 
   @override
-  Future<Result<void>> removeReferences(String prefix) =>
-      catchAll(() => _.removeReferences(prefix));
+  Result<void> removeReferences(String prefix) =>
+      catchAllSync(() => _.removeReferences(prefix));
 
   @override
-  Future<Result<void>> deleteReference(ReferenceName refName) =>
-      catchAll(() => _.deleteReference(refName));
+  Result<void> deleteReference(ReferenceName refName) =>
+      catchAllSync(() => _.deleteReference(refName));
 }

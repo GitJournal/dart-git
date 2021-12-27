@@ -14,53 +14,52 @@ import 'package:dart_git/utils/file_extensions.dart'
 
 extension Checkout on GitRepository {
   /// This doesn't delete files
-  Future<Result<int>> checkout(String path) => catchAll(() => _checkout(path));
+  Result<int> checkout(String path) => catchAllSync(() => _checkout(path));
 
-  Future<Result<int>> _checkout(String path) async {
+  Result<int> _checkout(String path) {
     path = normalizePath(path);
 
-    var tree = await headTree().getOrThrow();
+    var tree = headTree().getOrThrow();
     var spec = path.substring(workTree.length);
     if (spec.isEmpty) {
       var index = GitIndex(versionNo: 2);
-      var numFiles = await _checkoutTree(spec, tree, index).getOrThrow();
-      await indexStorage.writeIndex(index).throwOnError();
+      var numFiles = _checkoutTree(spec, tree, index).getOrThrow();
+      indexStorage.writeIndex(index).throwOnError();
 
       return Result(numFiles);
     }
 
-    var treeEntry = await objStorage.refSpec(tree, spec).getOrThrow();
-    var obj = await objStorage.read(treeEntry.hash).getOrThrow();
+    var treeEntry = objStorage.refSpec(tree, spec).getOrThrow();
+    var obj = objStorage.read(treeEntry.hash).getOrThrow();
 
     if (obj is GitBlob) {
-      var _ = await fs.directory(p.dirname(path)).create(recursive: true);
-      var __ = await fs.file(path).writeAsBytes(obj.blobData);
-      await fs.file(path).chmod(treeEntry.mode.val);
+      fs.directory(p.dirname(path)).createSync(recursive: true);
+      fs.file(path).writeAsBytesSync(obj.blobData);
+      fs.file(path).chmodSync(treeEntry.mode.val);
 
       return Result(1);
     }
 
     var index = GitIndex(versionNo: 2);
-    var numFiles =
-        await _checkoutTree(spec, obj as GitTree, index).getOrThrow();
-    await indexStorage.writeIndex(index).throwOnError();
+    var numFiles = _checkoutTree(spec, obj as GitTree, index).getOrThrow();
+    indexStorage.writeIndex(index).throwOnError();
 
     return Result(numFiles);
   }
 
-  Future<Result<int>> _checkoutTree(
+  Result<int> _checkoutTree(
     String relativePath,
     GitTree tree,
     GitIndex index,
-  ) async {
+  ) {
     assert(!relativePath.startsWith(p.separator));
 
     var dir = fs.directory(p.join(workTree, relativePath));
-    var _ = await dir.create(recursive: true);
+    dir.createSync(recursive: true);
 
     var updated = 0;
     for (var leaf in tree.entries) {
-      var objR = await objStorage.read(leaf.hash);
+      var objR = objStorage.read(leaf.hash);
       if (objR.isFailure) {
         return fail(objR);
       }
@@ -68,7 +67,7 @@ extension Checkout on GitRepository {
 
       var leafRelativePath = p.join(relativePath, leaf.name);
       if (obj is GitTree) {
-        var res = await _checkoutTree(leafRelativePath, obj, index);
+        var res = _checkoutTree(leafRelativePath, obj, index);
         if (res.isFailure) {
           return fail(res);
         }
@@ -81,11 +80,11 @@ extension Checkout on GitRepository {
       var blob = obj as GitBlob;
       var blobPath = p.join(workTree, leafRelativePath);
 
-      var _ = await fs.directory(p.dirname(blobPath)).create(recursive: true);
-      var __ = await fs.file(blobPath).writeAsBytes(blob.blobData);
-      await fs.file(blobPath).chmod(leaf.mode.val);
+      fs.directory(p.dirname(blobPath)).createSync(recursive: true);
+      fs.file(blobPath).writeAsBytesSync(blob.blobData);
+      fs.file(blobPath).chmodSync(leaf.mode.val);
 
-      var res = await addFileToIndex(index, blobPath);
+      var res = addFileToIndex(index, blobPath);
       if (res.isFailure) {
         return fail(res);
       }
@@ -95,94 +94,91 @@ extension Checkout on GitRepository {
     return Result(updated);
   }
 
-  Future<Result<Reference>> checkoutBranch(String branchName) async =>
-      catchAll(() => _checkoutBranch(branchName));
+  Result<Reference> checkoutBranch(String branchName) =>
+      catchAllSync(() => _checkoutBranch(branchName));
 
-  Future<Result<Reference>> _checkoutBranch(String branchName) async {
-    var ref = await refStorage
-        .reference(ReferenceName.branch(branchName))
-        .getOrThrow();
+  Result<Reference> _checkoutBranch(String branchName) {
+    var ref =
+        refStorage.reference(ReferenceName.branch(branchName)).getOrThrow();
     assert(ref.isHash);
 
-    var headCommitR = await headCommit();
+    var headCommitR = headCommit();
     if (headCommitR.isFailure) {
       if (headCommitR.error is! GitRefNotFound) {
         return fail(headCommitR);
       }
 
-      var commit = await objStorage.readCommit(ref.hash!).getOrThrow();
-      var treeObj = await objStorage.readTree(commit.treeHash).getOrThrow();
+      var commit = objStorage.readCommit(ref.hash!).getOrThrow();
+      var treeObj = objStorage.readTree(commit.treeHash).getOrThrow();
 
       var index = GitIndex(versionNo: 2);
-      await _checkoutTree('', treeObj, index).throwOnError();
-      await indexStorage.writeIndex(index).throwOnError();
+      _checkoutTree('', treeObj, index).throwOnError();
+      indexStorage.writeIndex(index).throwOnError();
 
       // Set HEAD to to it
       var branchRef = ReferenceName.branch(branchName);
       var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
-      await refStorage.saveRef(headRef).throwOnError();
+      refStorage.saveRef(headRef).throwOnError();
 
       return Result(ref);
     }
     var _headCommit = headCommitR.getOrThrow();
 
-    var branchCommit = await objStorage.readCommit(ref.hash!).getOrThrow();
+    var branchCommit = objStorage.readCommit(ref.hash!).getOrThrow();
 
-    var blobChanges = await diffCommits(
+    var blobChanges = diffCommits(
       fromCommit: _headCommit,
       toCommit: branchCommit,
       objStore: objStorage,
     ).getOrThrow();
-    var index = await indexStorage.readIndex().getOrThrow();
+    var index = indexStorage.readIndex().getOrThrow();
 
     for (var change in blobChanges.merged()) {
       if (change.add || change.modify) {
         var to = change.to!;
-        var blobObj = await objStorage.readBlob(to.hash).getOrThrow();
+        var blobObj = objStorage.readBlob(to.hash).getOrThrow();
 
-        var _ = await fs
+        var _ = fs
             .directory(p.join(workTree, p.dirname(to.path)))
-            .create(recursive: true);
+            .createSync(recursive: true);
 
         var filePath = p.join(workTree, to.path);
-        var __ = await fs.file(filePath).writeAsBytes(blobObj.blobData);
-        await fs.file(filePath).chmod(change.to!.mode.val);
+        fs.file(filePath).writeAsBytesSync(blobObj.blobData);
+        fs.file(filePath).chmodSync(change.to!.mode.val);
 
-        await index.updatePath(to.path, to.hash);
+        index.updatePath(to.path, to.hash);
       } else if (change.delete) {
         var from = change.from!;
 
-        var _ =
-            await fs.file(p.join(workTree, from.path)).delete(recursive: true);
-        var __ = index.removePath(from.path);
-        await deleteEmptyDirectories(fs, workTree, from.path);
+        fs.file(p.join(workTree, from.path)).deleteSync(recursive: true);
+        var _ = index.removePath(from.path);
+        deleteEmptyDirectories(fs, workTree, from.path);
       }
     }
 
-    await indexStorage.writeIndex(index).throwOnError();
+    indexStorage.writeIndex(index).throwOnError();
 
     // Set HEAD to to it
     var branchRef = ReferenceName.branch(branchName);
     var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
-    await refStorage.saveRef(headRef).throwOnError();
+    refStorage.saveRef(headRef).throwOnError();
 
     return Result(ref);
   }
 }
 
-Future<void> deleteEmptyDirectories(
-    FileSystem fs, String workTree, String path) async {
+void deleteEmptyDirectories(FileSystem fs, String workTree, String path) {
   while (path != '.') {
     var dirPath = p.join(workTree, p.dirname(path));
     var dir = fs.directory(dirPath);
 
     var isEmpty = true;
-    await for (var _ in dir.list()) {
+    for (var _ in dir.listSync()) {
       isEmpty = false;
       break;
     }
     if (isEmpty) {
-      var _ = await dir.delete();
+      var _ = dir.deleteSync();
     }
 
     path = p.dirname(path);

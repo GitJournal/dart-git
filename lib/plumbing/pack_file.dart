@@ -68,17 +68,25 @@ class PackFile {
     );
   }
 
+  GitObject? object(GitHash hash) {
+    var obj = _objectByHash(hash);
+    if (obj == null) return null;
+
+    return createObject(ObjectTypes.getTypeString(obj.type), obj.data)
+        .getOrThrow();
+  }
+
   // FIXME: Check the packFile hash from the idx?
   // FIXME: Verify that the crc32 is correct?
 
-  GitObject? object(GitHash hash) {
+  RawObject? _objectByHash(GitHash hash) {
     var entry = idx.entry(hash);
     if (entry == null) return null;
 
-    return _getObject(entry.offset);
+    return _objectByOffset(entry.offset);
   }
 
-  GitObject? _getObject(int offset) {
+  RawObject? _objectByOffset(int offset) {
     var file = fs.file(filePath).openSync(mode: FileMode.read);
     file.setPositionSync(offset);
 
@@ -128,8 +136,7 @@ class PackFile {
     var rawObjData = _decodeObject(file, objHeader.size);
     file.closeSync();
 
-    var typeStr = ObjectTypes.getTypeString(objHeader.type);
-    return createObject(typeStr, rawObjData).getOrThrow();
+    return RawObject(data: rawObjData, type: objHeader.type);
   }
 
   Uint8List _decodeObject(RandomAccessFile file, int objSize) {
@@ -155,26 +162,23 @@ class PackFile {
     return outputSink.builder.takeBytes();
   }
 
-  GitObject? _fillOFSDeltaObject(int baseOffset, Uint8List deltaData) {
-    var baseObject = _getObject(baseOffset);
+  RawObject? _fillOFSDeltaObject(int baseOffset, Uint8List deltaData) {
+    var baseObject = _objectByOffset(baseOffset);
     if (baseObject == null) {
       return null;
     }
-    var deltaObj = patchDelta(baseObject.serializeData(), deltaData);
 
-    return createObject(ascii.decode(baseObject.format()), deltaObj)
-        .getOrThrow();
+    var deltaObj = patchDelta(baseObject.data, deltaData);
+    return RawObject(data: deltaObj, type: baseObject.type);
   }
 
-  GitObject? _fillRefDeltaObject(GitHash baseHash, Uint8List deltaData) {
-    var baseObject = object(baseHash);
+  RawObject? _fillRefDeltaObject(GitHash baseHash, Uint8List deltaData) {
+    var baseObject = _objectByHash(baseHash);
     if (baseObject == null) {
       return null;
     }
-    var deltaObj = patchDelta(baseObject.serializeData(), deltaData);
-
-    return createObject(ascii.decode(baseObject.format()), deltaObj)
-        .getOrThrow();
+    var deltaObj = patchDelta(baseObject.data, deltaData);
+    return RawObject(data: deltaObj, type: baseObject.type);
   }
 
   Iterable<GitObject> getAll() {
@@ -183,10 +187,15 @@ class PackFile {
     for (var i = 0; i < idx.entries.length; i++) {
       var entry = idx.entries[i];
 
-      var obj = _getObject(entry.offset);
-      if (obj == null) {
+      var rawObj = _objectByOffset(entry.offset);
+      if (rawObj == null) {
         continue;
       }
+      var obj = createObject(
+        ObjectTypes.getTypeString(rawObj.type),
+        rawObj.data,
+      ).getOrThrow();
+
       assert(obj.hash == entry.hash);
       objects.add(obj);
     }
@@ -200,7 +209,12 @@ class PackFile {
   //
 }
 
-// class PackedObject?
+class RawObject {
+  final Uint8List data;
+  final int type;
+
+  RawObject({required this.data, required this.type});
+}
 
 class PackObjectHeader {
   final int size;

@@ -19,7 +19,7 @@ class GitHash {
     if (bytes.length != 20) {
       throw Exception('Hash size must be 20');
     }
-    _bytes = Uint8List.fromList(bytes);
+    _bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
   }
 
   GitHash(String sha) {
@@ -84,7 +84,9 @@ class GitHash {
   @override
   bool operator ==(Object other) {
     if (other is! GitHash) return false;
-    if (_bytes.isEmpty && other._bytes.isNotEmpty) {
+    if (_bytes.isEmpty && other._bytes.isEmpty) {
+      return true;
+    } else if (_bytes.isEmpty && other._bytes.isNotEmpty) {
       return other._bytes.every((e) => e == 0);
     } else if (_bytes.isNotEmpty && other._bytes.isEmpty) {
       return _bytes.every((e) => e == 0);

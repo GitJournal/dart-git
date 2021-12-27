@@ -142,21 +142,18 @@ class PackFile {
     //   -> Just use streams?
     //
 
-    var compressedData = BytesBuilder(copy: false);
-    while (true) {
-      // The number 512 is chosen since the block size is generally 512
-      // The dart zlib parser doesn't have a way to greedily keep reading
-      // till it reaches a certain size
-      var readSize = _roundUp(objSize, 512);
-      compressedData.add(await file.read(readSize));
+    // The number 512 is chosen since the block size is generally 512
+    // The dart zlib parser doesn't have a way to greedily keep reading
+    // till it reaches a certain size
+    var readSize = _roundUp(objSize, 512);
 
-      // FIXME: Do not run the zlib parser from scratch each time
-      var decodedData = zlib.decode(compressedData.toBytes()) as Uint8List;
+    var outputSink = _BufferSink();
+    var inputSink = zlib.decoder.startChunkedConversion(outputSink);
+    inputSink.add(await file.read(readSize));
+    inputSink.close();
 
-      if (decodedData.length == objSize) {
-        return decodedData;
-      }
-    }
+    assert(outputSink.builder.length >= objSize);
+    return outputSink.builder.takeBytes();
   }
 
   Future<GitObject?> _fillOFSDeltaObject(
@@ -223,4 +220,28 @@ class PackObjectHeader {
 int _roundUp(int numToRound, int multiple) {
   assert(multiple != 0);
   return ((numToRound + multiple - 1) ~/ multiple) * multiple;
+}
+
+// Copied from dart-sdk io
+class _BufferSink extends ByteConversionSink {
+  final BytesBuilder builder = BytesBuilder(copy: false);
+
+  @override
+  void add(List<int> chunk) {
+    builder.add(chunk);
+  }
+
+  @override
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    if (chunk is Uint8List) {
+      Uint8List list = chunk;
+      builder.add(
+          Uint8List.view(list.buffer, list.offsetInBytes + start, end - start));
+    } else {
+      builder.add(chunk.sublist(start, end));
+    }
+  }
+
+  @override
+  void close() {}
 }

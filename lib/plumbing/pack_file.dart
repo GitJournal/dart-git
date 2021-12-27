@@ -83,7 +83,7 @@ class PackFile {
     var file = await fs.file(filePath).open(mode: FileMode.read);
     var _ = await file.setPosition(offset);
 
-    var headByte = await file.readByte();
+    var headByte = file.readByteSync();
     var type = (0x70 & headByte) >> 4;
 
     var needMore = (0x80 & headByte) > 0;
@@ -94,7 +94,7 @@ class PackFile {
     var bitsToShift = 4;
 
     while (needMore) {
-      var headByte = await file.readByte();
+      var headByte = file.readByteSync();
 
       needMore = (0x80 & headByte) > 0;
       size += (headByte & 0x7f) << bitsToShift;
@@ -106,7 +106,7 @@ class PackFile {
     // Construct the PackObject
     switch (objHeader.type) {
       case ObjectTypes.OFS_DELTA:
-        var n = await file.readVariableWidthInt();
+        var n = file.readVariableWidthIntSync();
         var baseOffset = offset - n;
         var deltaData = await _decodeObject(file, objHeader.size);
 

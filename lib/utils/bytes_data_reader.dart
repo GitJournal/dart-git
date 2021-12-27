@@ -59,15 +59,13 @@ extension BytesDataReader on ByteDataReader {
 }
 
 extension RandomFileReader on RandomAccessFile {
-  Future<int> readVariableWidthInt() async {
-    var c = await readByte();
+  int readVariableWidthIntSync() {
+    var c = readByteSync();
 
     var v = c & _maskLength;
     while (c & _maskContinue > 0) {
       v++;
-
-      c = await readByte();
-
+      c = readByteSync();
       v = (v << _lengthBits) + (c & _maskLength);
     }
 

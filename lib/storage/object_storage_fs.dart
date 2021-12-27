@@ -31,7 +31,7 @@ class ObjectStorageFS implements ObjectStorage {
     var path =
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
     if (_fs.isFileSync(path)) {
-      return readObjectFromPath(path);
+      return readObjectFromPath(path, hash);
     }
 
     // Read all the index files
@@ -80,7 +80,7 @@ class ObjectStorageFS implements ObjectStorage {
   }
 
   // FIXME: This method should not be public
-  Result<GitObject> readObjectFromPath(String filePath) {
+  Result<GitObject> readObjectFromPath(String filePath, GitHash? hash) {
     // FIXME: Handle zlib and fs exceptions
     var contents = _fs.file(filePath).readAsBytesSync();
     var raw = zlib.decode(contents) as Uint8List;
@@ -109,7 +109,7 @@ class ObjectStorageFS implements ObjectStorage {
 
     var fmtStr = ascii.decode(fmt);
     var rawData = raw.sublistView(y + 1);
-    return createObject(ObjectTypes.getType(fmtStr), rawData);
+    return createObject(ObjectTypes.getType(fmtStr), rawData, hash);
   }
 
   @override

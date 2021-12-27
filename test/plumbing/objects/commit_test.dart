@@ -24,8 +24,9 @@ Also add tons of comments
     const fs = LocalFileSystem();
     var objStorage = ObjectStorageFS('', fs);
 
-    var obj =
-        objStorage.readObjectFromPath('test/data/commit-object').getOrThrow();
+    var obj = objStorage
+        .readObjectFromPath('test/data/commit-object', null)
+        .getOrThrow();
     var hash = GitHash('57bdd0dbc9868e53aead3c91714c282647265254');
 
     expect(obj is GitCommit, true);

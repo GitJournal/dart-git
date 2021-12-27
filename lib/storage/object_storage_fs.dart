@@ -74,7 +74,7 @@ class ObjectStorageFS implements ObjectStorage {
       packFilePath = packFilePath.substring(0, packFilePath.lastIndexOf('.'));
       packFilePath += '.pack';
 
-      var packFile = await PackFile.fromFile(idxFile, packFilePath, _fs);
+      var packFile = PackFile.fromFile(idxFile, packFilePath, _fs);
       _packFiles.add(packFile);
     }
   }
@@ -128,7 +128,7 @@ class ObjectStorageFS implements ObjectStorage {
     }
     var file = _fs.file(path).openSync(mode: FileMode.writeOnly);
     var __ = await file.writeFrom(zlib.encode(result));
-    await file.close();
+    file.closeSync();
 
     return Result(hash);
   }

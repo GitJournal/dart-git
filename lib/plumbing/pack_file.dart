@@ -51,14 +51,14 @@ class PackFile {
     numObjects = reader.readUint32();
   }
 
-  static Future<PackFile> fromFile(
+  static PackFile fromFile(
     IdxFile idxFile,
     String filePath,
     FileSystem fs,
-  ) async {
+  ) {
     var file = fs.file(filePath).openSync(mode: FileMode.read);
-    var bytes = await file.read(_headerSize);
-    await file.close();
+    var bytes = file.readSync(_headerSize);
+    file.closeSync();
 
     return PackFile.decode(
       idx: idxFile,
@@ -109,7 +109,7 @@ class PackFile {
         var baseOffset = offset - n;
         var deltaData = await _decodeObject(file, objHeader.size);
 
-        await file.close();
+        file.closeSync();
         return _fillOFSDeltaObject(baseOffset, deltaData);
 
       case ObjectTypes.REF_DELTA:
@@ -117,7 +117,7 @@ class PackFile {
         var hash = GitHash.fromBytes(hashBytes);
         var deltaData = await _decodeObject(file, objHeader.size);
 
-        await file.close();
+        file.closeSync();
         return _fillRefDeltaObject(hash, deltaData);
 
       default:
@@ -126,7 +126,7 @@ class PackFile {
 
     // The objHeader.size is the size of the data once expanded
     var rawObjData = await _decodeObject(file, objHeader.size);
-    await file.close();
+    file.closeSync();
 
     var typeStr = ObjectTypes.getTypeString(objHeader.type);
     return createObject(typeStr, rawObjData).getOrThrow();

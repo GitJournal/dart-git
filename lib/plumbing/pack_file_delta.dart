@@ -47,8 +47,7 @@ Uint8List patchDelta(Uint8List base, Uint8List delta) {
       if (copyLength == 0) copyLength = 0x10000;
 
       // copy the data
-      var replacement = base.getRange(baseOffset, baseOffset + copyLength);
-      _replaceRange(rv, rvOffset, replacement);
+      _replaceRange(rv, rvOffset, base, baseOffset, copyLength);
     } else if (_isCopyFromDelta(opcode)) {
       // insert instruction (copy bytes from delta buffer to target buffer)
       // amount to copy is specified by the opcode itself
@@ -57,8 +56,7 @@ Uint8List patchDelta(Uint8List base, Uint8List delta) {
       assert(offset + copyLength <= delta.length);
       assert(rvOffset + copyLength <= rv.length);
 
-      var replacement = delta.getRange(offset, offset + copyLength);
-      _replaceRange(rv, rvOffset, replacement);
+      _replaceRange(rv, rvOffset, delta, offset, copyLength);
       offset += copyLength;
     } else {
       throw Exception('Invalid delta opcode');
@@ -76,9 +74,13 @@ Uint8List patchDelta(Uint8List base, Uint8List delta) {
   return rv;
 }
 
-void _replaceRange(Uint8List list, int offset, Iterable<int> replaceIter) {
-  for (var val in replaceIter) {
-    list[offset++] = val;
+void _replaceRange(Uint8List toList, int toOffset, Uint8List fromList,
+    int fromOffset, int length) {
+  for (var i = 0; i < length; i++) {
+    toList[toOffset] = fromList[fromOffset];
+
+    toOffset++;
+    fromOffset++;
   }
 }
 

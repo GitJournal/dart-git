@@ -56,7 +56,7 @@ class PackFile {
     String filePath,
     FileSystem fs,
   ) async {
-    var file = await fs.file(filePath).open(mode: FileMode.read);
+    var file = fs.file(filePath).openSync(mode: FileMode.read);
     var bytes = await file.read(_headerSize);
     await file.close();
 
@@ -80,7 +80,7 @@ class PackFile {
   }
 
   Future<GitObject?> _getObject(int offset) async {
-    var file = await fs.file(filePath).open(mode: FileMode.read);
+    var file = fs.file(filePath).openSync(mode: FileMode.read);
     file.setPositionSync(offset);
 
     var headByte = file.readByteSync();

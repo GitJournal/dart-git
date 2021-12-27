@@ -126,7 +126,7 @@ class ObjectStorageFS implements ObjectStorage {
     if (exists) {
       return Result(hash);
     }
-    var file = await _fs.file(path).open(mode: FileMode.writeOnly);
+    var file = _fs.file(path).openSync(mode: FileMode.writeOnly);
     var __ = await file.writeFrom(zlib.encode(result));
     await file.close();
 

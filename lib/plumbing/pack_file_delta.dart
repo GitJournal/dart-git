@@ -118,7 +118,7 @@ class DeltaHeader {
 
     void _encode(int size) {
       opcodes.add(size & 0x7f);
-      size = _zeroFillRightShift(size, 7);
+      size = size >>> 7;
 
       while (size > 0) {
         opcodes[opcodes.length - 1] |= 0x80;
@@ -136,11 +136,6 @@ class DeltaHeader {
   @override
   String toString() =>
       'DeltaHeader{baseBufferSize: $baseBufferSize, targetBufferSize: $targetBufferSize, offset: $offset}';
-}
-
-// FIXME: When >>> is implemented use it - https://github.com/dart-lang/language/issues/120
-int _zeroFillRightShift(int n, int amount) {
-  return (n & 0xffffffffffffffff) >> amount;
 }
 
 // the insert instruction is just the number of bytes to copy from
@@ -178,17 +173,17 @@ List<int?> emitCopy(List<int?> opcodes, Uint8List source, int offset, int len) {
   }
 
   if (offset & 0xff00 > 0) {
-    opcodes.add(_zeroFillRightShift(offset & 0xff00, 8));
+    opcodes.add((offset & 0xff00) >>> 8);
     code |= 0x02;
   }
 
   if (offset & 0xff0000 > 0) {
-    opcodes.add(_zeroFillRightShift(offset & 0xff0000, 16));
+    opcodes.add((offset & 0xff0000) >>> 16);
     code |= 0x04;
   }
 
   if (offset & 0xff000000 > 0) {
-    opcodes.add(_zeroFillRightShift(offset & 0xff000000, 24));
+    opcodes.add((offset & 0xff000000) >>> 24);
     code |= 0x08;
   }
 
@@ -198,12 +193,12 @@ List<int?> emitCopy(List<int?> opcodes, Uint8List source, int offset, int len) {
   }
 
   if (len & 0xff00 > 0) {
-    opcodes.add(_zeroFillRightShift(len & 0xff00, 8));
+    opcodes.add((len & 0xff00) >>> 8);
     code |= 0x20;
   }
 
   if (len & 0xff0000 > 0) {
-    opcodes.add(_zeroFillRightShift(len & 0xff0000, 16));
+    opcodes.add((len & 0xff0000) >>> 16);
     code |= 0x40;
   }
 

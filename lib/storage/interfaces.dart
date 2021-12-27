@@ -9,7 +9,7 @@ export 'object_storage_extensions.dart';
 
 abstract class ConfigStorage {
   Future<Result<Config>> readConfig();
-  Future<Result<bool>> exists();
+  Result<bool> exists();
 
   Future<Result<void>> writeConfig(Config config);
 }

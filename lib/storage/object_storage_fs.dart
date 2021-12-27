@@ -30,13 +30,13 @@ class ObjectStorageFS implements ObjectStorage {
     var sha = hash.toString();
     var path =
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
-    if (await _fs.isFile(path)) {
+    if (_fs.isFileSync(path)) {
       return readObjectFromPath(path);
     }
 
     // Read all the index files
     var packDirPath = p.join(_gitDir, 'objects', 'pack');
-    var stat = await _fs.stat(packDirPath);
+    var stat = _fs.statSync(packDirPath);
     if (stat.changed != _packDirChanged || stat.modified != _packDirModified) {
       await _loadPackFiles(packDirPath);
 
@@ -59,7 +59,7 @@ class ObjectStorageFS implements ObjectStorage {
 
     var fileStream = _fs.directory(packDirPath).list(followLinks: false);
     await for (var fsEntity in fileStream) {
-      var st = await fsEntity.stat();
+      var st = fsEntity.statSync();
       if (st.type != FileSystemEntityType.file) {
         continue;
       }
@@ -122,7 +122,7 @@ class ObjectStorageFS implements ObjectStorage {
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
     var _ = await _fs.directory(p.dirname(path)).create(recursive: true);
 
-    var exists = await _fs.isFile(path);
+    var exists = _fs.isFileSync(path);
     if (exists) {
       return Result(hash);
     }

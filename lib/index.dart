@@ -17,7 +17,7 @@ extension Index on GitRepository {
     }
     var index = indexR.getOrThrow();
 
-    var stat = await fs.stat(pathSpec);
+    var stat = fs.statSync(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
       var result = await addFileToIndex(index, pathSpec);
       if (result.isFailure) {
@@ -96,7 +96,7 @@ extension Index on GitRepository {
       if (fsEntity.path.startsWith(gitDir)) {
         continue;
       }
-      var stat = await fsEntity.stat();
+      var stat = fsEntity.statSync();
       if (stat.type != FileSystemEntityType.file) {
         continue;
       }
@@ -119,7 +119,7 @@ extension Index on GitRepository {
     }
     var index = indexR.getOrThrow();
 
-    var stat = await fs.stat(pathSpec);
+    var stat = fs.statSync(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
       var r = await rmFileFromIndex(index, pathSpec);
       if (r.isFailure) {
@@ -172,7 +172,7 @@ extension Index on GitRepository {
       if (fsEntity.path.startsWith(gitDir)) {
         continue;
       }
-      var stat = await fsEntity.stat();
+      var stat = fsEntity.statSync();
       if (stat.type != FileSystemEntityType.file) {
         continue;
       }

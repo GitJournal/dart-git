@@ -67,6 +67,16 @@ Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
   }
 }
 
+Result<T> catchAllSync<T>(Result<T> Function() catchFn) {
+  try {
+    return catchFn();
+  } on ResultException catch (e) {
+    return Result.fail(e, e.stackTrace);
+  } catch (e, stackTrace) {
+    return Result.fail(e, stackTrace);
+  }
+}
+
 Result<Base> downcast<Base, Derived>(Result<Derived> other) {
   return Result._(other.data as Base, other.error, other.stackTrace);
 }

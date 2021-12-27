@@ -22,7 +22,7 @@ class ConfigStorageFS implements ConfigStorage {
   }
 
   @override
-  Future<Result<bool>> exists() async {
+  Result<bool> exists() {
     var val = _fs.isFileSync(_path);
     return Result(val);
   }

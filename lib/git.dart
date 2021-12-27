@@ -120,19 +120,19 @@ class GitRepository {
   static Future<bool> isValidRepo(String gitRootDir, {FileSystem? fs}) async {
     fs ??= const LocalFileSystemWithChecks();
 
-    var isDir = await fs.isDirectory(gitRootDir);
+    var isDir = fs.isDirectorySync(gitRootDir);
     if (!isDir) {
       return false;
     }
 
     var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
-    var dotGitExists = await fs.isDirectory(repo.gitDir);
+    var dotGitExists = fs.isDirectorySync(repo.gitDir);
     if (!dotGitExists) {
       return false;
     }
 
     repo.configStorage = ConfigStorageFS(repo.gitDir, fs);
-    var configExists = await repo.configStorage.exists().getOrThrow();
+    var configExists = repo.configStorage.exists().getOrThrow();
     if (!configExists) {
       return false;
     }

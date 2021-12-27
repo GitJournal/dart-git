@@ -149,11 +149,12 @@ class PackFile {
       // till it reaches a certain size
       var readSize = _roundUp(objSize, 512);
       compressedData.add(await file.read(readSize));
+
       // FIXME: Do not run the zlib parser from scratch each time
       var decodedData = zlib.decode(compressedData.toBytes()) as Uint8List;
 
       if (decodedData.length == objSize) {
-        return decodedData.sublist(0, objSize);
+        return decodedData;
       }
     }
   }

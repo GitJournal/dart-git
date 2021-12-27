@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:buffer/buffer.dart';
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:dart_git/plumbing/git_hash.dart';
@@ -8,7 +9,6 @@ import 'package:dart_git/utils/uint8list.dart';
 
 class IdxFile {
   var entries = <IdxFileEntry>[];
-  final _entriesHash = <GitHash, IdxFileEntry>{};
   final fanTable = Uint32List(_FAN_TABLE_LENGTH);
   late GitHash packFileHash;
 
@@ -95,9 +95,6 @@ class IdxFile {
         offset: offsets[i],
       );
     });
-    for (var e in entries) {
-      _entriesHash[e.hash] = e;
-    }
   }
 
   Uint8List encode() {
@@ -154,11 +151,13 @@ class IdxFile {
       return null;
     }
 
-    return _entriesHash[hash];
+    var i = binarySearch(entries, hash);
+    if (i == -1) return null;
+    return entries[i];
   }
 }
 
-class IdxFileEntry extends Equatable {
+class IdxFileEntry extends Equatable implements Comparable {
   final GitHash hash;
   final int crc32;
   final int offset;
@@ -174,4 +173,27 @@ class IdxFileEntry extends Equatable {
 
   @override
   bool get stringify => true;
+
+  @override
+  int compareTo(dynamic other) {
+    if (other is GitHash) {
+      return hash.compareTo(other);
+    }
+    if (other is IdxFileEntry) {
+      return hash.compareTo(other.hash);
+    }
+    throw Exception(
+        'Other ${other.runtimeType} cannot be compared with IdxFileEntry');
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is GitHash) return other == hash;
+    if (other is! IdxFileEntry) return false;
+
+    return hash == other.hash && crc32 == other.crc32 && offset == other.offset;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([hash, crc32, offset]);
 }

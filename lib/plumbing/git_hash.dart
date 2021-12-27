@@ -5,7 +5,7 @@ import 'package:crypto/crypto.dart';
 
 import 'package:dart_git/exceptions.dart';
 
-class GitHash {
+class GitHash implements Comparable<GitHash> {
   late Uint8List _bytes;
 
   Uint8List get bytes => _bytes;
@@ -98,4 +98,21 @@ class GitHash {
   int get hashCode => Object.hashAll(_bytes);
 
   static final Function _listEq = const ListEquality().equals;
+
+  @override
+  int compareTo(GitHash other) {
+    if (isEmpty) {
+      if (other.isEmpty) return 0;
+      return -1;
+    } else if (other.isEmpty) {
+      return 0;
+    }
+
+    for (var i = 0; i < 20; i++) {
+      if (bytes[i] == other.bytes[i]) continue;
+      return bytes[i].compareTo(other.bytes[i]);
+    }
+
+    return 0;
+  }
 }

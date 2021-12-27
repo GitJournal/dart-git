@@ -44,21 +44,24 @@ abstract class GitObject {
 
 Function _listEq = const ListEquality().equals;
 
-Result<GitObject> createObject(String fmt, Uint8List rawData) {
-  GitObject obj;
+Result<GitObject> createObject(int type, Uint8List rawData) {
+  switch (type) {
+    case ObjectTypes.COMMIT:
+      // FIXME: Handle the case of this being null
+      var obj = GitCommit.parse(rawData, null)!;
+      return Result(obj);
 
-  if (fmt == GitBlob.fmt) {
-    obj = GitBlob(rawData, null);
-  } else if (fmt == GitCommit.fmt) {
-    // FIXME: Handle the case of this being null
-    obj = GitCommit.parse(rawData, null)!;
-  } else if (fmt == GitTree.fmt) {
-    obj = GitTree(rawData, null);
-  } else {
-    return Result.fail(GitObjectInvalidType(fmt));
+    case ObjectTypes.TREE:
+      var obj = GitTree(rawData, null);
+      return Result(obj);
+
+    case ObjectTypes.BLOB:
+      var obj = GitBlob(rawData, null);
+      return Result(obj);
+    default:
+      var typeStr = ObjectTypes.getTypeString(type);
+      return Result.fail(GitObjectInvalidType(typeStr));
   }
-
-  return Result<GitObject>(obj);
 }
 
 abstract class ObjectTypes {

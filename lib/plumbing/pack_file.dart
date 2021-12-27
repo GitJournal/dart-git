@@ -72,8 +72,7 @@ class PackFile {
     var obj = _objectByHash(hash);
     if (obj == null) return null;
 
-    return createObject(ObjectTypes.getTypeString(obj.type), obj.data)
-        .getOrThrow();
+    return createObject(obj.type, obj.data).getOrThrow();
   }
 
   // FIXME: Check the packFile hash from the idx?
@@ -191,11 +190,8 @@ class PackFile {
       if (rawObj == null) {
         continue;
       }
-      var obj = createObject(
-        ObjectTypes.getTypeString(rawObj.type),
-        rawObj.data,
-      ).getOrThrow();
 
+      var obj = createObject(rawObj.type, rawObj.data).getOrThrow();
       assert(obj.hash == entry.hash);
       objects.add(obj);
     }

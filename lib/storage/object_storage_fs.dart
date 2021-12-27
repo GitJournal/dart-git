@@ -109,7 +109,7 @@ class ObjectStorageFS implements ObjectStorage {
 
     var fmtStr = ascii.decode(fmt);
     var rawData = raw.sublistView(y + 1);
-    return createObject(fmtStr, rawData);
+    return createObject(ObjectTypes.getType(fmtStr), rawData);
   }
 
   @override

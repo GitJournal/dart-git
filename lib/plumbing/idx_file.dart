@@ -8,8 +8,8 @@ import 'package:dart_git/utils/uint8list.dart';
 
 class IdxFile {
   var entries = <IdxFileEntry>[];
-  var entriesHash = <GitHash, IdxFileEntry>{};
-  var fanTable = Uint32List(_FAN_TABLE_LENGTH);
+  final _entriesHash = <GitHash, IdxFileEntry>{};
+  final fanTable = Uint32List(_FAN_TABLE_LENGTH);
   late GitHash packFileHash;
 
   static const _PACK_IDX_SIGNATURE = 0xff744f63;
@@ -96,7 +96,7 @@ class IdxFile {
       );
     });
     for (var e in entries) {
-      entriesHash[e.hash] = e;
+      _entriesHash[e.hash] = e;
     }
   }
 
@@ -144,6 +144,17 @@ class IdxFile {
     writer.write(idxFileHash.bytes);
 
     return writer.toBytes();
+  }
+
+  IdxFileEntry? entry(GitHash hash) {
+    var firstByte = hash.bytes[0];
+    var prev = firstByte == 0 ? 0 : fanTable[firstByte - 1];
+    var num = fanTable[firstByte] - prev;
+    if (num == 0) {
+      return null;
+    }
+
+    return _entriesHash[hash];
   }
 }
 

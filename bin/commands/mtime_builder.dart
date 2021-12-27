@@ -19,12 +19,15 @@ class MTimeBuilderCommand extends Command {
 
     var builder = FileMTimeBuilder();
     var headHash = await repo.headHash().getOrThrow();
+
+    var stopwatch = Stopwatch()..start();
     await repo
         .visitTree(fromCommitHash: headHash, visitor: builder)
         .throwOnError();
+    print("Building took: ${stopwatch.elapsed}");
 
-    builder.map.forEach((fp, info) {
-      print('$fp -> ${info.dt} ${info.hash}');
-    });
+    // builder.map.forEach((fp, info) {
+    //   print('$fp -> ${info.dt} ${info.hash}');
+    // });
   }
 }

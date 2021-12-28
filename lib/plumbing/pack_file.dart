@@ -34,7 +34,7 @@ class PackFile {
     // Read the signature
     var sigBytes = reader.read(4);
     if (sigBytes.length != 4) {
-      throw Exception('GitPackFileCorrupted: Invalid Signature lenght');
+      throw Exception('GitPackFileCorrupted: Invalid Signature length');
     }
 
     var sig = ascii.decode(sigBytes);

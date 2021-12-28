@@ -45,6 +45,10 @@ void main() {
     ];
 
     expect(idxFile.entries, expectedData);
+
+    for (var entry in idxFile.entries) {
+      expect(entry, idxFile.entry(entry.hash));
+    }
   });
 
   test('IdxFile Parser 64bit', () async {
@@ -99,6 +103,10 @@ void main() {
     var filePath = 'test/data/pack-64bit.idx';
     var idxFile = IdxFile.decode(File(filePath).readAsBytesSync());
     expect(idxFile.entries, expectedData);
+
+    for (var entry in idxFile.entries) {
+      expect(entry, idxFile.entry(entry.hash));
+    }
   });
 
   test('Idx file serialize', () async {

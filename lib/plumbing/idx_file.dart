@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:buffer/buffer.dart';
-import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:dart_git/plumbing/git_hash.dart';
@@ -145,16 +144,44 @@ class IdxFile {
 
   IdxFileEntry? entry(GitHash hash) {
     var firstByte = hash.bytes[0];
-    var prev = firstByte == 0 ? 0 : fanTable[firstByte - 1];
-    var num = fanTable[firstByte] - prev;
-    if (num == 0) {
+    var lowerBound = firstByte == 0 ? 0 : fanTable[firstByte - 1];
+    var upperBound = fanTable[firstByte];
+
+    // The number of objects with prefix `firstByte`
+    // https://alibabacloud.com/blog/a-detailed-explanation-of-the-underlying-data-structures-and-principles-of-git_597391
+    if (upperBound - lowerBound == 0) {
       return null;
     }
 
-    var i = binarySearch(entries, hash);
+    var i = _binarySearch(entries, hash, lowerBound, upperBound);
     if (i == -1) return null;
     return entries[i];
   }
+}
+
+// Adapated from package collections/algorithm
+int _binarySearch(
+  List<IdxFileEntry> list,
+  GitHash value,
+  int start,
+  int end,
+) {
+  end = RangeError.checkValidRange(start, end, list.length);
+  var min = start;
+  var max = end;
+  while (min < max) {
+    var mid = min + ((max - min) >> 1);
+    var element = list[mid];
+    var comp = element.compareTo(value);
+
+    if (comp == 0) return mid;
+    if (comp < 0) {
+      min = mid + 1;
+    } else {
+      max = mid;
+    }
+  }
+  return -1;
 }
 
 class IdxFileEntry extends Equatable implements Comparable {

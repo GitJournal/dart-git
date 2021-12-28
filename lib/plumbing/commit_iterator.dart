@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/storage/interfaces.dart';
+import 'package:dart_git/utils/git_hash_set.dart';
 import 'package:dart_git/utils/result.dart';
 
 // FIXME: How to deal with missing objects?
@@ -12,7 +13,7 @@ Iterable<Result<GitCommit>> commitIteratorBFS({
   required GitHash from,
 }) sync* {
   var queue = Queue<GitHash>.from([from]);
-  var seen = <GitHash>{};
+  var seen = GitHashSet();
 
   while (queue.isNotEmpty) {
     var hash = queue.removeFirst();
@@ -52,7 +53,7 @@ Iterable<Result<GitCommit>> commitIteratorBFSFiltered({
   skipCommitHash ??= _doNotSkip;
 
   var queue = Queue<GitHash>.from([from]);
-  var seen = <GitHash>{};
+  var seen = GitHashSet();
 
   while (queue.isNotEmpty) {
     var hash = queue.removeFirst();
@@ -82,7 +83,7 @@ Iterable<Result<GitCommit>> commitPreOrderIterator({
   required GitHash from,
 }) sync* {
   var stack = List<GitHash>.from([from]);
-  var seen = <GitHash>{};
+  var seen = GitHashSet();
 
   while (stack.isNotEmpty) {
     var hash = stack.removeLast();

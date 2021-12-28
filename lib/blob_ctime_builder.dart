@@ -2,20 +2,22 @@ import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/date_time.dart';
+import 'package:dart_git/utils/git_hash_set.dart';
 
 /// Fetches the creation time for each blob
 class BlobCTimeBuilder extends TreeEntryVisitor {
-  var processedTrees = <GitHash>{};
-  var processedCommits = <GitHash>{};
+  var processedTrees = GitHashSet();
+  var processedCommits = GitHashSet();
   var map = <GitHash, GDateTime>{};
 
   BlobCTimeBuilder({
     Set<GitHash>? processedTrees,
     Set<GitHash>? processedCommits,
     Map<GitHash, GDateTime>? map,
-  })  : processedTrees = processedTrees ?? {},
-        processedCommits = processedCommits ?? {},
-        map = map ?? {};
+  }) : map = map ?? {} {
+    this.processedCommits = GitHashSet.from(processedCommits);
+    this.processedTrees = GitHashSet.from(processedTrees);
+  }
 
   @override
   bool beforeTree(GitHash treeHash) => !processedTrees.contains(treeHash);

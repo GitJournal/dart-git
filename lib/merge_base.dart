@@ -2,6 +2,7 @@ import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/commit_iterator.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
+import 'package:dart_git/utils/git_hash_set.dart';
 
 extension MergeBase on GitRepository {
   /// mergeBase mimics the behavior of `git merge-base actual other`, returning the
@@ -97,7 +98,7 @@ extension MergeBase on GitRepository {
       return Result(commits);
     }
 
-    var seen = <GitHash>{};
+    var seen = GitHashSet();
     var isLimit = (GitCommit commit) => seen.contains(commit.hash);
 
     var pos = 0;
@@ -148,7 +149,7 @@ int _commitDateDec(GitCommit a, GitCommit b) {
 }
 
 void _removeDuplicates(List<GitCommit> commits) {
-  var seen = <GitHash>{};
+  var seen = GitHashSet();
   commits.removeWhere((c) {
     var contains = seen.contains(c.hash);
     if (!contains) {

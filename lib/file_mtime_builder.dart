@@ -2,6 +2,7 @@ import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/date_time.dart';
+import 'package:dart_git/utils/git_hash_set.dart';
 
 class FileMTimeInfo {
   String filePath;
@@ -29,14 +30,15 @@ class FileMTimeInfo {
 
 /// Fetches the last time a path was modified
 class FileMTimeBuilder extends TreeEntryVisitor {
-  var processedCommits = <GitHash>{};
+  var processedCommits = GitHashSet();
   var map = <String, FileMTimeInfo>{};
 
   FileMTimeBuilder({
     Set<GitHash>? processedCommits,
     Map<String, FileMTimeInfo>? map,
-  })  : processedCommits = processedCommits ?? {},
-        map = map ?? {};
+  }) : map = map ?? {} {
+    this.processedCommits = GitHashSet.from(processedCommits);
+  }
 
   @override
   bool beforeCommit(GitHash commitHash) =>

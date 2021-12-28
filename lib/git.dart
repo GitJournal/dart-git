@@ -17,6 +17,7 @@ import 'package:dart_git/storage/object_storage_exception_catcher.dart';
 import 'package:dart_git/storage/object_storage_fs.dart';
 import 'package:dart_git/storage/reference_storage_exception_catcher.dart';
 import 'package:dart_git/storage/reference_storage_fs.dart';
+import 'package:dart_git/utils/git_hash_set.dart';
 import 'package:dart_git/utils/local_fs_with_checks.dart';
 import 'package:dart_git/utils/result.dart';
 
@@ -439,7 +440,7 @@ class GitRepository {
 
   /// Returns -1 if unreachable
   Result<int> countTillAncestor(GitHash from, GitHash ancestor) {
-    var seen = <GitHash>{};
+    var seen = GitHashSet();
     var parents = <GitHash>[];
     var _ = parents.add(from);
     while (parents.isNotEmpty) {

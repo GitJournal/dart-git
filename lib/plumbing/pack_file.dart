@@ -138,7 +138,7 @@ class PackFile {
     return RawObject(data: rawObjData, type: objHeader.type);
   }
 
-  Uint8List _decodeObject(RandomAccessFile file, int objSize) {
+  static Uint8List _decodeObject(RandomAccessFile file, int objSize) {
     // FIXME: This is crashing in Sentry -
     // https://sentry.io/organizations/gitjournal/issues/2254310735/?project=5168082&query=is%3Aunresolved
     // - I'm getting there is a huge object cloned and we're loading all of

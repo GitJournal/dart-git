@@ -10,7 +10,16 @@ class GitHashSet {
     byteTables = Uint16List(256 * 20);
   }
 
-  GitHashSet.from(Iterable<GitHash>? iter) {
+  GitHashSet.from(Set<GitHash>? set) {
+    byteTables = Uint16List(256 * 20);
+
+    if (set == null) return;
+    for (var hash in set) {
+      _bloomAdd(hash);
+    }
+  }
+
+  GitHashSet.fromIter(Iterable<GitHash>? iter) {
     byteTables = Uint16List(256 * 20);
 
     if (iter == null) return;
@@ -21,6 +30,10 @@ class GitHashSet {
 
   void add(GitHash hash) {
     var _ = _set.add(hash);
+    _bloomAdd(hash);
+  }
+
+  void _bloomAdd(GitHash hash) {
     for (var i = 0; i < 20; i++) {
       var byte = hash.bytes[i];
       byteTables[(i * 256) + byte] += 1;

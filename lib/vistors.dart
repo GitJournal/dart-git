@@ -61,11 +61,14 @@ extension Visitors on GitRepository {
 
         var tree = cachedObjStorage.readTree(treeHash).getOrThrow();
         for (var treeEntry in tree.entries) {
+          assert(!parentPath.startsWith(p.separator));
           assert(!parentPath.endsWith(p.separator));
           assert(!treeEntry.name.contains(p.separator));
 
           // Don't use p.join, as it is more expensive than a simple str concat
-          var fullPath = '$parentPath/${treeEntry.name}';
+          var fullPath = parentPath.isNotEmpty
+              ? '$parentPath/${treeEntry.name}'
+              : treeEntry.name;
 
           if (treeEntry.mode == GitFileMode.Dir) {
             queue.add(Tuple2(treeEntry.hash, fullPath));

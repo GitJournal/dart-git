@@ -81,7 +81,6 @@ class ObjectStorageFS implements ObjectStorage {
 
   // FIXME: This method should not be public
   Result<GitObject> readObjectFromPath(String filePath, GitHash? hash) {
-    // FIXME: Handle zlib and fs exceptions
     var contents = _fs.file(filePath).readAsBytesSync();
     var raw = zlib.decode(contents) as Uint8List;
 

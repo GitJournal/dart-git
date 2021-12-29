@@ -10,6 +10,8 @@ import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Commit on GitRepository {
+  /// Exceptions -
+  /// * GitEmptyCommit
   Result<GitCommit> commit({
     required String message,
     required GitAuthor author,

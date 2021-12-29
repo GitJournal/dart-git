@@ -179,7 +179,7 @@ class GitRepository {
     fs.file(p.join(gitDir, 'description')).writeAsStringSync(
         "Unnamed repository; edit this file 'description' to name the repository.\n");
     fs
-        .file(p.join(gitDir, 'HEAD'))
+        .file(p.join(gitDir, refHead))
         .writeAsStringSync('ref: refs/heads/$defaultBranch\n');
 
     var config = Config('');
@@ -318,7 +318,7 @@ class GitRepository {
   }
 
   Result<Reference> head() {
-    var result = refStorage.reference(ReferenceName('HEAD'));
+    var result = refStorage.reference(ReferenceName.HEAD());
     if (result.isFailure) {
       return fail(result);
     }
@@ -327,7 +327,7 @@ class GitRepository {
   }
 
   Result<GitHash> headHash() {
-    var result = refStorage.reference(ReferenceName('HEAD'));
+    var result = refStorage.reference(ReferenceName.HEAD());
     if (result.isFailure) {
       return fail(result);
     }

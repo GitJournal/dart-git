@@ -102,14 +102,14 @@ extension Remotes on GitRepository {
       return null;
     }
 
-    var i = branches.indexWhere((b) => b.name.branchName() == 'HEAD');
+    var i = branches.indexWhere((b) => b.name.branchName() == refHead);
     if (i != -1) {
       var remoteHead = branches[i];
       assert(remoteHead.isSymbolic);
 
       return resolveReference(remoteHead).getOrThrow();
     } else {
-      branches = branches.where((b) => b.name.branchName() != 'HEAD').toList();
+      branches = branches.where((b) => b.name.branchName() != refHead).toList();
     }
 
     if (branches.length == 1) {

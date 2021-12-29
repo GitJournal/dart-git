@@ -117,7 +117,7 @@ extension Checkout on GitRepository {
 
       // Set HEAD to to it
       var branchRef = ReferenceName.branch(branchName);
-      var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
+      var headRef = Reference.symbolic(ReferenceName.HEAD(), branchRef);
       refStorage.saveRef(headRef).throwOnError();
 
       return Result(ref);
@@ -160,7 +160,7 @@ extension Checkout on GitRepository {
 
     // Set HEAD to to it
     var branchRef = ReferenceName.branch(branchName);
-    var headRef = Reference.symbolic(ReferenceName('HEAD'), branchRef);
+    var headRef = Reference.symbolic(ReferenceName.HEAD(), branchRef);
     refStorage.saveRef(headRef).throwOnError();
 
     return Result(ref);

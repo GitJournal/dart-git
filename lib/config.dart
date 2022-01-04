@@ -196,6 +196,14 @@ class Config {
 
     return configFile.sections[i];
   }
+
+  Section? section(String name) {
+    assert(!name.contains(' '), "Section Names cannot contain spaces");
+
+    var i = configFile.sections.indexWhere((s) => s.name == name);
+    if (i == -1) return null;
+    return configFile.sections[i];
+  }
 }
 
 Function _listEq = const ListEquality().equals;

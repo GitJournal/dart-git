@@ -31,6 +31,11 @@ class Reference {
     type = ReferenceType.Symbolic;
   }
 
+  Reference.empty(this.name) {
+    type = ReferenceType.Hash;
+    hash = GitHash.zero();
+  }
+
   String toDisplayString() {
     switch (type) {
       case ReferenceType.Hash:
@@ -45,9 +50,14 @@ class Reference {
 
   bool get isSymbolic => type == ReferenceType.Symbolic;
   bool get isHash => type == ReferenceType.Hash;
+  bool get isEmpty => isHash && hash!.isEmpty;
 
   @override
   String toString() => isSymbolic ? '$name -> $target' : '$name -> sha1($hash)';
+
+  String serialize() => isHash
+      ? hash.toString() + '\n'
+      : symbolicRefPrefix + target!.value + '\n';
 }
 
 const refHead = 'HEAD';

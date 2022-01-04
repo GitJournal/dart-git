@@ -99,14 +99,10 @@ class ReferenceStorageFS implements ReferenceStorage {
     var refFileName = p.join(_dotGitDir, ref.name.value);
     var refFileName2 = refFileName + '_';
 
-    var _ = _fs.directory(p.dirname(refFileName)).createSync(recursive: true);
+    _fs.directory(p.dirname(refFileName)).createSync(recursive: true);
+
     var file = _fs.file(refFileName2);
-    if (ref.isHash) {
-      file.writeAsStringSync(ref.hash.toString() + '\n', flush: true);
-    } else if (ref.isSymbolic) {
-      var val = symbolicRefPrefix + ref.target!.value;
-      file.writeAsStringSync(val + '\n', flush: true);
-    }
+    file.writeAsStringSync(ref.serialize(), flush: true);
     file = file.renameSync(refFileName);
 
     return Result(null);

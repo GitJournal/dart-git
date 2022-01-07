@@ -12,6 +12,10 @@ class MTimeBuilderCommand extends Command {
   @override
   final description = 'Internal Dart-Git tools';
 
+  MTimeBuilderCommand() {
+    argParser.addFlag('debug', abbr: 'd', defaultsTo: false);
+  }
+
   @override
   void run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
@@ -24,8 +28,10 @@ class MTimeBuilderCommand extends Command {
     repo.visitTree(fromCommitHash: headHash, visitor: builder).throwOnError();
     print("Building took: ${stopwatch.elapsed}");
 
-    // builder.map.forEach((fp, info) {
-    //   print('$fp -> ${info.dt} ${info.hash}');
-    // });
+    if (argResults!['debug'] == true) {
+      builder.map.forEach((fp, info) {
+        print('$fp -> ${info.dt} ${info.hash}');
+      });
+    }
   }
 }

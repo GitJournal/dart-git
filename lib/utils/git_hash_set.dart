@@ -61,6 +61,7 @@ class GitHashSet {
   }
 
   int get length => set.length;
+  Iterable<T> map<T>(T Function(GitHash e) toElement) => set.map(toElement);
 }
 
 var _int16Max = 0xffff;

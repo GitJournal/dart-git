@@ -69,6 +69,11 @@ class FileMTimeBuilder extends TreeEntryVisitor {
           info = FileMTimeInfo(filePath, entry.hash, commitTime);
           changed = true;
         }
+      } else {
+        if (commitTime.isAfter(info.dt)) {
+          info = FileMTimeInfo(filePath, entry.hash, commitTime);
+          changed = true;
+        }
       }
     }
 

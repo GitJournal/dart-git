@@ -89,11 +89,20 @@ class GitAsyncRepository {
 
   Future<Result<String>> currentBranch() async =>
       await _compute(_Command.CurrentBranch, null);
+
+  // index
+  Future<Result<void>> add(String pathSpec) async =>
+      await _compute(_Command.Add, pathSpec);
+
+  Future<Result<void>> rm(String pathSpec, {bool rmFromFs = true}) async =>
+      await _compute(_Command.Remove, _RemoveInput(pathSpec, rmFromFs));
 }
 
 enum _Command {
   Branches,
   CurrentBranch,
+  Add,
+  Remove,
 }
 
 class _InputMsg {
@@ -114,6 +123,7 @@ class _OutputMsg {
 
 typedef _LoadInput = Tuple2<String, FileSystem?>;
 typedef _ErrorMsg = Tuple2<Object, StackTrace>;
+typedef _RemoveInput = Tuple2<String, bool>;
 
 Future<void> _isolateMain(SendPort toMainSender) async {
   ReceivePort rp = ReceivePort('GitAsyncRepository_fromIsolate');
@@ -144,6 +154,17 @@ Future<void> _isolateMain(SendPort toMainSender) async {
 
       case _Command.CurrentBranch:
         var out = repo.currentBranch();
+        toMainSender.send(_OutputMsg(cmd, out));
+        break;
+
+      case _Command.Add:
+        var out = repo.add(input.data);
+        toMainSender.send(_OutputMsg(cmd, out));
+        break;
+
+      case _Command.Remove:
+        var data = input.data as _RemoveInput;
+        var out = repo.rm(data.item1, rmFromFs: data.item2);
         toMainSender.send(_OutputMsg(cmd, out));
         break;
     }

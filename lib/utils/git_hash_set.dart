@@ -4,7 +4,7 @@ import 'package:dart_git/plumbing/git_hash.dart';
 
 class GitHashSet {
   late final Uint16List byteTables;
-  final _set = <GitHash>{};
+  final set = <GitHash>{};
 
   GitHashSet() {
     byteTables = Uint16List(256 * 20);
@@ -29,7 +29,7 @@ class GitHashSet {
   }
 
   void add(GitHash hash) {
-    var _ = _set.add(hash);
+    var _ = set.add(hash);
     _bloomAdd(hash);
   }
 
@@ -46,7 +46,7 @@ class GitHashSet {
 
   bool contains(GitHash hash) {
     if (!_bloomContains(hash)) return false;
-    return _set.contains(hash);
+    return set.contains(hash);
   }
 
   /// Can give a false positive
@@ -60,7 +60,7 @@ class GitHashSet {
     return true;
   }
 
-  int get length => _set.length;
+  int get length => set.length;
 }
 
 var _int16Max = 0xffff;

@@ -142,31 +142,28 @@ Future<void> _isolateMain(SendPort toMainSender) async {
   toMainSender.send(true);
   var repo = repoLoadR.getOrThrow();
 
-  var _ = fromMainRec.listen((msg) async {
+  var _ = fromMainRec.listen((msg) {
     var input = msg as _InputMsg;
-    var cmd = input.command;
-
-    switch (cmd) {
-      case _Command.Branches:
-        var out = repo.branches();
-        toMainSender.send(_OutputMsg(cmd, out));
-        break;
-
-      case _Command.CurrentBranch:
-        var out = repo.currentBranch();
-        toMainSender.send(_OutputMsg(cmd, out));
-        break;
-
-      case _Command.Add:
-        var out = repo.add(input.data);
-        toMainSender.send(_OutputMsg(cmd, out));
-        break;
-
-      case _Command.Remove:
-        var data = input.data as _RemoveInput;
-        var out = repo.rm(data.item1, rmFromFs: data.item2);
-        toMainSender.send(_OutputMsg(cmd, out));
-        break;
-    }
+    var out = _processCommand(repo, input);
+    toMainSender.send(_OutputMsg(input.command, out));
   });
+}
+
+dynamic _processCommand(GitRepository repo, _InputMsg input) {
+  var cmd = input.command;
+
+  switch (cmd) {
+    case _Command.Branches:
+      return repo.branches();
+
+    case _Command.CurrentBranch:
+      return repo.currentBranch();
+
+    case _Command.Add:
+      return repo.add(input.data);
+
+    case _Command.Remove:
+      var data = input.data as _RemoveInput;
+      return repo.rm(data.item1, rmFromFs: data.item2);
+  }
 }

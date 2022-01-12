@@ -6,15 +6,17 @@ import 'package:tuple/tuple.dart';
 
 class GitAsyncRepository {
   final Isolate _isolate;
-  final Stream<dynamic> _receivePort;
+  final Stream<dynamic> _receiveStream;
   final SendPort _sendPort;
+  final ReceivePort _receivePort;
   final ReceivePort _exitPort;
   final ReceivePort _errorPort;
 
   GitAsyncRepository._(
     this._isolate,
-    this._receivePort,
+    this._receiveStream,
     this._sendPort,
+    this._receivePort,
     this._exitPort,
     this._errorPort,
   );
@@ -23,13 +25,13 @@ class GitAsyncRepository {
     String gitRootDir, {
     FileSystem? fs,
   }) async {
-    var rp = ReceivePort('GitAsyncRepository_toIsolate');
+    var receivePort = ReceivePort('GitAsyncRepository_toIsolate');
     var exitR = ReceivePort('GitAsyncRepository_exit');
     var errorR = ReceivePort('GitAsyncRepository_error');
 
     var isolate = await Isolate.spawn(
       _isolateMain,
-      rp.sendPort,
+      receivePort.sendPort,
       errorsAreFatal: true,
       debugName: 'GitAsyncRepository',
       onExit: exitR.sendPort,
@@ -40,19 +42,20 @@ class GitAsyncRepository {
     _ = exitR.listen((message) => print("exit: $message"));
     _ = errorR.listen((message) => print("error: $message"));
 
-    var receivePort = rp.asBroadcastStream();
-    var data = await receivePort.first;
+    var receiveStream = receivePort.asBroadcastStream();
+    var data = await receiveStream.first;
 
     assert(data is SendPort);
     var sendPort = data as SendPort;
     sendPort.send(_LoadInput(gitRootDir, fs));
 
-    var resp = await receivePort.first;
+    var resp = await receiveStream.first;
     if (resp is bool) {
       var repo = GitAsyncRepository._(
         isolate,
-        receivePort,
+        receiveStream,
         sendPort,
+        receivePort,
         exitR,
         errorR,
       );
@@ -65,12 +68,16 @@ class GitAsyncRepository {
   }
 
   void close() {
+    _receivePort.close();
+    _errorPort.close();
+    _exitPort.close();
+
     _isolate.kill();
   }
 
   Future<dynamic> _compute(_Command cmd, dynamic inputData) async {
     _sendPort.send(_InputMsg(cmd, inputData));
-    var output = await _receivePort.first as _OutputMsg;
+    var output = await _receiveStream.first as _OutputMsg;
 
     assert(output.command == cmd);
     assert(output.result is Result);

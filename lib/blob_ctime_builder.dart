@@ -19,6 +19,12 @@ class BlobCTimeBuilder extends TreeEntryVisitor {
     this.processedTrees = GitHashSet.from(processedTrees);
   }
 
+  void update(BlobCTimeBuilder b) {
+    processedTrees = b.processedTrees;
+    processedCommits = b.processedCommits;
+    map = b.map;
+  }
+
   @override
   bool beforeTree(GitHash treeHash) => !processedTrees.contains(treeHash);
 

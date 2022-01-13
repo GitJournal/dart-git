@@ -40,6 +40,11 @@ class FileMTimeBuilder extends TreeEntryVisitor {
     this.processedCommits = GitHashSet.from(processedCommits);
   }
 
+  void update(FileMTimeBuilder b) {
+    processedCommits = b.processedCommits;
+    map = b.map;
+  }
+
   @override
   bool beforeCommit(GitHash commitHash) =>
       !processedCommits.contains(commitHash);

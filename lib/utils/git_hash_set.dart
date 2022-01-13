@@ -15,6 +15,7 @@ class GitHashSet {
 
     if (set == null) return;
     for (var hash in set) {
+      this.set.add(hash);
       _bloomAdd(hash);
     }
   }
@@ -62,6 +63,9 @@ class GitHashSet {
 
   int get length => set.length;
   Iterable<T> map<T>(T Function(GitHash e) toElement) => set.map(toElement);
+
+  @override
+  String toString() => set.toString();
 }
 
 var _int16Max = 0xffff;

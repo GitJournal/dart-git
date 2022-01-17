@@ -100,10 +100,10 @@ class GitAsyncRepository {
   }
 
   Future<Result<List<String>>> branches() async =>
-      await _compute(_Command.Branches, null);
+      await _compute(_Command.branches, null);
 
   Future<Result<String>> currentBranch() async =>
-      await _compute(_Command.CurrentBranch, null);
+      await _compute(_Command.currentBranch, null);
 
   Future<Result<BranchConfig>> setUpstreamTo(
     GitRemoteConfig remote,
@@ -151,10 +151,10 @@ class GitAsyncRepository {
   //
 
   Future<Result<void>> add(String pathSpec) async =>
-      await _compute(_Command.Add, pathSpec);
+      await _compute(_Command.add, pathSpec);
 
   Future<Result<void>> rm(String pathSpec, {bool rmFromFs = true}) async =>
-      await _compute(_Command.Remove, _RemoveInput(pathSpec, rmFromFs));
+      await _compute(_Command.rm, _RemoveInput(pathSpec, rmFromFs));
 
   //
   // checkout.dart
@@ -164,7 +164,7 @@ class GitAsyncRepository {
       await _compute(_Command.checkout, path);
 
   Future<Result<Reference>> checkoutBranch(String branchName) async =>
-      await _compute(_Command.checkout, branchName);
+      await _compute(_Command.checkoutBranch, branchName);
 
   //
   // commit.dart
@@ -177,7 +177,7 @@ class GitAsyncRepository {
     bool addAll = false,
   }) async =>
       await _compute(
-        _Command.Commit,
+        _Command.commit,
         _CommitInput(message, author, committer, addAll),
       );
 
@@ -231,8 +231,8 @@ class GitAsyncRepository {
 }
 
 enum _Command {
-  Branches,
-  CurrentBranch,
+  branches,
+  currentBranch,
   setUpstreamTo,
   setBranchUpstreamTo,
   createBranch,
@@ -246,9 +246,9 @@ enum _Command {
   canPush,
   numChangesToPush,
 
-  Add,
-  Remove,
-  Commit,
+  add,
+  rm,
+  commit,
 
   mergeCurrentTrackingBranch,
   resetHard,
@@ -313,10 +313,10 @@ dynamic _processCommand(GitRepository repo, _InputMsg input) {
   var cmd = input.command;
 
   switch (cmd) {
-    case _Command.Branches:
+    case _Command.branches:
       return repo.branches();
 
-    case _Command.CurrentBranch:
+    case _Command.currentBranch:
       return repo.currentBranch();
 
     case _Command.setUpstreamTo:
@@ -353,14 +353,14 @@ dynamic _processCommand(GitRepository repo, _InputMsg input) {
     case _Command.numChangesToPush:
       return repo.numChangesToPush();
 
-    case _Command.Add:
+    case _Command.add:
       return repo.add(input.data);
 
-    case _Command.Remove:
+    case _Command.rm:
       var data = input.data as _RemoveInput;
       return repo.rm(data.item1, rmFromFs: data.item2);
 
-    case _Command.Commit:
+    case _Command.commit:
       var data = input.data as _CommitInput;
       return repo.commit(
         message: data.item1,

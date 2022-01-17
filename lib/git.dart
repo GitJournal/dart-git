@@ -107,11 +107,10 @@ class GitRepository {
       storage: ConfigStorageFS(repo.gitDir, fs),
     );
 
-    var configResult = repo.configStorage.readConfig();
+    var configResult = repo.reloadConfig();
     if (configResult.isFailure) {
       return fail(configResult);
     }
-    repo.config = configResult.getOrThrow();
 
     return Result(repo);
   }
@@ -189,6 +188,16 @@ class GitRepository {
     core.options['bare'] = 'false';
 
     fs.file(p.join(gitDir, 'config')).writeAsStringSync(config.serialize());
+  }
+
+  Result<void> reloadConfig() {
+    var configResult = configStorage.readConfig();
+    if (configResult.isFailure) {
+      return fail(configResult);
+    }
+    config = configResult.getOrThrow();
+
+    return Result(null);
   }
 
   Result<void> saveConfig() {

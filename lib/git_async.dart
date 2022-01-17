@@ -19,7 +19,9 @@ class GitAsyncRepository {
   final ReceivePort _errorPort;
 
   final Config _config;
-  bool open = true;
+
+  bool get isOpen => _open;
+  bool _open = true;
 
   GitAsyncRepository._(
     this._isolate,
@@ -81,7 +83,7 @@ class GitAsyncRepository {
   }
 
   void close() {
-    open = false;
+    _open = false;
     _receivePort.close();
     _errorPort.close();
     _exitPort.close();
@@ -90,7 +92,7 @@ class GitAsyncRepository {
   }
 
   Future<dynamic> _compute(_Command cmd, dynamic inputData) async {
-    assert(open);
+    assert(_open);
 
     _sendPort.send(_InputMsg(cmd, inputData));
     var output = await _receiveStream.first as _OutputMsg;

@@ -85,8 +85,10 @@ class GitAsyncRepository {
     );
 
     dynamic _;
-    _ = exitR.listen((message) => print("exit: $message"));
-    _ = errorR.listen((message) => print("error: $message"));
+    _ = exitR.listen((_) async {
+      return _lock.synchronized(() => _repos.remove(repoPath));
+    });
+    _ = errorR.listen((message) => print("GitAsyncRepo Error: $message"));
 
     var receiveStream = receivePort.asBroadcastStream();
     var data = await receiveStream.first;
@@ -346,10 +348,11 @@ Future<void> _isolateMain(SendPort toMainSender) async {
   dynamic _;
 
   var lastCommandTime = DateTime.now();
-  _ = Timer(_autoCloseDuration, () {
+  _ = Timer.periodic(_autoCloseDuration, (timer) {
     var duration = DateTime.now().difference(lastCommandTime);
     if (duration >= _autoCloseDuration) {
       rp.close();
+      timer.cancel();
       Isolate.exit();
     }
   });

@@ -15,7 +15,7 @@ class GitHashSet {
 
     if (set == null) return;
     for (var hash in set) {
-      this.set.add(hash);
+      var _ = this.set.add(hash);
       _bloomAdd(hash);
     }
   }

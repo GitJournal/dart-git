@@ -27,6 +27,7 @@ analyzer:
     missing_required_param: error
     missing_return: error
     todo: ignore
+    fixme: ignore
   plugins:
     - dart_code_metrics
 

@@ -45,14 +45,30 @@ class GitAsyncRepository {
     bool reuseIsolate = true,
   }) async {
     if (reuseIsolate) {
-      var repo = await _lock.synchronized(() {
-        var r = _repos[repoPath];
-        if (r != null && r.isOpen) {
-          return r;
-        }
-      });
+      return _lock.synchronized(() => _load(
+            repoPath,
+            fs: fs,
+            reuseIsolate: reuseIsolate,
+          ));
+    }
 
-      if (repo != null) return Result(repo);
+    return _load(
+      repoPath,
+      fs: fs,
+      reuseIsolate: reuseIsolate,
+    );
+  }
+
+  static Future<Result<GitAsyncRepository>> _load(
+    String repoPath, {
+    FileSystem? fs,
+    bool reuseIsolate = true,
+  }) async {
+    if (reuseIsolate) {
+      var r = _repos[repoPath];
+      if (r != null && r.isOpen) {
+        return Result(r);
+      }
     }
 
     var receivePort = ReceivePort('GitAsyncRepository_toIsolate');
@@ -92,9 +108,7 @@ class GitAsyncRepository {
       );
 
       if (reuseIsolate) {
-        await _lock.synchronized(() {
-          _repos[repoPath] = repo;
-        });
+        _repos[repoPath] = repo;
       }
       return Result(repo);
     }

@@ -39,16 +39,19 @@ class GitAsyncRepository {
 
   Config get config => _config;
 
+  /// Disable autoClose by passing null
   static Future<Result<GitAsyncRepository>> load(
     String repoPath, {
     FileSystem? fs,
     bool reuseIsolate = true,
+    Duration? autoCloseDuration = const Duration(seconds: 5),
   }) async {
     if (reuseIsolate) {
       return _lock.synchronized(() => _load(
             repoPath,
             fs: fs,
             reuseIsolate: reuseIsolate,
+            autoCloseDuration: autoCloseDuration,
           ));
     }
 
@@ -56,13 +59,15 @@ class GitAsyncRepository {
       repoPath,
       fs: fs,
       reuseIsolate: reuseIsolate,
+      autoCloseDuration: autoCloseDuration,
     );
   }
 
   static Future<Result<GitAsyncRepository>> _load(
     String repoPath, {
-    FileSystem? fs,
-    bool reuseIsolate = true,
+    required FileSystem? fs,
+    required bool reuseIsolate,
+    required Duration? autoCloseDuration,
   }) async {
     if (reuseIsolate) {
       var r = _repos[repoPath];
@@ -95,7 +100,7 @@ class GitAsyncRepository {
 
     assert(data is SendPort);
     var sendPort = data as SendPort;
-    sendPort.send(_LoadInput(repoPath, fs));
+    sendPort.send(_LoadInput(repoPath, fs, autoCloseDuration));
 
     var resp = await receiveStream.first;
     if (resp is Config) {
@@ -317,7 +322,7 @@ class _OutputMsg {
   }
 }
 
-typedef _LoadInput = Tuple2<String, FileSystem?>;
+typedef _LoadInput = Tuple3<String, FileSystem?, Duration?>;
 typedef _ErrorMsg = Tuple2<Object, StackTrace>;
 typedef _RemoveInput = Tuple2<String, bool>;
 typedef _CommitInput = Tuple4<String, GitAuthor, GitAuthor?, bool>;
@@ -325,8 +330,6 @@ typedef _DoubleString = Tuple2<String, String>;
 typedef _SetUpstreamToInput = Tuple2<GitRemoteConfig, String>;
 typedef _SetBranchUpstreamToInput = Tuple3<String, GitRemoteConfig, String>;
 typedef _CreateBranchInput = Tuple3<String, GitHash?, bool>;
-
-const _autoCloseDuration = Duration(seconds: 5);
 
 Future<void> _isolateMain(SendPort toMainSender) async {
   ReceivePort rp = ReceivePort('GitAsyncRepository_fromIsolate');
@@ -336,6 +339,7 @@ Future<void> _isolateMain(SendPort toMainSender) async {
   var input = await fromMainRec.first as _LoadInput;
   var gitRootDir = input.item1;
   var fs = input.item2;
+  var autoCloseDuration = input.item3;
 
   var repoLoadR = GitRepository.load(gitRootDir, fs: fs);
   if (repoLoadR.isFailure) {
@@ -348,14 +352,16 @@ Future<void> _isolateMain(SendPort toMainSender) async {
   dynamic _;
 
   var lastCommandTime = DateTime.now();
-  _ = Timer.periodic(_autoCloseDuration, (timer) {
-    var duration = DateTime.now().difference(lastCommandTime);
-    if (duration >= _autoCloseDuration) {
-      rp.close();
-      timer.cancel();
-      Isolate.exit();
-    }
-  });
+  if (autoCloseDuration != null && autoCloseDuration.inMicroseconds > 0) {
+    _ = Timer.periodic(autoCloseDuration, (timer) {
+      var duration = DateTime.now().difference(lastCommandTime);
+      if (duration >= autoCloseDuration) {
+        rp.close();
+        timer.cancel();
+        Isolate.exit();
+      }
+    });
+  }
 
   _ = fromMainRec.listen((msg) {
     var input = msg as _InputMsg;

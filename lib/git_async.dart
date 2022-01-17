@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:file/file.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:dart_git/config.dart';
@@ -9,6 +10,9 @@ import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
+
+final _repos = <String, GitAsyncRepository>{};
+final _lock = Lock();
 
 class GitAsyncRepository {
   final Isolate _isolate;
@@ -36,9 +40,21 @@ class GitAsyncRepository {
   Config get config => _config;
 
   static Future<Result<GitAsyncRepository>> load(
-    String gitRootDir, {
+    String repoPath, {
     FileSystem? fs,
+    bool reuseIsolate = true,
   }) async {
+    if (reuseIsolate) {
+      var repo = await _lock.synchronized(() {
+        var r = _repos[repoPath];
+        if (r != null && r.isOpen) {
+          return r;
+        }
+      });
+
+      if (repo != null) return Result(repo);
+    }
+
     var receivePort = ReceivePort('GitAsyncRepository_toIsolate');
     var exitR = ReceivePort('GitAsyncRepository_exit');
     var errorR = ReceivePort('GitAsyncRepository_error');
@@ -61,7 +77,7 @@ class GitAsyncRepository {
 
     assert(data is SendPort);
     var sendPort = data as SendPort;
-    sendPort.send(_LoadInput(gitRootDir, fs));
+    sendPort.send(_LoadInput(repoPath, fs));
 
     var resp = await receiveStream.first;
     if (resp is Config) {
@@ -74,6 +90,12 @@ class GitAsyncRepository {
         errorR,
         resp,
       );
+
+      if (reuseIsolate) {
+        await _lock.synchronized(() {
+          _repos[repoPath] = repo;
+        });
+      }
       return Result(repo);
     }
 

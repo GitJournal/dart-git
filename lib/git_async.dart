@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:file/file.dart';
@@ -285,6 +286,8 @@ typedef _SetUpstreamToInput = Tuple2<GitRemoteConfig, String>;
 typedef _SetBranchUpstreamToInput = Tuple3<String, GitRemoteConfig, String>;
 typedef _CreateBranchInput = Tuple3<String, GitHash?, bool>;
 
+const _autoCloseDuration = Duration(seconds: 5);
+
 Future<void> _isolateMain(SendPort toMainSender) async {
   ReceivePort rp = ReceivePort('GitAsyncRepository_fromIsolate');
   toMainSender.send(rp.sendPort);
@@ -302,10 +305,23 @@ Future<void> _isolateMain(SendPort toMainSender) async {
   var repo = repoLoadR.getOrThrow();
   toMainSender.send(repo.config);
 
-  var _ = fromMainRec.listen((msg) {
+  dynamic _;
+
+  var lastCommandTime = DateTime.now();
+  _ = Timer(_autoCloseDuration, () {
+    var duration = DateTime.now().difference(lastCommandTime);
+    if (duration >= _autoCloseDuration) {
+      rp.close();
+      Isolate.exit();
+    }
+  });
+
+  _ = fromMainRec.listen((msg) {
     var input = msg as _InputMsg;
     var out = _processCommand(repo, input);
     toMainSender.send(_OutputMsg(input.command, out));
+
+    lastCommandTime = DateTime.now();
   });
 }
 

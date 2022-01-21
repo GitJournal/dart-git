@@ -12,7 +12,7 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
 final _repos = <String, GitAsyncRepository>{};
-final _lock = Lock();
+final _reposLock = Lock();
 
 class GitAsyncRepository {
   final Isolate _isolate;
@@ -26,6 +26,8 @@ class GitAsyncRepository {
 
   bool get isOpen => _open;
   bool _open = true;
+
+  final _lock = Lock();
 
   GitAsyncRepository._(
     this._isolate,
@@ -47,7 +49,7 @@ class GitAsyncRepository {
     Duration? autoCloseDuration = const Duration(seconds: 5),
   }) async {
     if (reuseIsolate) {
-      return _lock.synchronized(() => _load(
+      return _reposLock.synchronized(() => _load(
             repoPath,
             fs: fs,
             reuseIsolate: reuseIsolate,
@@ -91,7 +93,7 @@ class GitAsyncRepository {
 
     dynamic _;
     _ = exitR.listen((_) async {
-      return _lock.synchronized(() => _repos.remove(repoPath));
+      return _reposLock.synchronized(() => _repos.remove(repoPath));
     });
     _ = errorR.listen((message) => print("GitAsyncRepo Error: $message"));
 
@@ -137,12 +139,14 @@ class GitAsyncRepository {
   Future<dynamic> _compute(_Command cmd, dynamic inputData) async {
     assert(_open);
 
-    _sendPort.send(_InputMsg(cmd, inputData));
-    var output = await _receiveStream.first as _OutputMsg;
+    return _lock.synchronized(() async {
+      _sendPort.send(_InputMsg(cmd, inputData));
+      var output = await _receiveStream.first as _OutputMsg;
 
-    assert(output.command == cmd);
-    assert(output.result is Result);
-    return output.result;
+      assert(output.command == cmd, "Actual: ${output.command}, Exp: $cmd");
+      assert(output.result is Result);
+      return output.result;
+    });
   }
 
   Future<Result<List<String>>> branches() async =>

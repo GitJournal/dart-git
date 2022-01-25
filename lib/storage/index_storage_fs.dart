@@ -33,6 +33,9 @@ class IndexStorageFS implements IndexStorage {
 
     return Result(null);
   }
+
+  @override
+  Result<void> close() => Result(null);
 }
 
 // Where do I put all the index operations which modify the index?

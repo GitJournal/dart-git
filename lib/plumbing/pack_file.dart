@@ -14,15 +14,16 @@ import 'package:dart_git/utils/bytes_data_reader.dart';
 class PackFile {
   int numObjects = 0;
   IdxFile idx;
-  String filePath;
   FileSystem fs;
+
+  RandomAccessFile file;
 
   static final int _headerSize = 16;
 
   // FIXME: BytesDataReader can throw a range error!
   PackFile.decode({
     required this.idx,
-    required this.filePath,
+    required this.file,
     required Uint8List headerBytes,
     required this.fs,
   }) {
@@ -58,11 +59,10 @@ class PackFile {
   ) {
     var file = fs.file(filePath).openSync(mode: FileMode.read);
     var bytes = file.readSync(_headerSize);
-    file.closeSync();
 
     return PackFile.decode(
       idx: idxFile,
-      filePath: filePath,
+      file: file,
       headerBytes: bytes,
       fs: fs,
     );
@@ -86,7 +86,6 @@ class PackFile {
   }
 
   RawObject? _objectByOffset(int offset) {
-    var file = fs.file(filePath).openSync(mode: FileMode.read);
     file.setPositionSync(offset);
 
     var headByte = file.readByteSync();
@@ -116,7 +115,6 @@ class PackFile {
         var baseOffset = offset - n;
         var deltaData = _decodeObject(file, objHeader.size);
 
-        file.closeSync();
         return _fillOFSDeltaObject(baseOffset, deltaData);
 
       case ObjectTypes.REF_DELTA:
@@ -124,7 +122,6 @@ class PackFile {
         var hash = GitHash.fromBytes(hashBytes);
         var deltaData = _decodeObject(file, objHeader.size);
 
-        file.closeSync();
         return _fillRefDeltaObject(hash, deltaData);
 
       default:
@@ -133,8 +130,6 @@ class PackFile {
 
     // The objHeader.size is the size of the data once expanded
     var rawObjData = _decodeObject(file, objHeader.size);
-    file.closeSync();
-
     return RawObject(data: rawObjData, type: objHeader.type);
   }
 
@@ -197,6 +192,10 @@ class PackFile {
     }
 
     return objects;
+  }
+
+  void close() {
+    file.closeSync();
   }
 
   // hash() of this Packfile

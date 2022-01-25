@@ -190,6 +190,27 @@ class GitRepository {
     fs.file(p.join(gitDir, 'config')).writeAsStringSync(config.serialize());
   }
 
+  Result<void> close() {
+    late Result<void> r;
+
+    r = objStorage.close();
+    if (r.isFailure) {
+      return fail(r);
+    }
+
+    r = refStorage.close();
+    if (r.isFailure) {
+      return fail(r);
+    }
+
+    r = indexStorage.close();
+    if (r.isFailure) {
+      return fail(r);
+    }
+
+    return Result(null);
+  }
+
   Result<void> reloadConfig() {
     var configResult = configStorage.readConfig();
     if (configResult.isFailure) {

@@ -21,14 +21,20 @@ abstract class ReferenceStorage {
   Result<void> saveRef(Reference ref);
   Result<void> removeReferences(String prefix);
   Result<void> deleteReference(ReferenceName refName);
+
+  Result<void> close();
 }
 
 abstract class ObjectStorage {
   Result<GitObject> read(GitHash hash);
   Result<GitHash> writeObject(GitObject obj);
+
+  Result<void> close();
 }
 
 abstract class IndexStorage {
   Result<GitIndex> readIndex();
   Result<void> writeIndex(GitIndex index);
+
+  Result<void> close();
 }

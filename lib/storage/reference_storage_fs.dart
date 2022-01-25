@@ -128,6 +128,9 @@ class ReferenceStorageFS implements ReferenceStorage {
     // FIXME: What if the deleted ref is in the packed-refs?
     //        The file is being locked in the go-git code!
   }
+
+  @override
+  Result<void> close() => Result(null);
 }
 
 List<Reference> _loadPackedRefs(String raw) {

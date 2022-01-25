@@ -131,4 +131,12 @@ class ObjectStorageFS implements ObjectStorage {
 
     return Result(hash);
   }
+
+  @override
+  Result<void> close() {
+    for (var packFile in _packFiles) {
+      packFile.close();
+    }
+    return Result(null);
+  }
 }

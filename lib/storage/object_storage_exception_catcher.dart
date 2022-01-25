@@ -15,4 +15,7 @@ class ObjectStorageExceptionCatcher implements ObjectStorage {
   @override
   Result<GitHash> writeObject(GitObject obj) =>
       catchAllSync(() => _.writeObject(obj));
+
+  @override
+  Result<void> close() => catchAllSync(() => _.close());
 }

@@ -13,4 +13,7 @@ class IndexStorageExceptionCatcher implements IndexStorage {
   @override
   Result<void> writeIndex(GitIndex index) =>
       catchAllSync(() => _.writeIndex(index));
+
+  @override
+  Result<void> close() => catchAllSync(() => _.close());
 }

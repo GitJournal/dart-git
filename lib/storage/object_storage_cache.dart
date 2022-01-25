@@ -34,4 +34,7 @@ class ObjectStorageCache implements ObjectStorage {
 
   @override
   Result<GitHash> writeObject(GitObject obj) => _.writeObject(obj);
+
+  @override
+  Result<void> close() => _.close();
 }

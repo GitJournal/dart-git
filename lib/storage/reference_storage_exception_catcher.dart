@@ -26,4 +26,7 @@ class ReferenceStorageExceptionCatcher implements ReferenceStorage {
   @override
   Result<void> deleteReference(ReferenceName refName) =>
       catchAllSync(() => _.deleteReference(refName));
+
+  @override
+  Result<void> close() => catchAllSync(() => _.close());
 }

@@ -90,6 +90,9 @@ Future<void> testGitCommand(
   var output = outputL.join('\n').trim();
   var expectedOutput = await runGitCommand(command, s.realGitDir, env: env);
 
+  output = output.toLowerCase();
+  expectedOutput = expectedOutput.toLowerCase();
+
   if (!ignoreOutput) {
     if (!containsMatch) {
       expect(output, expectedOutput);

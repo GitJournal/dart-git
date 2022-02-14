@@ -8,6 +8,9 @@ lint:
 test:
 	dart test
 
+build:
+	dart compile exe bin/main.dart -o dartgit
+
 # https://stackoverflow.com/a/26339924/147435
 .PHONY: list test
 list:

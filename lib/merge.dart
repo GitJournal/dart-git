@@ -54,30 +54,32 @@ extension Merge on GitRepository {
       var ex = GitMergeTooManyBases();
       return Result.fail(ex);
     }
-    var baseHash = bases.first.hash;
+    if (bases.isNotEmpty) {
+      var baseHash = bases.first.hash;
 
-    // up to date
-    if (baseHash == commitB.hash) {
-      return Result(null);
-    }
-
-    // fastforward
-    if (baseHash == headCommit.hash) {
-      var branchNameRef = headRef.target!;
-      assert(branchNameRef.isBranch());
-
-      var newRef = Reference.hash(branchNameRef, commitB.hash);
-      var saveRefResult = refStorage.saveRef(newRef);
-      if (saveRefResult.isFailure) {
-        return fail(saveRefResult);
+      // up to date
+      if (baseHash == commitB.hash) {
+        return Result(null);
       }
 
-      var res = checkout('.');
-      if (res.isFailure) {
-        return fail(res);
-      }
+      // fastforward
+      if (baseHash == headCommit.hash) {
+        var branchNameRef = headRef.target!;
+        assert(branchNameRef.isBranch());
 
-      return Result(null);
+        var newRef = Reference.hash(branchNameRef, commitB.hash);
+        var saveRefResult = refStorage.saveRef(newRef);
+        if (saveRefResult.isFailure) {
+          return fail(saveRefResult);
+        }
+
+        var res = checkout('.');
+        if (res.isFailure) {
+          return fail(res);
+        }
+
+        return Result(null);
+      }
     }
 
     var headTree = objStorage.readTree(headCommit.treeHash).getOrThrow();

@@ -56,6 +56,14 @@ jobs:
       - name: Run VM tests
         run: dart test --platform vm
         if: always() && steps.install.outcome == 'success'
+      - name: Build
+        run: dart compile exe bin/main.dart -o dartgit
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: dartgit
+          path: dartgit
+          if-no-files-found: error
 
   coverage:
     needs: test

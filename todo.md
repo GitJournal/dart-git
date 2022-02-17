@@ -54,3 +54,7 @@ Age encryption is much much easier, and there is agebox but that doesn't integra
 
 Maybe git-crypt with just the password. I can't imagine supporting all of pgp stuff. I can transfer the key via a QR code.
 -> cat key | base64 | qrencode -t ansiutf8
+
+> git-ignore - https://github.com/kaelzhang/node-ignore
+             - go-git
+             - jgit

@@ -14,7 +14,6 @@ void main() {
   var singleCommandTests = [
     'branch',
     'branch test',
-    'branch master',
     'branch -a',
     'write-tree',
     'rm LICENSE',
@@ -27,6 +26,9 @@ void main() {
   for (var command in singleCommandTests) {
     test(command, () async => testGitCommand(s, command));
   }
+  test('branch master', () async {
+    await testGitCommand(s, 'branch master', ignoreOutput: true);
+  });
 
   test('rm /outside-rep', () async {
     await testGitCommand(s, 'rm /outside-repo', containsMatch: true);
@@ -58,10 +60,14 @@ void main() {
 
   test(
     'git upstream branch',
-    () async => testCommands(s, [
-      'git branch foo/fde',
-      'git branch --set-upstream-to=origin/master',
-    ]),
+    () async => testCommands(
+      s,
+      [
+        'git branch foo/fde',
+        'git branch --set-upstream-to=origin/master',
+      ],
+      ignoreOutput: true,
+    ),
   );
 
   test(
@@ -77,15 +83,17 @@ void main() {
   test(
     'git checkout remote branch',
     () async => testCommands(
-        s,
-        [
-          'git init -q .',
-          'git remote add origin https://github.com/GitJournal/icloud_documents_path.git',
-          'git fetch origin',
-          'git checkout -b master origin/master',
-          'git remote rm origin',
-        ],
-        emptyDirs: true),
+      s,
+      [
+        'git init -q .',
+        'git remote add origin https://github.com/GitJournal/icloud_documents_path.git',
+        'git fetch origin',
+        'git checkout -b master origin/master',
+        'git remote rm origin',
+      ],
+      emptyDirs: true,
+      ignoreOutput: true,
+    ),
   );
 
   test(

@@ -273,19 +273,22 @@ Future<String> openFixture(String filePath) async {
 }
 
 Future<String> cloneGittedFixture(String fixtureName, String newDirPath) async {
+  dynamic _;
+
   var fixtureDirPath = 'test/data/$fixtureName';
   assert(Directory(fixtureDirPath).existsSync());
   assert(Directory('$fixtureDirPath/.gitted').existsSync());
 
   await copyDirectory(fixtureDirPath, newDirPath);
   assert(Directory('$newDirPath/.gitted').existsSync());
-  var _ = await Directory('$newDirPath/.gitted').rename('$newDirPath/.git');
+  _ = await Directory('$newDirPath/.gitted').rename('$newDirPath/.git');
 
-  await shell.run(
+  print(newDirPath);
+  _ = await shell.run(
     'git reset HEAD .',
     workingDirectory: newDirPath,
     includeParentEnvironment: false,
-    verbose: false,
+    verbose: true,
   );
 
   return newDirPath;

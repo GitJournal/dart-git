@@ -283,12 +283,11 @@ Future<String> cloneGittedFixture(String fixtureName, String newDirPath) async {
   assert(Directory('$newDirPath/.gitted').existsSync());
   _ = await Directory('$newDirPath/.gitted').rename('$newDirPath/.git');
 
-  print(newDirPath);
   _ = await shell.run(
     'git reset HEAD .',
     workingDirectory: newDirPath,
     includeParentEnvironment: false,
-    verbose: true,
+    verbose: false,
   );
 
   return newDirPath;

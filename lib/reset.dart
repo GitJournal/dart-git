@@ -30,7 +30,10 @@ extension Reset on GitRepository {
 
     for (var change in changes.remove) {
       var path = p.join(workTree, change.path);
-      var _ = fs.file(path).deleteSync(recursive: true);
+      var file = fs.file(path);
+      if (file.existsSync()) {
+        var _ = file.deleteSync(recursive: true);
+      }
 
       deleteEmptyDirectories(fs, workTree, change.path);
     }

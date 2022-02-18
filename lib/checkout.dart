@@ -150,7 +150,10 @@ extension Checkout on GitRepository {
       } else if (change.delete) {
         var from = change.from!;
 
-        fs.file(p.join(workTree, from.path)).deleteSync(recursive: true);
+        var file = fs.file(p.join(workTree, from.path));
+        if (file.existsSync()) {
+          file.deleteSync(recursive: true);
+        }
         var _ = index.removePath(from.path);
         deleteEmptyDirectories(fs, workTree, from.path);
       }
@@ -171,6 +174,9 @@ void deleteEmptyDirectories(FileSystem fs, String workTree, String path) {
   while (path != '.') {
     var dirPath = p.join(workTree, p.dirname(path));
     var dir = fs.directory(dirPath);
+    if (!dir.existsSync()) {
+      break;
+    }
 
     var isEmpty = true;
     for (var _ in dir.listSync()) {

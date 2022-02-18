@@ -12,6 +12,9 @@ class Reference {
   ReferenceName? target;
 
   Reference(String source, String target) {
+    assert(source.isNotEmpty);
+    assert(target.isNotEmpty);
+
     name = ReferenceName(source);
     if (target.startsWith(symbolicRefPrefix)) {
       this.target = ReferenceName(target.substring(symbolicRefPrefix.length));

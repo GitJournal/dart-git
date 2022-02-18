@@ -21,8 +21,12 @@ class ReferenceStorageFS implements ReferenceStorage {
   Result<Reference> reference(ReferenceName refName) {
     var file = _fs.file(p.join(_dotGitDir, refName.value));
     if (file.existsSync()) {
-      var contents = file.readAsStringSync();
-      return Result(Reference(refName.value, contents.trimRight()));
+      var contents = file.readAsStringSync().trimRight();
+      if (contents.isEmpty) {
+        return Result.fail(GitRefNotFound(refName));
+      }
+
+      return Result(Reference(refName.value, contents));
     }
 
     for (var ref in _packedRefs()) {

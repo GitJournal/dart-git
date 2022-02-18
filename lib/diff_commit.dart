@@ -82,6 +82,9 @@ class _Item {
   final GitHash? fromTreeHash;
   final GitHash? fromParentHash;
 
+  final String? fromTreePath;
+  final String? toTreePath;
+
   final GitHash? toTreeHash;
   final GitHash? toParentHash;
 
@@ -90,7 +93,14 @@ class _Item {
     required this.fromParentHash,
     required this.toTreeHash,
     required this.toParentHash,
+    required this.fromTreePath,
+    required this.toTreePath,
   });
+
+  @override
+  String toString() {
+    return '_Item{fromTreeHash: $fromTreeHash, fromParentHash: $fromParentHash, fromTreePath: $fromTreePath, toTreePath: $toTreePath, toTreeHash: $toTreeHash, toParentHash: $toParentHash}';
+  }
 }
 
 /// Returns the changes that once applied on `fromCommit` to transform
@@ -104,15 +114,12 @@ Result<CommitBlobChanges> diffCommits({
   var removedChanges = <Change>[];
   var modifiedChanges = <Change>[];
 
-  var pathMap = <GitHash, String>{
-    fromCommit.treeHash: '',
-    toCommit.treeHash: '',
-  };
-
   var queue = Queue<_Item>();
   queue.add(_Item(
     fromParentHash: null,
     toParentHash: null,
+    fromTreePath: '',
+    toTreePath: '',
     fromTreeHash: fromCommit.treeHash,
     toTreeHash: toCommit.treeHash,
   ));
@@ -145,32 +152,28 @@ Result<CommitBlobChanges> diffCommits({
     var diffTreeResults = diffTree(from: fromTree, to: toTree);
     for (var result in diffTreeResults.merged()) {
       if (result.mode == GitFileMode.Dir) {
-        if (result.from != null) {
-          var fromParentPath = pathMap[item.fromTreeHash]!;
-          var fromPath = p.join(fromParentPath, result.from!.name);
+        String? fromTreePath;
+        String? toTreePath;
 
-          pathMap[result.from!.hash] = fromPath;
+        if (result.from != null) {
+          fromTreePath = p.join(item.fromTreePath!, result.from!.name);
         }
         if (result.to != null) {
-          var toParentPath = pathMap[item.toTreeHash]!;
-          var toPath = p.join(toParentPath, result.to!.name);
-
-          pathMap[result.to!.hash] = toPath;
+          toTreePath = p.join(item.toTreePath!, result.to!.name);
         }
 
         queue.add(_Item(
           fromParentHash: item.fromTreeHash,
           toParentHash: item.toTreeHash,
+          fromTreePath: fromTreePath,
+          toTreePath: toTreePath,
           fromTreeHash: result.from?.hash,
           toTreeHash: result.to?.hash,
         ));
       } else {
         if (result.modify) {
-          var fromParentPath = pathMap[item.fromTreeHash]!;
-          var toParentPath = pathMap[item.toTreeHash]!;
-
-          var fromPath = p.join(fromParentPath, result.from!.name);
-          var toPath = p.join(toParentPath, result.to!.name);
+          var fromPath = p.join(item.fromTreePath!, result.from!.name);
+          var toPath = p.join(item.toTreePath!, result.to!.name);
 
           var from = ChangeEntry(fromPath, fromTree, result.from);
           var to = ChangeEntry(toPath, toTree, result.to);
@@ -179,16 +182,14 @@ Result<CommitBlobChanges> diffCommits({
 
           modifiedChanges.add(Change(from: from, to: to));
         } else if (result.add) {
-          var toParentPath = pathMap[item.toTreeHash]!;
-          var toPath = p.join(toParentPath, result.to!.name);
+          var toPath = p.join(item.toTreePath!, result.to!.name);
           var to = ChangeEntry(toPath, toTree, result.to);
 
           assert(result.to!.hash.isNotEmpty);
 
           addedChanges.add(Change(from: null, to: to));
         } else if (result.delete) {
-          var fromParentPath = pathMap[item.fromTreeHash]!;
-          var fromPath = p.join(fromParentPath, result.from!.name);
+          var fromPath = p.join(item.fromTreePath!, result.from!.name);
           var from = ChangeEntry(fromPath, fromTree, result.from);
 
           assert(result.from!.hash.isNotEmpty);

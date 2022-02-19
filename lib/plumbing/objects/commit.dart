@@ -7,8 +7,8 @@ import 'package:dart_git/utils/date_time.dart';
 import 'package:dart_git/utils/kvlm.dart';
 
 class GitAuthor {
-  String name;
-  String email;
+  final String name;
+  final String email;
 
   late DateTime date;
 
@@ -59,14 +59,15 @@ class GitCommit extends GitObject {
   static const fmt = ObjectTypes.COMMIT_STR;
   static final _fmt = ascii.encode(fmt);
 
-  GitAuthor author;
-  GitAuthor committer;
-  String message;
-  GitHash treeHash;
-  List<GitHash> parents = [];
-  String gpgSig = '';
+  final GitAuthor author;
+  final GitAuthor committer;
+  final String message;
+  final GitHash treeHash;
+  final List<GitHash> parents;
+  final String gpgSig;
 
-  GitHash? _hash;
+  @override
+  late final GitHash hash;
 
   GitCommit.create({
     required this.author,
@@ -75,9 +76,12 @@ class GitCommit extends GitObject {
     required this.treeHash,
     required this.parents,
     this.gpgSig = '',
-  }) : _hash = null;
+    GitHash? hash,
+  }) {
+    this.hash = hash ?? GitHash.computeForObject(this);
+  }
 
-  static GitCommit? parse(Uint8List rawData, GitHash? hash) {
+  static GitCommit? parse(Uint8List rawData, GitHash hash) {
     var map = kvlmParse(rawData);
     var requiredKeys = ['author', 'committer', 'tree', '_'];
     for (var key in requiredKeys) {
@@ -109,6 +113,7 @@ class GitCommit extends GitObject {
     var gpgSig = map['gpgsig'] ?? '';
 
     return GitCommit.create(
+      hash: hash,
       author: author,
       committer: committer,
       message: message,
@@ -148,12 +153,6 @@ class GitCommit extends GitObject {
 
   @override
   String formatStr() => fmt;
-
-  @override
-  GitHash get hash {
-    _hash ??= GitHash.compute(serialize());
-    return _hash!;
-  }
 
   @override
   String toString() => '$hash - ${_toMap().toString()}';

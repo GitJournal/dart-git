@@ -80,7 +80,7 @@ class ObjectStorageFS implements ObjectStorage {
   }
 
   // FIXME: This method should not be public
-  Result<GitObject> readObjectFromPath(String filePath, GitHash? hash) {
+  Result<GitObject> readObjectFromPath(String filePath, GitHash hash) {
     var contents = _fs.file(filePath).readAsBytesSync();
     var raw = zlib.decode(contents) as Uint8List;
 
@@ -113,7 +113,10 @@ class ObjectStorageFS implements ObjectStorage {
 
   @override
   Result<GitHash> writeObject(GitObject obj) {
-    var result = obj.serialize();
+    var result = GitObject.envelope(
+      data: obj.serializeData(),
+      format: obj.format(),
+    );
     var hash = GitHash.compute(result);
     var sha = hash.toString();
 

@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 
 import 'package:dart_git/exceptions.dart';
+import 'objects/object.dart';
 
 class GitHash implements Comparable<GitHash> {
   late Uint8List _bytes;
@@ -42,6 +43,14 @@ class GitHash implements Comparable<GitHash> {
 
   GitHash.compute(List<int> data) {
     _bytes = sha1.convert(data).bytes as Uint8List;
+  }
+
+  static GitHash computeForObject(GitObject obj) {
+    var rawData = GitObject.envelope(
+      data: obj.serializeData(),
+      format: obj.format(),
+    );
+    return GitHash.compute(rawData);
   }
 
   GitHash.zero() {

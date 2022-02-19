@@ -12,12 +12,13 @@ import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/result.dart';
 
 abstract class GitObject {
-  Uint8List serialize() {
-    var data = serializeData();
-
+  static Uint8List envelope({
+    required Uint8List data,
+    required Uint8List format,
+  }) {
     final bytesBuilder = BytesBuilder(copy: false);
     bytesBuilder
-      ..add(format())
+      ..add(format)
       ..addByte($space)
       ..add(ascii.encode(data.length.toString()))
       ..addByte(0x0)
@@ -36,7 +37,9 @@ abstract class GitObject {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is GitObject && _listEq(serialize(), other.serialize());
+      other is GitObject &&
+          format() == other.format() &&
+          _listEq(serializeData(), other.serializeData());
 
   @override
   int get hashCode => hash.hashCode;
@@ -44,7 +47,7 @@ abstract class GitObject {
 
 Function _listEq = const ListEquality().equals;
 
-Result<GitObject> createObject(int type, Uint8List rawData, GitHash? hash) {
+Result<GitObject> createObject(int type, Uint8List rawData, GitHash hash) {
   switch (type) {
     case ObjectTypes.COMMIT:
       // FIXME: Handle the case of this being null

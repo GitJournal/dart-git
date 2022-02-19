@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 
 class HashObjectCommand extends Command {
@@ -37,15 +38,18 @@ class HashObjectCommand extends Command {
     }
     var filePath = argResults!.rest[0];
     var rawData = File(filePath).readAsBytesSync();
+    var hash = GitHash.compute(rawData);
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var fmt = argResults!['type'] as String;
-    var objRes = createObject(ObjectTypes.getType(fmt), rawData, null);
+    var objRes = createObject(ObjectTypes.getType(fmt), rawData, hash);
     var obj = objRes.getOrThrow();
     var shouldWrite = argResults!['write'] as bool;
-    var hash = shouldWrite ? repo.objStorage.writeObject(obj) : obj.hash;
+    if (shouldWrite) {
+      repo.objStorage.writeObject(obj).throwOnError();
+    }
 
     print(hash);
   }

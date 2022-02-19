@@ -6,6 +6,7 @@ import 'package:test/test.dart';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
+import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/storage/object_storage_fs.dart';
 import 'package:dart_git/utils/date_time.dart';
 
@@ -24,10 +25,15 @@ Also add tons of comments
     const fs = LocalFileSystem();
     var objStorage = ObjectStorageFS('', fs);
 
+    var hash = GitHash.compute(GitObject.envelope(
+      data: ascii.encode(contents),
+      format: ascii.encode(GitCommit.fmt),
+    ));
+
     var obj = objStorage
-        .readObjectFromPath('test/data/commit-object', null)
+        .readObjectFromPath('test/data/commit-object', hash)
         .getOrThrow();
-    var hash = GitHash('57bdd0dbc9868e53aead3c91714c282647265254');
+    expect(obj.hash, GitHash('57bdd0dbc9868e53aead3c91714c282647265254'));
 
     expect(obj is GitCommit, true);
     var commitObj = obj as GitCommit;
@@ -78,8 +84,13 @@ gpgsig -----BEGIN PGP SIGNATURE-----
  -----END PGP SIGNATURE-----
 
 Create first draft''';
+    var data = utf8.encode(rawStr) as Uint8List;
+    var hash = GitHash.compute(GitObject.envelope(
+      data: data,
+      format: ascii.encode(GitCommit.fmt),
+    ));
 
-    var commitObj = GitCommit.parse(utf8.encode(rawStr) as Uint8List, null)!;
+    var commitObj = GitCommit.parse(data, hash)!;
     expect(utf8.decode(commitObj.serializeData()), rawStr);
   });
 

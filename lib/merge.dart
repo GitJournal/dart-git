@@ -97,12 +97,11 @@ extension Merge on GitRepository {
       message: message,
       treeHash: _combineTrees(headTree, bTree).getOrThrow(),
     );
-    var hashR = objStorage.writeObject(commit);
-    if (hashR.isFailure) {
-      return fail(hashR);
+    var r = objStorage.writeObject(commit);
+    if (r.isFailure) {
+      return fail(r);
     }
-    var mergeCommitHash = hashR.getOrThrow();
-    return resetHard(mergeCommitHash);
+    return resetHard(commit.hash);
 
     // - unborn ?
 
@@ -163,10 +162,13 @@ extension Merge on GitRepository {
       }
     }
 
-    var newTree = GitTree.empty();
-    newTree.entries = entries;
+    var newTree = GitTree.create(entries);
+    var r = objStorage.writeObject(newTree);
+    if (r.isFailure) {
+      return fail(r);
+    }
 
-    return objStorage.writeObject(newTree);
+    return Result(newTree.hash);
   }
 
   // Convenience method

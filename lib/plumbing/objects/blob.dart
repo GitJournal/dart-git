@@ -9,9 +9,13 @@ class GitBlob extends GitObject {
   static final _fmt = ascii.encode(fmt);
 
   final Uint8List blobData;
-  GitHash? _hash;
 
-  GitBlob(this.blobData, this._hash);
+  @override
+  late final GitHash hash;
+
+  GitBlob(this.blobData, GitHash? hash) {
+    this.hash = hash ?? GitHash.computeForObject(this);
+  }
 
   @override
   Uint8List serializeData() => blobData;
@@ -21,10 +25,4 @@ class GitBlob extends GitObject {
 
   @override
   String formatStr() => fmt;
-
-  @override
-  GitHash get hash {
-    _hash ??= GitHash.compute(serialize());
-    return _hash!;
-  }
 }

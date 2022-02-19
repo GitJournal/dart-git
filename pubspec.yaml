@@ -14,6 +14,7 @@ dependencies:
   crypto: ^3.0.0
   diff_match_patch: ^0.4.1
   equatable: ^2.0.0
+  fast_immutable_collections: ^7.2.0
   file: ^6.1.0
   freezed_annotation: ^0.14.1
   lints: ^1.0.1

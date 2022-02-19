@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:charcode/charcode.dart';
 import 'package:equatable/equatable.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
@@ -27,13 +28,17 @@ class GitTree extends GitObject {
   static const fmt = ObjectTypes.TREE_STR;
   static final _fmt = ascii.encode(fmt);
 
-  GitHash? _hash;
-  List<GitTreeEntry> entries = [];
+  @override
+  late final GitHash hash;
+  late final IList<GitTreeEntry> entries;
 
-  GitTree.empty() : _hash = null;
+  GitTree.create([Iterable<GitTreeEntry>? entries])
+      : hash = GitHash.zero(),
+        entries = IList(entries);
 
-  GitTree(Uint8List raw, this._hash) {
+  GitTree(Uint8List raw, this.hash) {
     var start = 0;
+    var entries = <GitTreeEntry>[];
     while (start < raw.length) {
       var x = raw.indexOf($space, start);
       assert(x - start == 5 || x - start == 6);
@@ -53,6 +58,8 @@ class GitTree extends GitObject {
 
       start = y + 21;
     }
+
+    this.entries = IList(entries);
   }
 
   @override
@@ -76,12 +83,6 @@ class GitTree extends GitObject {
 
   @override
   String formatStr() => fmt;
-
-  @override
-  GitHash get hash {
-    _hash ??= GitHash.compute(serialize());
-    return _hash!;
-  }
 
   void debugPrint() {
     for (var e in entries) {

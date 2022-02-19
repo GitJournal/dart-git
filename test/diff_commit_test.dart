@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:dart_git/dart_git.dart';
-import 'package:dart_git/diff_commit.dart';
 import 'package:test/test.dart';
 
+import 'package:dart_git/dart_git.dart';
+import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'lib.dart';
 

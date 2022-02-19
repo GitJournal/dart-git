@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file/local.dart';
 import 'package:test/test.dart';
 
+import 'package:dart_git/plumbing/git_hash.dart';
+import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/storage/object_storage_fs.dart';
 
@@ -11,8 +14,14 @@ void main() {
     const fs = LocalFileSystem();
     var objStorage = ObjectStorageFS('', fs);
 
-    var obj =
-        objStorage.readObjectFromPath('test/data/tree', null).getOrThrow();
+    var fp = 'test/data/tree';
+    var data = File(fp).readAsBytesSync();
+    var hash = GitHash.compute(GitObject.envelope(
+      data: data,
+      format: ascii.encode(GitTree.fmt),
+    ));
+
+    var obj = objStorage.readObjectFromPath(fp, hash).getOrThrow();
     expect(obj is GitTree, equals(true));
 
     var tree = obj as GitTree;
@@ -30,6 +39,8 @@ void main() {
 
     var fileRawBytes = await fs.file('test/data/tree').readAsBytes();
     var fileBytesDefalted = zlib.decode(fileRawBytes);
-    expect(tree.serialize(), equals(fileBytesDefalted));
+    expect(
+        GitObject.envelope(data: tree.serializeData(), format: tree.format()),
+        equals(fileBytesDefalted));
   });
 }

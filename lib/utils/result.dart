@@ -28,6 +28,9 @@ class Result<DataType> {
 
   void throwOnError() {
     if (isFailure) {
+      if (stackTrace != null) {
+        throw ResultException(exception!, stackTrace!);
+      }
       throw error!;
     }
   }

@@ -63,8 +63,12 @@ Future<int> mainWithExitCode(List<String> args) async {
     print(e);
     return 1;
   } on ResultException catch (e, _) {
-    print(e);
-    print(e.stackTrace);
+    var ex = e;
+    while (ex.exception is ResultException) {
+      ex = ex.exception as ResultException;
+    }
+    print(ex);
+    print(ex.stackTrace);
     return 1;
   } catch (e, stacktrace) {
     print(e);

@@ -54,8 +54,15 @@ jobs:
         name: Install dependencies
         run: dart pub get
       - name: Run VM tests
-        run: dart test --platform vm
+        run: dart test --platform vm --file-reporter="json:test-results.json"
         if: always() && steps.install.outcome == 'success'
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Unit Tests
+          path: test-results.json
+          reporter: dart-json
       - name: Build
         run: dart compile exe bin/main.dart -o dartgit
       - name: "Upload Artifact"

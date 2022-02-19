@@ -32,9 +32,13 @@ class GitTree extends GitObject {
   late final GitHash hash;
   late final IList<GitTreeEntry> entries;
 
-  GitTree.create([Iterable<GitTreeEntry>? entries])
-      : hash = GitHash.zero(),
-        entries = IList(entries);
+  GitTree._(this.hash, this.entries);
+
+  static GitTree create([Iterable<GitTreeEntry>? entries]) {
+    var t = GitTree._(GitHash.zero(), IList(entries));
+    var hash = GitHash.computeForObject(t);
+    return GitTree._(hash, t.entries);
+  }
 
   GitTree(Uint8List raw, this.hash) {
     var start = 0;

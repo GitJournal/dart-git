@@ -117,8 +117,8 @@ class ObjectStorageFS implements ObjectStorage {
       data: obj.serializeData(),
       format: obj.format(),
     );
-    var hash = GitHash.compute(result);
-    var sha = hash.toString();
+    var hash = obj.hash;
+    var sha = obj.hash.toString();
 
     var path =
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));

@@ -200,7 +200,7 @@ Future<List<String>> runDartGitCommand(
       workingDirectory: workingDir,
       includeParentEnvironment: true,
       environment: env,
-      throwOnError: false,
+      throwOnError: true,
       // silence
       stdout: silenceShellOutput ? sink : null,
       stderr: silenceShellOutput ? sink : null,

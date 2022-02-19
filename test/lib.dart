@@ -16,7 +16,7 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/utils/result.dart';
 import '../bin/main.dart' as git;
 
-var silenceShellOutput = true;
+var silenceShellOutput = Platform.environment["CI"] == null;
 
 Future<String> runGitCommand(String command, String dir,
     {Map<String, String> env = const {}}) async {

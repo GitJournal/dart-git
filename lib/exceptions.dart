@@ -33,6 +33,17 @@ class GitIndexCorruptedException implements GitFatalException {
   String toString() => 'fatal: GitIndexCorrupted: $reason';
 }
 
+class GitIndexHashDifferentException implements GitFatalException {
+  final GitHash expected;
+  final GitHash actual;
+
+  GitIndexHashDifferentException(
+      {required this.expected, required this.actual});
+
+  @override
+  String toString() => 'fatal: GitIndexCorrupted: Invalid Hash';
+}
+
 class GitHashStringNotHexadecimal implements GitException {}
 
 class GitObjectNotFound implements GitException {

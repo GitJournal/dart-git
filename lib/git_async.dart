@@ -95,6 +95,7 @@ class GitAsyncRepository {
     _ = exitR.listen((_) async {
       return _reposLock.synchronized(() => _repos.remove(repoPath));
     });
+    // ignore: avoid_print
     _ = errorR.listen((message) => print("GitAsyncRepo Error: $message"));
 
     var receiveStream = receivePort.asBroadcastStream();

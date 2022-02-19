@@ -86,6 +86,7 @@ class GitTree extends GitObject {
 
   void debugPrint() {
     for (var e in entries) {
+      // ignore: avoid_print
       print('${e.mode} ${e.name} ${e.hash}');
     }
   }

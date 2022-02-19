@@ -21,6 +21,7 @@ linter:
     sort_pub_dependencies: true
     always_declare_return_types: true
     # avoid_dynamic_calls: true
+    avoid_print: true
 
 analyzer:
   errors:

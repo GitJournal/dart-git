@@ -198,10 +198,6 @@ extension Commit on GitRepository {
         var fullPath = p.join(treeObjFullPath[tree]!, leaf.name);
         var hash = hashMap[fullPath]!;
 
-        var d = fullPath.startsWith('test/data/diff-commits-1/.gitted/refs');
-        if (d) {
-          print('$fullPath -> $hash');
-        }
         entries[i] = GitTreeEntry(
           mode: leaf.mode,
           name: leaf.name,
@@ -210,22 +206,18 @@ extension Commit on GitRepository {
       }
       treeObjects[dir] = GitTree.create(entries);
 
-      var d = dir.startsWith('test/data/diff-commits-1/.gitted/refs');
-      if (d) print('writing tree $dir ---- ${tree.hash}');
       var hashR = objStorage.writeObject(tree);
       if (hashR.isFailure) {
         return fail(hashR);
       }
       assert(!hashMap.containsKey(dir));
       hashMap[dir] = hashR.getOrThrow();
-      if (d) print('x $dir -> ${hashR.getOrThrow()}');
     }
 
     for (var e in hashMap.entries) {
       if (!e.key.startsWith('test/data/diff-commits-1/.gitted/refs')) {
         continue;
       }
-      print('h ${e.key} -> ${e.value}');
     }
     return Result(hashMap['']!);
   }

@@ -71,9 +71,10 @@ class GitIndex {
     var expectedHash = GitHash.fromBytes(hashBytesBuilder.toBytes());
     var actualHash = GitHash.compute(bytes.sublistView(0, bytes.length - 20));
     if (expectedHash != actualHash) {
-      print('ExpectedHash: $expectedHash');
-      print('ActualHash:  $actualHash');
-      throw GitIndexCorruptedException('Invalid Hash');
+      throw GitIndexHashDifferentException(
+        expected: expectedHash,
+        actual: actualHash,
+      );
     }
   }
 

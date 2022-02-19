@@ -60,7 +60,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Unit Tests
+          name: Unit Tests ${{ matrix.os }} ${{ matrix.sdk }}
           path: test-results.json
           reporter: dart-json
       - name: Build

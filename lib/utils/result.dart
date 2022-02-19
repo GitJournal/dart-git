@@ -81,7 +81,7 @@ Result<T> catchAllSync<T>(Result<T> Function() catchFn) {
 }
 
 Result<Base> downcast<Base, Derived>(Result<Derived> other) {
-  return Result._(other.data as Base, other.error, other.stackTrace);
+  return Result._(other.data as Base?, other.error, other.stackTrace);
 }
 
 extension ResultFuture<T> on Future<Result<T>> {

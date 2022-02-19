@@ -9,6 +9,7 @@ import 'package:process_run/shell.dart' as shell;
 import 'package:test/test.dart';
 
 import 'package:dart_git/config.dart';
+import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/utils/result.dart';
 import '../bin/main.dart' as git;
@@ -272,7 +273,8 @@ Future<String> openFixture(String filePath) async {
   return gitDir;
 }
 
-Future<String> cloneGittedFixture(String fixtureName, String newDirPath) async {
+Future<String> cloneGittedFixture(String fixtureName, String newDirPath,
+    [GitHash? hash]) async {
   dynamic _;
 
   var fixtureDirPath = 'test/data/$fixtureName';
@@ -289,6 +291,15 @@ Future<String> cloneGittedFixture(String fixtureName, String newDirPath) async {
     includeParentEnvironment: false,
     verbose: false,
   );
+
+  if (hash != null) {
+    _ = await shell.run(
+      'git checkout $hash',
+      workingDirectory: newDirPath,
+      includeParentEnvironment: false,
+      verbose: false,
+    );
+  }
 
   return newDirPath;
 }

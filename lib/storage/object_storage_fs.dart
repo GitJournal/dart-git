@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/idx_file.dart';
+import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
 import 'package:dart_git/utils/result.dart';
@@ -113,6 +114,11 @@ class ObjectStorageFS implements ObjectStorage {
 
   @override
   Result<GitHash> writeObject(GitObject obj) {
+    assert(
+      obj.formatStr() != GitBlob.fmt ? obj.serializeData().isNotEmpty : true,
+      "${obj.hash} ${obj.formatStr()} is empty",
+    );
+
     var result = GitObject.envelope(
       data: obj.serializeData(),
       format: obj.format(),

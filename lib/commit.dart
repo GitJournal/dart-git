@@ -109,7 +109,6 @@ extension Commit on GitRepository {
   Result<GitHash> writeTree(GitIndex index) {
     var allTreeDirs = {''};
     var treeObjects = {'': GitTree.create()};
-    var treeObjFullPath = <GitTree, String>{};
 
     for (var entry in index.entries) {
       var fullPath = entry.path;
@@ -130,8 +129,7 @@ extension Commit on GitRepository {
 
       for (var dir in allDirs) {
         if (!treeObjects.containsKey(dir)) {
-          var tree = GitTree.create();
-          treeObjects[dir] = tree;
+          treeObjects[dir] = GitTree.create();
         }
 
         var parentDir = p.dirname(dir);
@@ -149,8 +147,9 @@ extension Commit on GitRepository {
           name: folderName,
           hash: GitHash.zero(),
         ));
+
         var parentTree = GitTree.create(parentTreeEntries);
-        treeObjFullPath[parentTree] = parentDir;
+        treeObjects[parentDir] = parentTree;
       }
 
       dirName = p.dirname(fullPath);
@@ -178,6 +177,7 @@ extension Commit on GitRepository {
     for (var dir in allDirs.reversed) {
       var tree = treeObjects[dir]!;
       var entries = tree.entries.unlock;
+      assert(entries.isNotEmpty);
 
       for (var i = 0; i < entries.length; i++) {
         var leaf = entries[i];
@@ -195,8 +195,9 @@ extension Commit on GitRepository {
           continue;
         }
 
-        var fullPath = p.join(treeObjFullPath[tree]!, leaf.name);
+        var fullPath = p.join(dir, leaf.name);
         var hash = hashMap[fullPath]!;
+        assert(hash.isNotEmpty);
 
         entries[i] = GitTreeEntry(
           mode: leaf.mode,
@@ -204,7 +205,10 @@ extension Commit on GitRepository {
           hash: hash,
         );
       }
-      treeObjects[dir] = GitTree.create(entries);
+
+      assert(entries.isNotEmpty);
+      tree = GitTree.create(entries);
+      treeObjects[dir] = tree;
 
       var hashR = objStorage.writeObject(tree);
       if (hashR.isFailure) {
@@ -214,11 +218,6 @@ extension Commit on GitRepository {
       hashMap[dir] = hashR.getOrThrow();
     }
 
-    for (var e in hashMap.entries) {
-      if (!e.key.startsWith('test/data/diff-commits-1/.gitted/refs')) {
-        continue;
-      }
-    }
     return Result(hashMap['']!);
   }
 }

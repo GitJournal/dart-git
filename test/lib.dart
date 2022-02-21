@@ -219,7 +219,7 @@ Future<List<String>> runDartGitCommand(
     var prev = Directory.current;
 
     Directory.current = workingDir;
-    // FIXME: There could be a space inside quotes
+    assert(!command.contains('"') && !command.contains("'"));
     try {
       var _ = git.mainWithExitCode(command.split(' '));
     } catch (e) {

@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:async/async.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:process_run/shell.dart' as shell;
 import 'package:test/test.dart';
@@ -23,25 +22,19 @@ Future<GitCommandSetupResult> gitCommandTestSetupAll() async {
   var result = GitCommandSetupResult();
   result.tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;
 
-  var currentDir = Directory.current;
-  assert(currentDir
-          .listSync()
-          .firstWhereOrNull((e) => p.basename(e.path) == '.git') !=
-      null);
+  var cloneUrl = 'https://github.com/GitJournal/dart_git.git';
+  var _ = await runGitCommand(
+    'clone $cloneUrl',
+    result.tmpDir,
+    throwOnError: true,
+  );
 
-  var repoName = "dart_git";
+  var repoName = p.basename(cloneUrl);
+  if (cloneUrl.endsWith('.git')) {
+    repoName = repoName.substring(0, repoName.lastIndexOf('.git'));
+  }
+
   result.clonedGitDir = p.join(result.tmpDir, repoName);
-
-  await copyDirectory(currentDir.path, result.clonedGitDir);
-
-  var repoPath = result.clonedGitDir;
-
-  File(p.join(repoPath, '.gitignore')).deleteSync();
-
-  dynamic _;
-  _ = await runGitCommand('clean -fd .', repoPath, throwOnError: true);
-  _ = await runGitCommand('checkout .', repoPath, throwOnError: true);
-
   result.realGitDir = p.join(result.tmpDir, '${repoName}_git');
   result.dartGitDir = p.join(result.tmpDir, '${repoName}_dart');
 

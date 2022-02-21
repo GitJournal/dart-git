@@ -33,7 +33,7 @@ class GitIndex {
     // Read 12 byte header
     var sig = reader.read(4);
     if (sig.length != 4) {
-      throw GitIndexCorruptedException('Invalid Signature lenght');
+      throw GitIndexCorruptedException('Invalid Signature length');
     }
 
     if (!_listEq(sig, _indexSignature)) {

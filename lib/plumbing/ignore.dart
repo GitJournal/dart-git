@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: unused_element, unused_field
+// ignore_for_file: unused_element, unused_field, prefer-conditional-expressions
 
 /// Implements an [Ignore] filter compatible with `.gitignore`.
 ///
@@ -128,7 +128,7 @@ class Ignore {
   /// }
   /// ```
   bool ignores(String path) {
-    ArgumentError.checkNotNull(path, 'path');
+    // ArgumentError.checkNotNull(path, 'path');
     if (path.isEmpty) {
       throw ArgumentError.value(path, 'path', 'must be not empty');
     }
@@ -270,8 +270,9 @@ class Ignore {
     while (toVisit.isNotEmpty) {
       final topOfStack = toVisit.last;
       if (topOfStack.isEmpty) {
-        toVisit.removeLast();
-        ignoreStack.removeLast();
+        dynamic _;
+        _ = toVisit.removeLast();
+        _ = ignoreStack.removeLast();
         continue;
       }
       final current = topOfStack.removeLast();
@@ -350,8 +351,6 @@ Iterable<_IgnoreRule> _parseIgnorePatterns(
   bool ignoreCase, {
   void Function(String pattern, FormatException exception)? onInvalidPattern,
 }) sync* {
-  ArgumentError.checkNotNull(patterns, 'patterns');
-  ArgumentError.checkNotNull(ignoreCase, 'ignoreCase');
   onInvalidPattern ??= (_, __) {};
 
   final parsedPatterns = patterns

@@ -62,17 +62,10 @@ Future<int> mainWithExitCode(List<String> args) async {
   } on GitException catch (e) {
     print(e);
     return 1;
-  } on ResultException catch (e, _) {
-    var ex = e;
-    while (ex.exception is ResultException) {
-      ex = ex.exception as ResultException;
-    }
-    print(ex);
-    print(ex.stackTrace);
-    return 1;
-  } catch (e, stacktrace) {
-    print(e);
-    print(stacktrace);
+  } catch (e, st) {
+    var t = Result.unwindEx(e, st);
+    print(t.item1);
+    print(t.item2);
     return 1;
   }
 

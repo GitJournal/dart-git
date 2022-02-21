@@ -1,3 +1,5 @@
+import 'package:tuple/tuple.dart';
+
 /// See https://github.com/michaelbull/kotlin-result
 class Result<DataType> {
   DataType? data;
@@ -48,6 +50,25 @@ class Result<DataType> {
 
     return Exception(error.toString());
   }
+
+  static Result unwind(Result r) {
+    if (r.isSuccess) return r;
+
+    var t = unwindEx(r.error!, r.stackTrace!);
+    return Result.fail(t.item1, t.item2);
+  }
+
+  static Tuple2<Exception, StackTrace> unwindEx(Object e, StackTrace st) {
+    if (e is Error) e = Exception(e.toString());
+    if (e is! ResultException) return Tuple2(e as Exception, st);
+
+    var re = e;
+    while (re.exception is ResultException) {
+      re = re.exception as ResultException;
+    }
+
+    return Tuple2(re.exception, re.stackTrace);
+  }
 }
 
 class ResultException implements Exception {
@@ -63,20 +84,18 @@ class ResultException implements Exception {
 Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
   try {
     return await catchFn();
-  } on ResultException catch (e) {
-    return Result.fail(e, e.stackTrace);
-  } catch (e, stackTrace) {
-    return Result.fail(e, stackTrace);
+  } catch (e, st) {
+    var t = Result.unwindEx(e, st);
+    return Result.fail(t.item1, t.item2);
   }
 }
 
 Result<T> catchAllSync<T>(Result<T> Function() catchFn) {
   try {
     return catchFn();
-  } on ResultException catch (e) {
-    return Result.fail(e, e.stackTrace);
-  } catch (e, stackTrace) {
-    return Result.fail(e, stackTrace);
+  } catch (e, st) {
+    var t = Result.unwindEx(e, st);
+    return Result.fail(t.item1, t.item2);
   }
 }
 

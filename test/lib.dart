@@ -18,8 +18,12 @@ import '../bin/main.dart' as git;
 
 var silenceShellOutput = Platform.environment["CI"] == null;
 
-Future<String> runGitCommand(String command, String dir,
-    {Map<String, String> env = const {}}) async {
+Future<String> runGitCommand(
+  String command,
+  String dir, {
+  Map<String, String> env = const {},
+  bool throwOnError = false,
+}) async {
   var sink = NullStreamSink<List<int>>();
 
   var results = await shell.run(
@@ -27,7 +31,7 @@ Future<String> runGitCommand(String command, String dir,
     workingDirectory: dir,
     includeParentEnvironment: false,
     environment: env,
-    throwOnError: false,
+    throwOnError: throwOnError,
     // silence
     stdout: silenceShellOutput ? sink : null,
     stderr: silenceShellOutput ? sink : null,

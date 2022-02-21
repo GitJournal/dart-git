@@ -23,7 +23,11 @@ Future<GitCommandSetupResult> gitCommandTestSetupAll() async {
   result.tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;
 
   var cloneUrl = 'https://github.com/GitJournal/dart_git.git';
-  var _ = await runGitCommand('clone $cloneUrl', result.tmpDir);
+  var _ = await runGitCommand(
+    'clone $cloneUrl',
+    result.tmpDir,
+    throwOnError: true,
+  );
 
   var repoName = p.basename(cloneUrl);
   if (cloneUrl.endsWith('.git')) {
@@ -71,11 +75,10 @@ Future<void> gitCommandTestSetup(GitCommandSetupResult r) async {
   var _ = await Directory(r.realGitDir).create(recursive: true);
   var __ = await Directory(r.dartGitDir).create(recursive: true);
 
+  assert(Directory(r.clonedGitDir).existsSync());
+
   await copyDirectory(r.clonedGitDir, r.realGitDir);
   await copyDirectory(r.clonedGitDir, r.dartGitDir);
-
-  // print('r.realGitDir: $realGitDir');
-  // print('r.dartGitDir: $dartGitDir');
 }
 
 Future<void> testGitCommand(

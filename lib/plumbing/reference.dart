@@ -100,7 +100,11 @@ class ReferenceName {
     if (isBranch()) {
       return value.substring(refHeadPrefix.length);
     } else if (isRemote()) {
-      return value.substring(refRemotePrefix.length).split('/')[1];
+      return value
+          .substring(refRemotePrefix.length)
+          .split('/')
+          .sublist(1)
+          .join('/');
     }
 
     return null;

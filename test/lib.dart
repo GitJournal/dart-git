@@ -78,7 +78,7 @@ done''';
   dynamic _;
 
   var script = p.join(Directory.systemTemp.path, 'list-objects');
-  _ = await File(script).writeAsString(listObjScript);
+  File(script).writeAsStringSync(listObjScript);
 
   var repo1Result =
       await runExecutableArguments('bash', [script], workingDirectory: repo1);
@@ -95,7 +95,7 @@ done''';
   // Test if all the references are the same
   var listRefScript = 'git show-ref --head';
   script = p.join(Directory.systemTemp.path, 'list-refs');
-  _ = await File(script).writeAsString(listRefScript);
+  File(script).writeAsStringSync(listRefScript);
 
   repo1Result =
       await runExecutableArguments('bash', [script], workingDirectory: repo1);
@@ -112,7 +112,7 @@ done''';
   // Test if the index is the same
   var listIndexScript = 'git ls-files --stage';
   script = p.join(Directory.systemTemp.path, 'list-index');
-  _ = await File(script).writeAsString(listIndexScript);
+  File(script).writeAsStringSync(listIndexScript);
 
   repo1Result =
       await runExecutableArguments('bash', [script], workingDirectory: repo1);
@@ -142,11 +142,11 @@ done''';
   expect(c1, c2);
 
   // Test if the working dir is the same
-  var repo1FsEntities = await Directory(repo1).list(recursive: true).toList();
+  var repo1FsEntities = Directory(repo1).listSync(recursive: true).toList();
   repo1FsEntities = repo1FsEntities
       .where((e) => !e.path.startsWith(p.join(repo1, '.git/')))
       .toList();
-  var repo2FsEntities = await Directory(repo2).list(recursive: true).toList();
+  var repo2FsEntities = Directory(repo2).listSync(recursive: true).toList();
   repo2FsEntities = repo2FsEntities
       .where((e) => !e.path.startsWith(p.join(repo2, '.git/')))
       .toList();
@@ -168,13 +168,13 @@ done''';
     var repo2FilePath = p.join(repo2, path);
 
     try {
-      var repo1File = await File(repo1FilePath).readAsString();
-      var repo2File = await File(repo2FilePath).readAsString();
+      var repo1File = File(repo1FilePath).readAsStringSync();
+      var repo2File = File(repo2FilePath).readAsStringSync();
 
       expect(repo1File, repo2File, reason: '$path is different');
     } catch (e) {
-      var repo1File = await File(repo1FilePath).readAsBytes();
-      var repo2File = await File(repo2FilePath).readAsBytes();
+      var repo1File = File(repo1FilePath).readAsBytesSync();
+      var repo2File = File(repo2FilePath).readAsBytesSync();
 
       expect(repo1File, repo2File, reason: '$path is different');
     }

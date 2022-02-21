@@ -54,7 +54,7 @@ jobs:
         name: Install dependencies
         run: dart pub get
       - name: Run VM tests
-        run: dart test --platform vm --file-reporter="json:test-results.json"
+        run: dart test --chain-stack-traces --file-reporter="json:test-results.json"
         if: always() && steps.install.outcome == 'success'
       - name: Test Report
         uses: dorny/test-reporter@v1

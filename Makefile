@@ -6,7 +6,7 @@ lint:
 	dart run dart_code_metrics:metrics lib
 
 test:
-	dart test
+	dart test --chain-stack-traces
 
 build:
 	dart compile exe bin/main.dart -o dartgit

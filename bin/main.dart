@@ -63,7 +63,7 @@ Future<int> mainWithExitCode(List<String> args) async {
     print(e);
     return 1;
   } catch (e, st) {
-    var t = Result.unwindEx(e, st);
+    var t = Result.unwind(e, st);
     print(t.item1);
     print(t.item2);
     return 1;

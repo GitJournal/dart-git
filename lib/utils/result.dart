@@ -15,6 +15,8 @@ class Result<DataType> {
 
   Result._(this.data, this.error, this.stackTrace);
 
+  /// Throws `ResultException`, use Result.unwind to get the true exception
+  /// and stackTrace
   DataType getOrThrow() {
     assert(data != null || error != null);
 
@@ -28,6 +30,8 @@ class Result<DataType> {
     }
   }
 
+  /// Throws `ResultException`, use Result.unwind to get the true exception
+  /// and stackTrace
   void throwOnError() {
     if (isFailure) {
       if (stackTrace != null) {
@@ -51,14 +55,7 @@ class Result<DataType> {
     return Exception(error.toString());
   }
 
-  static Result unwind(Result r) {
-    if (r.isSuccess) return r;
-
-    var t = unwindEx(r.error!, r.stackTrace!);
-    return Result.fail(t.item1, t.item2);
-  }
-
-  static Tuple2<Exception, StackTrace> unwindEx(Object e, StackTrace st) {
+  static Tuple2<Exception, StackTrace> unwind(Object e, StackTrace st) {
     if (e is Error) e = Exception(e.toString());
     if (e is! ResultException) return Tuple2(e as Exception, st);
 
@@ -85,7 +82,7 @@ Future<Result<T>> catchAll<T>(Future<Result<T>> Function() catchFn) async {
   try {
     return await catchFn();
   } catch (e, st) {
-    var t = Result.unwindEx(e, st);
+    var t = Result.unwind(e, st);
     return Result.fail(t.item1, t.item2);
   }
 }
@@ -94,7 +91,7 @@ Result<T> catchAllSync<T>(Result<T> Function() catchFn) {
   try {
     return catchFn();
   } catch (e, st) {
-    var t = Result.unwindEx(e, st);
+    var t = Result.unwind(e, st);
     return Result.fail(t.item1, t.item2);
   }
 }

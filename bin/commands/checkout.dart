@@ -73,7 +73,7 @@ class CheckoutCommand extends Command {
 
     if (argResults!.arguments.isEmpty) {
       print('Must provide a file');
-      exit(1);
+      return;
     }
 
     var pathSpec = argResults!.arguments[0];
@@ -90,7 +90,7 @@ class CheckoutCommand extends Command {
     if (objectsUpdatedR.isFailure) {
       print(
           "error: pathspec '$pathSpec' did not match any file(s) known to git");
-      exit(1);
+      return;
     }
     var objectsUpdated = objectsUpdatedR.getOrThrow();
     print('Updated $objectsUpdated path from the index');

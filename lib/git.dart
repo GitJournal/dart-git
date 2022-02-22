@@ -43,7 +43,7 @@ class GitRepository {
   /// Always ends with a '/'
   late String workTree;
 
-  /// The .git directory path.
+  /// The .git directory path. Always ends with '/'
   late String gitDir;
 
   late Config config;
@@ -60,6 +60,9 @@ class GitRepository {
       workTree += p.separator;
     }
     gitDir = p.join(workTree, '.git');
+    if (!gitDir.endsWith(p.separator)) {
+      gitDir += p.separator;
+    }
   }
 
   // FIXME: The FS operations could throw an error!

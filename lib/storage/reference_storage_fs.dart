@@ -60,8 +60,7 @@ class ReferenceStorageFS implements ReferenceStorage {
         continue;
       }
 
-      var refName =
-          ReferenceName(fsEntity.path.substring(_dotGitDir.length + 1));
+      var refName = ReferenceName(fsEntity.path.substring(_dotGitDir.length));
       var result = reference(refName);
       if (result.isSuccess) {
         var ref = result.getOrThrow();

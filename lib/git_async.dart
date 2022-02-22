@@ -24,6 +24,7 @@ class GitAsyncRepository {
 
   final Config _config;
 
+  /// isOpen returns 'true' even if the repo auto closes
   bool get isOpen => _open;
   bool _open = true;
 

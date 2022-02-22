@@ -94,7 +94,7 @@ class BranchCommand extends Command {
           var refName = ReferenceName.remote(remoteName, remoteBranchName);
           var refResult = repo.resolveReferenceName(refName);
           if (refResult.isFailure) {
-            print('fatal');
+            print('fatal: ${refResult.error}');
             return;
           }
 

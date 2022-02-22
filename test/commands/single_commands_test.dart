@@ -143,10 +143,14 @@ void main() {
 
   test(
     'git upstream branch',
-    () async => testCommands(s, [
-      'git branch foo/fde',
-      'git branch --set-upstream-to=origin/master',
-    ]),
+    () async => testCommands(
+      s,
+      [
+        'git branch foo/fde',
+        'git branch --set-upstream-to=origin/master',
+      ],
+      ignoreOutput: true,
+    ),
   );
 
   test(
@@ -171,6 +175,7 @@ void main() {
         'git remote rm origin',
       ],
       emptyDirs: true,
+      ignoreOutput: true,
     ),
   );
 

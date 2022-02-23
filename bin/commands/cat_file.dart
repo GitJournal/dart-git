@@ -8,7 +8,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 
-class CatFileCommand extends Command {
+class CatFileCommand extends Command<int> {
   @override
   final name = 'cat-file';
 
@@ -17,7 +17,7 @@ class CatFileCommand extends Command {
       'Provide content or type and size information for repository objects';
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -26,5 +26,7 @@ class CatFileCommand extends Command {
     var obj = objRes.getOrThrow();
     var s = utf8.decode(obj.serializeData());
     print(s);
+
+    return 0;
   }
 }

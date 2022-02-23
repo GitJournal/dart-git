@@ -7,7 +7,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
-class StatusCommand extends Command {
+class StatusCommand extends Command<int> {
   @override
   final name = 'status';
 
@@ -15,14 +15,14 @@ class StatusCommand extends Command {
   final description = 'Show the working tree status';
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
     var headResult = repo.head();
     if (headResult.isFailure) {
       print('fatal: no head found');
-      return;
+      return 1;
     }
 
     var head = headResult.getOrThrow();
@@ -33,7 +33,7 @@ class StatusCommand extends Command {
     }
 
     if (head.isHash) {
-      return;
+      return 0;
     }
 
     var branch = repo.config.branch(head.target!.branchName()!)!;
@@ -76,5 +76,7 @@ class StatusCommand extends Command {
     // Get the tree
     // iterate over all objects in the tree and check if present in the index
     // make sure that for each path, the hash in the index is the same
+
+    return 0;
   }
 }

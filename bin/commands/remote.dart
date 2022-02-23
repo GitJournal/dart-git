@@ -7,7 +7,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
 
-class RemoteCommand extends Command {
+class RemoteCommand extends Command<int> {
   @override
   final name = 'remote';
 
@@ -24,7 +24,7 @@ class RemoteCommand extends Command {
   }
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -35,31 +35,31 @@ class RemoteCommand extends Command {
       if (result.name == 'add') {
         if (result.arguments.length != 2) {
           print('usage: git remote add <name> <url>');
-          return;
+          return 1;
         }
         var name = result.arguments[0];
         var url = result.arguments[1];
 
         repo.addRemote(name, url).throwOnError();
-        return;
+        return 0;
       }
 
       if (result.name == 'rm') {
         if (result.arguments.length != 1) {
           print('usage: git remote rm <name>');
-          return;
+          return 1;
         }
 
         var name = result.arguments[0];
         var configResult = repo.removeRemote(name);
         if (configResult.isFailure) {
           print("fatal: No such remote: '$name'");
-          return;
+          return 1;
         }
-        return;
+        return 0;
       }
 
-      return;
+      return 1;
     }
 
     for (var remote in repo.config.remotes) {
@@ -70,5 +70,7 @@ class RemoteCommand extends Command {
         print('${remote.name}\t${remote.url} (push)');
       }
     }
+
+    return 0;
   }
 }

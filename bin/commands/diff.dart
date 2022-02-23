@@ -8,7 +8,7 @@ import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 
-class DiffCommand extends Command {
+class DiffCommand extends Command<int> {
   @override
   final name = 'diff';
 

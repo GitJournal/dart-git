@@ -10,7 +10,7 @@ import 'package:dart_git/plumbing/commit_iterator.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 
-class LogCommand extends Command {
+class LogCommand extends Command<int> {
   @override
   final name = 'log';
 
@@ -18,7 +18,7 @@ class LogCommand extends Command {
   final description = 'Show commit logs';
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -29,7 +29,7 @@ class LogCommand extends Command {
       var result = repo.headHash();
       if (result.isFailure) {
         print('fatal: head hash not found');
-        return;
+        return 1;
       }
       sha = result.getOrThrow();
     }
@@ -38,12 +38,14 @@ class LogCommand extends Command {
     for (var result in iter) {
       if (result.isFailure) {
         print('panic: object with sha $sha not found');
-        return;
+        return 1;
       }
 
       var commit = result.getOrThrow();
       printCommit(commit, sha);
     }
+
+    return 0;
   }
 }
 

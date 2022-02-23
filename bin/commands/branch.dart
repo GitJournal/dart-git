@@ -8,7 +8,7 @@ import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/utils.dart';
 
-class BranchCommand extends Command {
+class BranchCommand extends Command<int> {
   @override
   final name = 'branch';
 
@@ -22,7 +22,7 @@ class BranchCommand extends Command {
   }
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -35,7 +35,7 @@ class BranchCommand extends Command {
         var headResult = repo.head();
         if (headResult.isFailure) {
           print('fatal: no head');
-          return;
+          return 1;
         }
 
         var head = headResult.getOrThrow();
@@ -75,7 +75,7 @@ class BranchCommand extends Command {
             }
           }
         }
-        return;
+        return 0;
       } else {
         var rest = argResults!.rest;
 
@@ -84,6 +84,7 @@ class BranchCommand extends Command {
           var hashR = repo.createBranch(name);
           if (hashR.isFailure) {
             print("fatal: A branch named '$name' already exists.");
+            return 1;
           }
         } else {
           var parts = splitPath(argResults!.rest[1]);
@@ -95,7 +96,7 @@ class BranchCommand extends Command {
           var refResult = repo.resolveReferenceName(refName);
           if (refResult.isFailure) {
             print('fatal: ${refResult.error}');
-            return;
+            return 1;
           }
 
           var ref = refResult.getOrThrow();
@@ -110,24 +111,24 @@ class BranchCommand extends Command {
           print(
               "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
         }
-        return;
+        return 0;
       }
     }
 
     if (delete!) {
       if (argResults!.rest.isEmpty) {
         print('fatal: branch name required');
-        return;
+        return 1;
       }
       var branchName = argResults!.rest.first;
       var hashR = repo.deleteBranch(branchName);
       if (hashR.isFailure) {
         print("error: branch '$branchName' not found.");
-        return;
+        return 1;
       }
       var hash = hashR.getOrThrow();
       print('Deleted branch $branchName (was ${hash.toOid()}).');
-      return;
+      return 0;
     }
 
     var upstream = argResults!['set-upstream-to'] as String;
@@ -143,12 +144,13 @@ class BranchCommand extends Command {
     var remote = repo.config.remote(remoteName);
     if (remote == null) {
       print("error: the requested upstream branch '$upstream' does not exist");
-      return;
+      return 1;
     }
 
     var localBranch = repo.setUpstreamTo(remote, remoteBranchName).getOrThrow();
 
     print(
         "Branch '${localBranch.name}' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
+    return 0;
   }
 }

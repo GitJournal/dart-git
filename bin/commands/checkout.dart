@@ -7,7 +7,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/utils/utils.dart';
 
-class CheckoutCommand extends Command {
+class CheckoutCommand extends Command<int> {
   @override
   final name = 'checkout';
 
@@ -19,7 +19,7 @@ class CheckoutCommand extends Command {
   }
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -32,7 +32,7 @@ class CheckoutCommand extends Command {
         var branches = repo.branches().getOrThrow();
         if (branches.contains(branchName)) {
           repo.checkoutBranch(branchName).throwOnError();
-          return;
+          return 0;
         } else {
           // FIXME: This should lookup which remote has it
           remoteFullBranchName = 'origin/$branchName';
@@ -45,7 +45,7 @@ class CheckoutCommand extends Command {
       var remoteRefR = repo.remoteBranch(remoteName, remoteBranchName);
       if (remoteRefR.isFailure) {
         print('fatal: remote $remoteName branch $remoteBranchName not found');
-        return;
+        return 1;
       }
       var remoteRef = remoteRefR.getOrThrow();
 
@@ -60,7 +60,7 @@ class CheckoutCommand extends Command {
       var headRefResult = repo.head();
       if (headRefResult.isFailure) {
         print('fatal: head not found');
-        return;
+        return 1;
       }
 
       var headRef = headRefResult.getOrThrow();
@@ -68,19 +68,19 @@ class CheckoutCommand extends Command {
         print("Already on '$branchName'");
       }
 
-      return;
+      return 0;
     }
 
     if (argResults!.arguments.isEmpty) {
       print('Must provide a file');
-      return;
+      return 1;
     }
 
     var pathSpec = argResults!.arguments[0];
     var branches = repo.branches().getOrThrow();
     if (branches.contains(pathSpec)) {
       repo.checkoutBranch(pathSpec).throwOnError();
-      return;
+      return 0;
     }
 
     // TODO: Check if one of the remotes contains this branch
@@ -90,9 +90,11 @@ class CheckoutCommand extends Command {
     if (objectsUpdatedR.isFailure) {
       print(
           "error: pathspec '$pathSpec' did not match any file(s) known to git");
-      return;
+      return 1;
     }
     var objectsUpdated = objectsUpdatedR.getOrThrow();
     print('Updated $objectsUpdated path from the index');
+
+    return 0;
   }
 }

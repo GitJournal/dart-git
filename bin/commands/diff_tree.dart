@@ -9,7 +9,7 @@ import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 
-class DiffTreeCommand extends Command {
+class DiffTreeCommand extends Command<int> {
   @override
   final name = 'diff-tree';
 
@@ -18,7 +18,7 @@ class DiffTreeCommand extends Command {
       'Compares the content and mode of blobs found via two tree objects';
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -26,13 +26,13 @@ class DiffTreeCommand extends Command {
     var objRes = repo.objStorage.read(GitHash(hash));
     if (objRes.isFailure) {
       print('fatal: bad object $hash');
-      return;
+      return 1;
     }
     var obj = objRes.getOrThrow();
 
     if (obj is! GitCommit) {
       print('error: object $hash is a ${obj.formatStr()}, not a commit');
-      return;
+      return 1;
     }
     var commit = obj;
     var parentHash = commit.parents.first;
@@ -68,5 +68,7 @@ class DiffTreeCommand extends Command {
 
       print(':$prevMode $newMode $prevHash $newHash $state\t${r.name}');
     }
+
+    return 0;
   }
 }

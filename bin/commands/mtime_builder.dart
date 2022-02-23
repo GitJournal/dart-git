@@ -7,7 +7,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/file_mtime_builder.dart';
 import 'package:dart_git/git.dart';
 
-class MTimeBuilderCommand extends Command {
+class MTimeBuilderCommand extends Command<int> {
   @override
   final name = 'mTimeBuilder';
 
@@ -19,7 +19,7 @@ class MTimeBuilderCommand extends Command {
   }
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -35,5 +35,7 @@ class MTimeBuilderCommand extends Command {
         print('$fp -> ${info.dt} ${info.hash}');
       });
     }
+
+    return 0;
   }
 }

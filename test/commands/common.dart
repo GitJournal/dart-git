@@ -19,12 +19,15 @@ class GitCommandSetupResult {
 }
 
 Future<GitCommandSetupResult> gitCommandTestSetupAll() async {
+  dynamic _;
+
   var result = GitCommandSetupResult();
   result.tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;
 
-  // var cloneUrl = 'https://github.com/GitJournal/dart_git.git';
-  var cloneUrl = 'file:///${Directory.current.path}';
-  var _ = await runGitCommand(
+  // Using the local file url doesn't work as not all branches will be copied
+  var cloneUrl = 'https://github.com/GitJournal/dart_git.git';
+  // var cloneUrl = 'file:///${Directory.current.path}';
+  _ = await runGitCommand(
     'clone $cloneUrl',
     result.tmpDir,
     throwOnError: true,
@@ -43,6 +46,34 @@ Future<GitCommandSetupResult> gitCommandTestSetupAll() async {
     print('RealGitDir: ${result.realGitDir}');
     print('DartGitDir: ${result.dartGitDir}');
   }
+
+/*
+  var trackAllBranches = r"""#!/bin/bash
+set -eu
+
+for i in $(git branch -r | grep -vE 'HEAD|master' | sed 's/^[ ]\+//')
+    do
+      git checkout --track $i;
+    done
+    git checkout master
+""";
+
+  var script = p.join(Directory.systemTemp.path, 'trackAllBranches');
+  File(script).writeAsStringSync(trackAllBranches);
+
+  var sink = NullStreamSink<List<int>>();
+
+  _ = await shell.run(
+    script,
+    workingDirectory: result.clonedGitDir,
+    includeParentEnvironment: false,
+    throwOnError: true,
+    runInShell: true,
+    // silence
+    stdout: silenceShellOutput ? sink : null,
+    stderr: silenceShellOutput ? sink : null,
+  );
+  */
 
   return result;
 }
@@ -88,13 +119,31 @@ Future<void> testGitCommand(
   bool containsMatch = false,
   bool ignoreOutput = false,
   Map<String, String> env = const {},
+  bool shouldReturnError = false,
 }) async {
   // hack: Untill we implement git fetch
   var outputL = command.startsWith('fetch')
-      ? (await runGitCommand(command, s.dartGitDir, env: env)).split('\n')
-      : await runDartGitCommand(command, s.dartGitDir, env: env);
+      ? (await runGitCommand(
+          command,
+          s.dartGitDir,
+          env: env,
+          shouldReturnError: shouldReturnError,
+        ))
+          .split('\n')
+      : await runDartGitCommand(
+          command,
+          s.dartGitDir,
+          env: env,
+          shouldReturnError: shouldReturnError,
+        );
+
   var output = outputL.join('\n').trim();
-  var expectedOutput = await runGitCommand(command, s.realGitDir, env: env);
+  var expectedOutput = await runGitCommand(
+    command,
+    s.realGitDir,
+    env: env,
+    shouldReturnError: shouldReturnError,
+  );
 
   output = output.toLowerCase();
   expectedOutput = expectedOutput.toLowerCase();

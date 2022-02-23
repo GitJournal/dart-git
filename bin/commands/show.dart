@@ -12,7 +12,7 @@ import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'log.dart';
 
-class ShowCommand extends Command {
+class ShowCommand extends Command<int> {
   @override
   final name = 'show';
 
@@ -20,7 +20,7 @@ class ShowCommand extends Command {
   final description = 'Show various types of objects';
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -103,6 +103,8 @@ class ShowCommand extends Command {
     } else {
       print('no other git type is currentyl supported');
     }
+
+    return 0;
   }
 }
 

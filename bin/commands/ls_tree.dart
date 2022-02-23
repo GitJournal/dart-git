@@ -9,7 +9,7 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 
-class LsTreeCommand extends Command {
+class LsTreeCommand extends Command<int> {
   @override
   final name = 'ls-tree';
 
@@ -17,7 +17,7 @@ class LsTreeCommand extends Command {
   final description = 'List the contents of a tree object';
 
   @override
-  void run() {
+  int run() {
     var objectSha1 = argResults!.rest.first;
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
@@ -40,5 +40,7 @@ class LsTreeCommand extends Command {
       var mode = leaf.mode.toString().padLeft(6, '0');
       print('$mode $type ${leaf.hash}    ${leaf.name}');
     }
+
+    return 0;
   }
 }

@@ -7,7 +7,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 
-class ResetCommand extends Command {
+class ResetCommand extends Command<int> {
   @override
   final name = 'reset';
 

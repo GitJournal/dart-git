@@ -7,7 +7,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/utils/date_time.dart';
 
-class MergeCommand extends Command {
+class MergeCommand extends Command<int> {
   @override
   final name = 'merge';
 
@@ -20,11 +20,11 @@ class MergeCommand extends Command {
   }
 
   @override
-  void run() {
+  int run() {
     var args = argResults!.rest;
     if (args.length != 1) {
       print('Incorrect usage');
-      return;
+      return 1;
     }
 
     var branchName = args[0];
@@ -62,5 +62,7 @@ class MergeCommand extends Command {
           message: msg,
         )
         .throwOnError();
+
+    return 0;
   }
 }

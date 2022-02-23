@@ -6,7 +6,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
 
-class AddCommand extends Command {
+class AddCommand extends Command<int> {
   @override
   final name = 'add';
 
@@ -14,7 +14,7 @@ class AddCommand extends Command {
   final description = 'Add file contents to the index';
 
   @override
-  void run() {
+  int run() {
     // FIXME: if gitRootDir is not valid give an error!
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
@@ -25,5 +25,7 @@ class AddCommand extends Command {
     // FIXME: Get proper pathSpec
     // FIXME: Handle glob patterns
     // FIXME: Handle .
+
+    return 0;
   }
 }

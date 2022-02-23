@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/git.dart';
 
-class InitCommand extends Command {
+class InitCommand extends Command<int> {
   @override
   final name = 'init';
 
@@ -18,10 +18,10 @@ class InitCommand extends Command {
   }
 
   @override
-  void run() {
+  int run() {
     if (argResults!.rest.isEmpty) {
       print('Must provide a path');
-      return;
+      return 1;
     }
 
     var path = argResults!.rest.first;
@@ -29,10 +29,12 @@ class InitCommand extends Command {
 
     var quiet = argResults!['quiet'] as bool;
     if (quiet) {
-      return;
+      return 0;
     }
 
     var dotGitDir = p.join(p.canonicalize(path), '.git') + p.separator;
     print('Initialized empty Git repository in $dotGitDir');
+
+    return 0;
   }
 }

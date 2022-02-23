@@ -6,7 +6,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
 
-class DumpIndexCommand extends Command {
+class DumpIndexCommand extends Command<int> {
   @override
   final name = 'dump-index';
 
@@ -14,7 +14,7 @@ class DumpIndexCommand extends Command {
   final description = 'Prints the contents of the .git/index';
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -27,5 +27,7 @@ class DumpIndexCommand extends Command {
       str = str.replaceAll('}', '\n}');
       print(str);
     }
+
+    return 0;
   }
 }

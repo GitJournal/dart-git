@@ -6,7 +6,7 @@ import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
 
-class RmCommand extends Command {
+class RmCommand extends Command<int> {
   @override
   final name = 'rm';
 
@@ -14,7 +14,7 @@ class RmCommand extends Command {
   final description = 'Remove files from the working tree and from the index';
 
   @override
-  void run() {
+  int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir).getOrThrow();
 
@@ -25,7 +25,7 @@ class RmCommand extends Command {
     var hashR = repo.rmFileFromIndex(index, filePath);
     if (hashR.isFailure) {
       print("fatal: pathspec '$filePath' did not match any files");
-      return;
+      return 1;
     }
     if (File(filePath).existsSync()) {
       File(filePath).deleteSync(recursive: true);
@@ -37,5 +37,7 @@ class RmCommand extends Command {
     // FIXME: Get proper pathSpec
     // FIXME: Handle glob patterns
     // FIXME: Handle .
+
+    return 0;
   }
 }

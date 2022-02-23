@@ -7,7 +7,7 @@ import 'package:args/command_runner.dart';
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 
-class MergeBaseCommand extends Command {
+class MergeBaseCommand extends Command<int> {
   @override
   final name = 'merge-base';
 
@@ -15,11 +15,11 @@ class MergeBaseCommand extends Command {
   final description = 'Find as good common ancestors as possible for a merge';
 
   @override
-  void run() {
+  int run() {
     var args = argResults!.rest;
     if (args.length != 2) {
       print('Incorrect usage');
-      return;
+      return 1;
     }
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
@@ -36,5 +36,7 @@ class MergeBaseCommand extends Command {
     for (var c in commits) {
       print(c.hash);
     }
+
+    return 0;
   }
 }

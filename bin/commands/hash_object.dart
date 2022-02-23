@@ -8,7 +8,7 @@ import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 
-class HashObjectCommand extends Command {
+class HashObjectCommand extends Command<int> {
   @override
   final name = 'hash-object';
 
@@ -33,10 +33,10 @@ class HashObjectCommand extends Command {
   }
 
   @override
-  void run() {
+  int run() {
     if (argResults!.rest.isEmpty) {
       print('Must provide file path');
-      return;
+      return 1;
     }
     var filePath = argResults!.rest[0];
     var rawData = File(filePath).readAsBytesSync();
@@ -54,5 +54,6 @@ class HashObjectCommand extends Command {
     }
 
     print(hash);
+    return 0;
   }
 }

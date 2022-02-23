@@ -16,12 +16,14 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/utils/result.dart';
 import '../bin/main.dart' as git;
 
-var silenceShellOutput = Platform.environment["CI"] == null;
+var inCI = Platform.environment["CI"] != null;
+var silenceShellOutput = !inCI;
 
 Future<String> runGitCommand(
   String command,
   String dir, {
   Map<String, String> env = const {},
+  bool shouldReturnError = false,
   bool throwOnError = false,
 }) async {
   var sink = NullStreamSink<List<int>>();
@@ -36,6 +38,14 @@ Future<String> runGitCommand(
     stdout: silenceShellOutput ? sink : null,
     stderr: silenceShellOutput ? sink : null,
   );
+
+  expect(results.length, 1);
+  var r = results.first;
+  if (!shouldReturnError) {
+    expect(r.exitCode, 0);
+  } else {
+    expect(r.exitCode, isNot(0));
+  }
 
   var stdout = results.map((e) => e.stdout).join('\n').trim();
   var stderr = results.map((e) => e.stderr).join('\n').trim();
@@ -188,6 +198,7 @@ Future<List<String>> runDartGitCommand(
   String command,
   String workingDir, {
   Map<String, String> env = const {},
+  bool shouldReturnError = false,
 }) async {
   var printLog = <String>[];
 
@@ -219,18 +230,31 @@ Future<List<String>> runDartGitCommand(
   var spec = ZoneSpecification(print: (_, __, ___, String msg) {
     printLog.add(msg);
   });
-  await Zone.current.fork(specification: spec).run(() async {
+  var ret = await Zone.current.fork(specification: spec).run(() async {
     var prev = Directory.current;
 
     Directory.current = workingDir;
     assert(!command.contains('"') && !command.contains("'"));
+    int returnCode = 5000;
     try {
-      var _ = git.mainWithExitCode(command.split(' '));
+      returnCode = await git.mainWithExitCode(command.split(' '));
     } catch (e) {
       printLog = ['$e'];
     }
     Directory.current = prev;
+    return returnCode;
   });
+
+  expect(
+    ret,
+    isNot(5000),
+    reason: "Command ran with an exception. This shouldn't happen",
+  );
+  if (!shouldReturnError) {
+    expect(ret, 0);
+  } else {
+    expect(ret, isNot(0));
+  }
 
   if (!silenceShellOutput) {
     for (var log in printLog) {

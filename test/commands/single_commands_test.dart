@@ -17,8 +17,6 @@ void main() {
     'branch -a',
     'write-tree',
     'rm LICENSE',
-    'rm does-not-exist',
-    'branch -d not-existing',
     'diff-tree 938c320fd826711ab4e3f5db5cf2f4557ff75522',
     'diff-tree 6216f82ecd10cac78c2b90ddcc4d0d9dc6f3d711',
   ];
@@ -26,12 +24,35 @@ void main() {
   for (var command in singleCommandTests) {
     test(command, () async => testGitCommand(s, command));
   }
+
+  var singleCommandsWithErrorTests = [
+    'rm does-not-exist',
+    'branch -d not-existing',
+  ];
+
+  for (var command in singleCommandsWithErrorTests) {
+    test(
+      command,
+      () async => testGitCommand(s, command, shouldReturnError: true),
+    );
+  }
+
   test('branch master', () async {
-    await testGitCommand(s, 'branch master', ignoreOutput: true);
+    await testGitCommand(
+      s,
+      'branch master',
+      ignoreOutput: true,
+      shouldReturnError: true,
+    );
   });
 
   test('rm /outside-rep', () async {
-    await testGitCommand(s, 'rm /outside-repo', containsMatch: true);
+    await testGitCommand(
+      s,
+      'rm /outside-repo',
+      containsMatch: true,
+      shouldReturnError: true,
+    );
   });
 
   test(
@@ -96,15 +117,17 @@ void main() {
     ),
   );
 
+  // Failing
   test(
     'git checkout branch',
     () async => testCommands(
-        s,
-        [
-          'git branch branch-for-ítesting origin/branch-for-testing',
-          'git checkout branch-for-ítesting',
-        ],
-        ignoreOutput: true),
+      s,
+      [
+        'git branch branch-for-ítesting origin/branch-for-testing',
+        'git checkout branch-for-ítesting',
+      ],
+      ignoreOutput: true,
+    ),
   );
 
   test('reset --hard', () async {

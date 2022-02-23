@@ -35,7 +35,7 @@ Future<void> main(List<String> args) async {
 }
 
 Future<int> mainWithExitCode(List<String> args) async {
-  var runner = CommandRunner('git', 'Distributed version control.')
+  var runner = CommandRunner<int>('git', 'Distributed version control.')
     ..addCommand(InitCommand())
     ..addCommand(AddCommand())
     ..addCommand(BranchCommand())
@@ -58,7 +58,7 @@ Future<int> mainWithExitCode(List<String> args) async {
     ..addCommand(LsTreeCommand());
 
   try {
-    var _ = await runner.run(args);
+    return await runner.run(args) ?? 100;
   } on GitException catch (e) {
     print(e);
     return 1;
@@ -68,6 +68,4 @@ Future<int> mainWithExitCode(List<String> args) async {
     print(t.item2);
     return 1;
   }
-
-  return 0;
 }

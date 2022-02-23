@@ -7,7 +7,8 @@ class Result<DataType> {
   Object? error;
   StackTrace? stackTrace;
 
-  Result(this.data);
+  // ignore: prefer_initializing_formals
+  Result(DataType data) : data = data;
   Result.fail(this.error, [StackTrace? stackTrace])
       : stackTrace = stackTrace ?? StackTrace.current {
     assert(error is Error || error is Exception);

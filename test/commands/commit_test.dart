@@ -25,8 +25,8 @@ void main() {
 
     // Add the same file to both of them
     var contents = 'Hello there';
-    await createFile(tmpDir1, 'hi.txt', contents);
-    await createFile(tmpDir2, 'hi.txt', contents);
+    createFile(tmpDir1, 'hi.txt', contents);
+    createFile(tmpDir2, 'hi.txt', contents);
 
     // Do a git commit on both
     var date = DateTime(2020, 02, 15, 9, 8, 7);

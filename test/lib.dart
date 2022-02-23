@@ -53,11 +53,11 @@ Future<String> runGitCommand(
   return (stdout + '\n' + stderr).trim();
 }
 
-Future<void> createFile(String basePath, String path, String contents) async {
+void createFile(String basePath, String path, String contents) {
   var fullPath = p.join(basePath, path);
 
-  var _ = await Directory(p.dirname(fullPath)).create(recursive: true);
-  var __ = await File(fullPath).writeAsString(contents);
+  Directory(p.dirname(fullPath)).createSync(recursive: true);
+  File(fullPath).writeAsStringSync(contents);
 }
 
 Future<void> testRepoEquals(String repo1, String repo2) async {

@@ -29,8 +29,12 @@ class ConfigStorageFS implements ConfigStorage {
 
   @override
   Result<void> writeConfig(Config config) {
-    // FIXME: Write to another file and then move it!!
-    var _ = _fs.file(_path).writeAsString(config.serialize());
+    var path = p.join(_gitDir, '$_path.new');
+    var file = _fs.file(path);
+
+    file.writeAsStringSync(config.serialize());
+    var _ = file.renameSync(_path);
+
     return Result(null);
   }
 }

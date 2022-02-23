@@ -22,6 +22,7 @@ linter:
     always_declare_return_types: true
     # avoid_dynamic_calls: true
     avoid_print: true
+    unawaited_futures: true
 
 analyzer:
   errors:

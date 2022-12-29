@@ -17,7 +17,6 @@ dependencies:
   fast_immutable_collections: ^7.2.0
   file: ^6.1.0
   freezed_annotation: ^0.14.1
-  lints: ^1.0.1
   meta: ^1.3.0
   os:
     git: https://github.com/GitJournal/os.git
@@ -27,6 +26,7 @@ dependencies:
   tuple: ^2.0.0
 
 dev_dependencies:
+  lints: ^1.0.1
   archive: ^3.1.2
   build_runner:
   dart_code_metrics: ^4.2.0

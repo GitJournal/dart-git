@@ -21,7 +21,7 @@ dependencies:
   meta: ^1.8.0
   os:
     git: https://github.com/GitJournal/os.git
-  path: ^1.8.3
+  path: ^1.8.2
   stash_memory: ^4.4.1
   synchronized: ^3.0.1
   tuple: ^2.0.1

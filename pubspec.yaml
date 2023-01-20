@@ -10,7 +10,7 @@ dependencies:
   args: ^2.3.2
   buffer: ^1.2.0
   charcode: ^1.2.0
-  collection: ^1.17.0
+  collection: ^1.16.0
   crypto: ^3.0.2
   diff_match_patch: ^0.4.1
   equatable: ^2.0.5

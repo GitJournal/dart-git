@@ -42,7 +42,7 @@ void main() {
         ],
         [
           'a' * PktLine.MaxPayloadSize,
-          'fff0' + 'a' * PktLine.MaxPayloadSize,
+          'fff0${'a' * PktLine.MaxPayloadSize}',
         ],
         // [
         //   'b' * PktLine.MaxPayloadSize,

@@ -58,17 +58,16 @@ class Reference {
   @override
   String toString() => isSymbolic ? '$name -> $target' : '$name -> sha1($hash)';
 
-  String serialize() => isHash
-      ? hash.toString() + '\n'
-      : symbolicRefPrefix + target!.value + '\n';
+  String serialize() =>
+      isHash ? '$hash\n' : '$symbolicRefPrefix${target!.value}\n';
 }
 
 const refHead = 'HEAD';
 const refPrefix = 'refs/';
-const refHeadPrefix = refPrefix + 'heads/';
-const refTagPrefix = refPrefix + 'tags/';
-const refRemotePrefix = refPrefix + 'remotes/';
-const refNotePrefix = refPrefix + 'notes/';
+const refHeadPrefix = '${refPrefix}heads/';
+const refTagPrefix = '${refPrefix}tags/';
+const refRemotePrefix = '${refPrefix}remotes/';
+const refNotePrefix = '${refPrefix}notes/';
 const symbolicRefPrefix = 'ref: ';
 
 class ReferenceName {

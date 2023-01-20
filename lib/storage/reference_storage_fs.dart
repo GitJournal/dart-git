@@ -100,7 +100,7 @@ class ReferenceStorageFS implements ReferenceStorage {
   @override
   Result<void> saveRef(Reference ref) {
     var refFileName = p.join(_dotGitDir, ref.name.value);
-    var refFileName2 = refFileName + '_';
+    var refFileName2 = '${refFileName}_';
 
     _fs.directory(p.dirname(refFileName)).createSync(recursive: true);
 

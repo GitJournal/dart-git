@@ -372,7 +372,7 @@ List<int> sliceBlock(List<int> buffer, int pos) {
 }
 
 // given a list of match offsets, this will choose the biggest one
-_Match chooseMatch(List<int> source, List<int> sourcePositions,
+PackFileDeltaMatch chooseMatch(List<int> source, List<int> sourcePositions,
     List<int> target, int targetPos) {
   int i, len, spos, tpos;
   int? rvLength;
@@ -407,14 +407,14 @@ _Match chooseMatch(List<int> source, List<int> sourcePositions,
   }
 
   // Fimxe; Return rv
-  return _Match(rvOffset, rvLength);
+  return PackFileDeltaMatch(rvOffset, rvLength);
 }
 
-class _Match {
+class PackFileDeltaMatch {
   int? offset;
   int? length;
 
-  _Match(this.offset, this.length);
+  PackFileDeltaMatch(this.offset, this.length);
 }
 
 /*

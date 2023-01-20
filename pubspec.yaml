@@ -8,6 +8,7 @@ publish_to: none
 
 dependencies:
   args: ^2.3.2
+  async: ^2.10.0
   buffer: ^1.2.0
   charcode: ^1.2.0
   collection: ^1.16.0

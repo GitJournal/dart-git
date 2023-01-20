@@ -10,7 +10,7 @@ class InvalidRepoException implements GitException {
   InvalidRepoException(this.path);
 
   @override
-  String toString() => 'Not a Git Repository: ' + path;
+  String toString() => 'Not a Git Repository: $path';
 }
 
 class GitFatalException implements GitException {}

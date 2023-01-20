@@ -50,7 +50,7 @@ Future<String> runGitCommand(
   var stdout = results.map((e) => e.stdout).join('\n').trim();
   var stderr = results.map((e) => e.stderr).join('\n').trim();
 
-  return (stdout + '\n' + stderr).trim();
+  return '$stdout\n$stderr'.trim();
 }
 
 void createFile(String basePath, String path, String contents) {
@@ -224,7 +224,7 @@ Future<List<String>> runDartGitCommand(
     var stdout = results.map((e) => e.stdout).join('\n').trim();
     var stderr = results.map((e) => e.stderr).join('\n').trim();
 
-    return (stdout + '\n' + stderr).trim().split('\n');
+    return '$stdout\n$stderr'.trim().split('\n');
   }
 
   var spec = ZoneSpecification(print: (_, __, ___, String msg) {

@@ -15,21 +15,18 @@ dependencies:
   crypto: ^3.0.2
   diff_match_patch: ^0.4.1
   equatable: ^2.0.5
-  fast_immutable_collections: ^8.1.1
+  fast_immutable_collections: ^9.1.5
   file: ^6.1.4
   freezed_annotation: ^2.2.0
   meta: ^1.8.0
-  os:
-    git: https://github.com/GitJournal/os.git
   path: ^1.8.2
-  stash_memory: ^4.4.1
   synchronized: ^3.0.1
   tuple: ^2.0.1
 
 dev_dependencies:
   archive: ^3.3.5
   build_runner:
-  dart_code_metrics: ^5.4.0
+  dart_code_metrics: ^5.7.5
   freezed: ^2.3.2
   import_sorter: ^4.6.0
   lints: ^2.0.1

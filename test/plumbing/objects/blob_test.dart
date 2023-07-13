@@ -15,6 +15,8 @@ void main() {
     var objStorage = ObjectStorageFS('', fs);
 
     var fp = 'test/data/blob';
+    expect(File(fp).existsSync(), equals(true));
+
     var data = File(fp).readAsBytesSync();
     var hash = GitHash.compute(GitObject.envelope(
       data: data,

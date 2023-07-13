@@ -42,8 +42,8 @@ class StatusCommand extends Command<int> {
     var remoteBranchName = branch.merge!.branchName()!;
     var remoteRef = ReferenceName.remote(branch.remote!, remoteBranchName);
 
-    var headHash = (repo.resolveReference(head)).getOrThrow().hash;
-    var remoteHash = (repo.resolveReferenceName(remoteRef)).getOrThrow().hash;
+    var headHash = repo.resolveReference(head).getOrThrow().hash;
+    var remoteHash = repo.resolveReferenceName(remoteRef).getOrThrow().hash;
 
     var remoteStr = '${branch.remote}/$remoteBranchName';
     if (headHash != remoteHash) {

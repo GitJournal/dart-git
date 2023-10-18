@@ -3,7 +3,6 @@ fmt:
 
 lint:
 	dart analyze
-	dart run dart_code_metrics:metrics lib
 
 test:
 	dart test --chain-stack-traces

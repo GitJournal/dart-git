@@ -3,38 +3,37 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/utils/result.dart';
 
 export 'object_storage_extensions.dart';
 
 abstract class ConfigStorage {
-  Result<Config> readConfig();
-  Result<bool> exists();
+  Config readConfig();
+  bool exists();
 
-  Result<void> writeConfig(Config config);
+  void writeConfig(Config config);
 }
 
 abstract class ReferenceStorage {
-  Result<Reference> reference(ReferenceName refName);
-  Result<List<Reference>> listReferences(String prefix);
+  Reference reference(ReferenceName refName);
+  List<Reference> listReferences(String prefix);
 
-  Result<void> saveRef(Reference ref);
-  Result<void> removeReferences(String prefix);
-  Result<void> deleteReference(ReferenceName refName);
+  void saveRef(Reference ref);
+  void removeReferences(String prefix);
+  void deleteReference(ReferenceName refName);
 
-  Result<void> close();
+  void close();
 }
 
 abstract class ObjectStorage {
-  Result<GitObject> read(GitHash hash);
-  Result<GitHash> writeObject(GitObject obj);
+  GitObject read(GitHash hash);
+  GitHash writeObject(GitObject obj);
 
-  Result<void> close();
+  void close();
 }
 
 abstract class IndexStorage {
-  Result<GitIndex> readIndex();
-  Result<void> writeIndex(GitIndex index);
+  GitIndex readIndex();
+  void writeIndex(GitIndex index);
 
-  Result<void> close();
+  void close();
 }

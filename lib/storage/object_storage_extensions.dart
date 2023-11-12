@@ -5,16 +5,16 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
-import 'package:dart_git/utils/result.dart';
+
 import 'package:dart_git/utils/utils.dart';
 import 'interfaces.dart';
 
 extension ObjectStorageExtension on ObjectStorage {
-  Result<GitTreeEntry> refSpec(GitTree tree, String spec) {
+  GitTreeEntry refSpec(GitTree tree, String spec) {
     assert(!spec.startsWith(p.separator));
 
     if (spec.isEmpty) {
-      return Result.fail(GitObjectWithRefSpecNotFound(spec));
+      return throw GitObjectWithRefSpecNotFound(spec);
     }
 
     var parts = splitPath(spec);
@@ -24,25 +24,22 @@ extension ObjectStorageExtension on ObjectStorage {
     for (var leaf in tree.entries) {
       if (leaf.name == name) {
         if (remainingName.isEmpty) {
-          return Result(leaf);
+          return leaf;
         }
 
-        var result = read(leaf.hash);
-        if (result.isFailure) {
-          return fail(result);
+        var obj = read(leaf.hash);
+        if (obj is GitTree) {
+          return refSpec(obj, remainingName);
         }
-        var obj = result.getOrThrow();
 
-        return obj is GitTree
-            ? refSpec(obj, remainingName)
-            : Result.fail(GitObjectWithRefSpecNotFound(spec));
+        throw GitObjectWithRefSpecNotFound(spec);
       }
     }
-    return Result.fail(GitObjectWithRefSpecNotFound(spec));
+    return throw GitObjectWithRefSpecNotFound(spec);
   }
 
   // TODO: What happens when we call readBlob on a commit?
-  Result<GitBlob> readBlob(GitHash hash) => downcast(read(hash));
-  Result<GitTree> readTree(GitHash hash) => downcast(read(hash));
-  Result<GitCommit> readCommit(GitHash hash) => downcast(read(hash));
+  GitBlob readBlob(GitHash hash) => read(hash) as GitBlob;
+  GitTree readTree(GitHash hash) => read(hash) as GitTree;
+  GitCommit readCommit(GitHash hash) => read(hash) as GitCommit;
 }

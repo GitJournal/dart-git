@@ -13,19 +13,17 @@ void main() {
 
   setUp(() async {
     gitDir = (await Directory.systemTemp.createTemp('_git_')).path;
-    var _ = await cloneGittedFixture('merge', gitDir);
+    await cloneGittedFixture('merge', gitDir);
   });
 
   test('Basic', () async {
-    var repo = GitRepository.load(gitDir).getOrThrow();
+    var repo = GitRepository.load(gitDir);
 
     var tf = BlobCTimeBuilder();
-    repo
-        .visitTree(
-          fromCommitHash: repo.headHash().getOrThrow(),
-          visitor: tf,
-        )
-        .throwOnError();
+    repo.visitTree(
+      fromCommitHash: repo.headHash(),
+      visitor: tf,
+    );
 
     var offset = const Duration(hours: 2);
     expect(

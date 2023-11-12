@@ -86,7 +86,7 @@ Future<GitCommandSetupResult> gitCommandTestFixtureSetupAll(String name) async {
   result.realGitDir = p.join(result.tmpDir, '${name}_git');
   result.dartGitDir = p.join(result.tmpDir, '${name}_dart');
 
-  var _ = await cloneGittedFixture(name, result.clonedGitDir);
+  await cloneGittedFixture(name, result.clonedGitDir);
 
   if (!silenceShellOutput) {
     print('RealGitDir: ${result.realGitDir}');
@@ -98,14 +98,14 @@ Future<GitCommandSetupResult> gitCommandTestFixtureSetupAll(String name) async {
 
 Future<void> gitCommandTestSetup(GitCommandSetupResult r) async {
   if (Directory(r.realGitDir).existsSync()) {
-    var _ = await Directory(r.realGitDir).delete(recursive: true);
+    await Directory(r.realGitDir).delete(recursive: true);
   }
   if (Directory(r.dartGitDir).existsSync()) {
-    var _ = await Directory(r.dartGitDir).delete(recursive: true);
+    await Directory(r.dartGitDir).delete(recursive: true);
   }
 
-  var _ = await Directory(r.realGitDir).create(recursive: true);
-  var __ = await Directory(r.dartGitDir).create(recursive: true);
+  await Directory(r.realGitDir).create(recursive: true);
+  await Directory(r.dartGitDir).create(recursive: true);
 
   assert(Directory(r.clonedGitDir).existsSync());
 

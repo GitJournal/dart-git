@@ -22,22 +22,22 @@ class ShowCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var hash = GitHash(argResults!.arguments[0]);
     var result = repo.objStorage.read(hash);
-    var object = result.getOrThrow();
+    var object = result;
 
     if (object is GitCommit) {
       var commit = object;
       var parentHash = commit.parents[0];
-      var parent = repo.objStorage.readCommit(parentHash).getOrThrow();
+      var parent = repo.objStorage.readCommit(parentHash);
 
       var changes = diffCommits(
         fromCommit: commit,
         toCommit: parent,
         objStore: repo.objStorage,
-      ).getOrThrow();
+      );
 
       printCommit(commit, hash);
 
@@ -45,8 +45,8 @@ class ShowCommand extends Command<int> {
         var newHash = change.from!.hash;
         var oldHash = change.to!.hash;
 
-        var newBlob = repo.objStorage.readBlob(newHash).getOrThrow();
-        var oldBlob = repo.objStorage.readBlob(oldHash).getOrThrow();
+        var newBlob = repo.objStorage.readBlob(newHash);
+        var oldBlob = repo.objStorage.readBlob(oldHash);
 
         var newBlobConent = utf8.decode(newBlob.blobData);
         var oldBlobConent = utf8.decode(oldBlob.blobData);

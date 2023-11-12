@@ -2,7 +2,7 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/config.dart';
-import 'package:dart_git/utils/result.dart';
+
 import 'interfaces.dart';
 
 class ConfigStorageFS implements ConfigStorage {
@@ -14,27 +14,24 @@ class ConfigStorageFS implements ConfigStorage {
   String get _path => p.join(_gitDir, 'config');
 
   @override
-  Result<Config> readConfig() {
+  Config readConfig() {
     var contents = _fs.file(_path).readAsStringSync();
-    var config = Config(contents);
-
-    return Result(config);
+    return Config(contents);
   }
 
   @override
-  Result<bool> exists() {
-    var val = _fs.isFileSync(_path);
-    return Result(val);
+  bool exists() {
+    return _fs.isFileSync(_path);
   }
 
   @override
-  Result<void> writeConfig(Config config) {
+  void writeConfig(Config config) {
     var path = p.join(_gitDir, '$_path.new');
     var file = _fs.file(path);
 
     file.writeAsStringSync(config.serialize());
-    var _ = file.renameSync(_path);
+    file.renameSync(_path);
 
-    return Result(null);
+    return;
   }
 }

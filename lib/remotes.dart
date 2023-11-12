@@ -6,48 +6,44 @@ import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
 extension Remotes on GitRepository {
-  Result<List<Reference>> remoteBranches(String remoteName) {
+  List<Reference> remoteBranches(String remoteName) {
     if (config.remote(remoteName) == null) {
       var ex = GitRemoteNotFound(remoteName);
-      return Result.fail(ex);
+      return throw ex;
     }
 
     var remoteRefsPrefix = '$refRemotePrefix$remoteName/';
     return refStorage.listReferences(remoteRefsPrefix);
   }
 
-  Result<Reference> remoteBranch(
+  Reference remoteBranch(
     String remoteName,
     String branchName,
   ) {
     if (config.remote(remoteName) == null) {
       var ex = GitRemoteNotFound(remoteName);
-      return Result.fail(ex);
+      return throw ex;
     }
 
     var remoteRef = ReferenceName.remote(remoteName, branchName);
     return refStorage.reference(remoteRef);
   }
 
-  Result<GitRemoteConfig> addRemote(String name, String url) {
+  GitRemoteConfig addRemote(String name, String url) {
     var existingRemote = config.remotes.firstWhereOrNull((r) => r.name == name);
     if (existingRemote != null) {
       var ex = GitRemoteAlreadyExists(name);
-      return Result.fail(ex);
+      return throw ex;
     }
 
     var remote = GitRemoteConfig.create(name: name, url: url);
     config.remotes.add(remote);
 
-    var result = saveConfig();
-    if (result.isFailure) {
-      return fail(result);
-    }
-
-    return Result(remote);
+    saveConfig();
+    return remote;
   }
 
-  Result<GitRemoteConfig> addOrUpdateRemote(
+  GitRemoteConfig addOrUpdateRemote(
     String name,
     String url,
   ) {
@@ -61,34 +57,25 @@ extension Remotes on GitRepository {
       fetch: config.remotes[i].fetch,
       url: url,
     );
-    var result = saveConfig();
-    if (result.isFailure) {
-      return fail(result);
-    }
+    saveConfig();
 
-    return Result(config.remotes[i]);
+    return config.remotes[i];
   }
 
-  Result<GitRemoteConfig> removeRemote(String name) {
+  GitRemoteConfig removeRemote(String name) {
     var i = config.remotes.indexWhere((r) => r.name == name);
     if (i == -1) {
       var ex = GitRemoteNotFound(name);
-      return Result.fail(ex);
+      return throw ex;
     }
 
     var remote = config.remotes.removeAt(i);
-    var cfgResult = saveConfig();
-    if (cfgResult.isFailure) {
-      return fail(cfgResult);
-    }
+    saveConfig();
 
-    var result = refStorage.removeReferences(refRemotePrefix + name);
-    if (result.isFailure) {
-      return fail(result);
-    }
+    refStorage.removeReferences(refRemotePrefix + name);
     // TODO: Remote the objects from that remote?
 
-    return Result(remote);
+    return remote;
   }
 
   Reference? guessRemoteHead(String remoteName) {
@@ -97,7 +84,7 @@ extension Remotes on GitRepository {
     //
     // The ideal way is to use https://libgit2.org/libgit2/#HEAD/group/remote/git_remote_default_branch
     //
-    var branches = remoteBranches(remoteName).getOrThrow();
+    var branches = remoteBranches(remoteName);
     if (branches.isEmpty) {
       return null;
     }
@@ -107,7 +94,7 @@ extension Remotes on GitRepository {
       var remoteHead = branches[i];
       assert(remoteHead.isSymbolic);
 
-      return resolveReference(remoteHead).getOrThrow();
+      return resolveReference(remoteHead);
     } else {
       branches = branches.where((b) => b.name.branchName() != refHead).toList();
     }

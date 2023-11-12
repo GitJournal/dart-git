@@ -16,21 +16,23 @@ class RmCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var filePath = argResults!.arguments[0];
-    var index = repo.indexStorage.readIndex().getOrThrow();
+    var index = repo.indexStorage.readIndex();
 
     // FIXME: Use rm method, do we ever need to read the index?
-    var hashR = repo.rmFileFromIndex(index, filePath);
-    if (hashR.isFailure) {
+    try {
+      repo.rmFileFromIndex(index, filePath);
+    } catch (ex) {
+      // FIXME: Catch the exact exception
       print("fatal: pathspec '$filePath' did not match any files");
       return 1;
     }
     if (File(filePath).existsSync()) {
       File(filePath).deleteSync(recursive: true);
     }
-    repo.indexStorage.writeIndex(index).throwOnError();
+    repo.indexStorage.writeIndex(index);
 
     print("rm '${repo.toPathSpec(filePath)}'");
 

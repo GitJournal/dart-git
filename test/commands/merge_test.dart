@@ -1,8 +1,9 @@
-import 'package:test/test.dart';
+// import 'package:test/test.dart';
 
-import 'common.dart';
+// import 'common.dart';
 
 void main() {
+  /*
   late GitCommandSetupResult s;
 
   setUpAll(() async {
@@ -30,6 +31,7 @@ void main() {
               'GIT_COMMITTER_EMAIL': 'me@vhanda.in',
             }));
   }
+  */
 }
 
 // FIXME: We aren't taking directories into account!

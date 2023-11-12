@@ -60,19 +60,14 @@ class GitStatusResult {
 }
 
 extension Status on GitRepository {
-  Result<GitStatusResult> status() {
+  GitStatusResult status() {
     var rootTreeR = headTree();
-    if (rootTreeR.isFailure) {
-      return fail(rootTreeR);
-    }
-
     var result = GitStatusResult();
-    return catchAllSync(
-        () => _status(rootTreeR.getOrThrow(), workTree, result));
+    return _status(rootTreeR, workTree, result);
   }
 
   // FIXME: vHanda: Return unchanged stuff
-  Result<GitStatusResult> _status(
+  GitStatusResult _status(
     GitTree tree,
     String? treePath,
     GitStatusResult result,
@@ -89,7 +84,7 @@ extension Status on GitRepository {
         continue;
       }
 
-      var _ = newFilesAdded.remove(fsEntity.path);
+      newFilesAdded.remove(fsEntity.path);
 
       if (_ignoreEntity(fsEntity)) {
         continue;
@@ -102,13 +97,13 @@ extension Status on GitRepository {
         continue;
       }
 
-      var subTree = objStorage.readTree(entry.hash).getOrThrow();
-      var r = _status(subTree, fsEntity.path, result).getOrThrow();
+      var subTree = objStorage.readTree(entry.hash);
+      var r = _status(subTree, fsEntity.path, result);
       result.add(r);
     }
 
     result.added.addAll(newFilesAdded);
-    return Result(result);
+    return result;
   }
 
   bool _fileModified(FileSystemEntity fsEntity, GitTreeEntry treeEntry) {

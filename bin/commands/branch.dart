@@ -24,7 +24,7 @@ class BranchCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var showAll = argResults!['all'] as bool?;
     var delete = argResults!['delete'] as bool?;
@@ -32,18 +32,12 @@ class BranchCommand extends Command<int> {
     var hasNoArgs = argResults!['set-upstream-to'] == null && delete == false;
     if (hasNoArgs) {
       if (argResults!.rest.isEmpty) {
-        var headResult = repo.head();
-        if (headResult.isFailure) {
-          print('fatal: no head');
-          return 1;
-        }
-
-        var head = headResult.getOrThrow();
+        var head = repo.head();
         if (head.isHash) {
           print('* (HEAD detached at ${head.hash!.toOid()})');
         }
 
-        var branches = repo.branches().getOrThrow();
+        var branches = repo.branches();
         branches.sort();
 
         for (var branch in branches) {
@@ -56,7 +50,7 @@ class BranchCommand extends Command<int> {
 
         if (showAll!) {
           for (var remote in repo.config.remotes) {
-            var refs = repo.remoteBranches(remote.name).getOrThrow();
+            var refs = repo.remoteBranches(remote.name);
             refs.sort((a, b) {
               return a.name.branchName()!.compareTo(b.name.branchName()!);
             });
@@ -81,8 +75,10 @@ class BranchCommand extends Command<int> {
 
         if (rest.length == 1) {
           var name = argResults!.rest.first;
-          var hashR = repo.createBranch(name);
-          if (hashR.isFailure) {
+          try {
+            repo.createBranch(name);
+          } catch (ex) {
+            // FIXME: Catch the exact exception
             print("fatal: A branch named '$name' already exists.");
             return 1;
           }
@@ -93,20 +89,18 @@ class BranchCommand extends Command<int> {
           var branchName = rest.first;
 
           var refName = ReferenceName.remote(remoteName, remoteBranchName);
-          var refResult = repo.resolveReferenceName(refName);
-          if (refResult.isFailure) {
-            print('fatal: ${refResult.error}');
+          late Reference ref;
+          try {
+            ref = repo.resolveReferenceName(refName);
+          } catch (ex) {
+            print('fatal: $ex');
             return 1;
           }
-
-          var ref = refResult.getOrThrow();
           assert(ref.isHash);
-          repo.createBranch(branchName, hash: ref.hash).throwOnError();
+          repo.createBranch(branchName, hash: ref.hash);
 
           var remote = repo.config.remote(remoteName)!;
-          repo
-              .setBranchUpstreamTo(branchName, remote, remoteBranchName)
-              .throwOnError();
+          repo.setBranchUpstreamTo(branchName, remote, remoteBranchName);
 
           print(
               "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
@@ -121,14 +115,15 @@ class BranchCommand extends Command<int> {
         return 1;
       }
       var branchName = argResults!.rest.first;
-      var hashR = repo.deleteBranch(branchName);
-      if (hashR.isFailure) {
+      try {
+        var hash = repo.deleteBranch(branchName);
+        print('Deleted branch $branchName (was ${hash.toOid()}).');
+        return 0;
+      } catch (ex) {
+        // FIXME: Catch the exact exception
         print("error: branch '$branchName' not found.");
         return 1;
       }
-      var hash = hashR.getOrThrow();
-      print('Deleted branch $branchName (was ${hash.toOid()}).');
-      return 0;
     }
 
     var upstream = argResults!['set-upstream-to'] as String;
@@ -147,7 +142,7 @@ class BranchCommand extends Command<int> {
       return 1;
     }
 
-    var localBranch = repo.setUpstreamTo(remote, remoteBranchName).getOrThrow();
+    var localBranch = repo.setUpstreamTo(remote, remoteBranchName);
 
     print(
         "Branch '${localBranch.name}' set up to track remote branch '$remoteBranchName' from '$remoteName'.");

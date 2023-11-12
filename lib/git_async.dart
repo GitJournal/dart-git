@@ -43,7 +43,7 @@ class GitAsyncRepository {
   Config get config => _config;
 
   /// Disable autoClose by passing null
-  static Future<Result<GitAsyncRepository>> load(
+  static Future<GitAsyncRepository> load(
     String repoPath, {
     FileSystem? fs,
     bool reuseIsolate = true,
@@ -66,7 +66,7 @@ class GitAsyncRepository {
     );
   }
 
-  static Future<Result<GitAsyncRepository>> _load(
+  static Future<GitAsyncRepository> _load(
     String repoPath, {
     required FileSystem? fs,
     required bool reuseIsolate,
@@ -75,7 +75,7 @@ class GitAsyncRepository {
     if (reuseIsolate) {
       var r = _repos[repoPath];
       if (r != null && r.isOpen) {
-        return Result(r);
+        return r;
       }
     }
 
@@ -121,12 +121,13 @@ class GitAsyncRepository {
       if (reuseIsolate) {
         _repos[repoPath] = repo;
       }
-      return Result(repo);
+      return repo;
     }
 
+    // FIXME: What about the original stack trace?
     assert(resp is _ErrorMsg);
     var errMsg = resp as _ErrorMsg;
-    return Result.fail(errMsg.item1, errMsg.item2);
+    throw errMsg.item1;
   }
 
   void close() {
@@ -146,18 +147,17 @@ class GitAsyncRepository {
       var output = await _receiveStream.first as _OutputMsg;
 
       assert(output.command == cmd, "Actual: ${output.command}, Exp: $cmd");
-      assert(output.result is Result);
       return output.result;
     });
   }
 
-  Future<Result<List<String>>> branches() async =>
+  Future<List<String>> branches() async =>
       await _compute(_Command.branches, null);
 
-  Future<Result<String>> currentBranch() async =>
+  Future<String> currentBranch() async =>
       await _compute(_Command.currentBranch, null);
 
-  Future<Result<BranchConfig>> setUpstreamTo(
+  Future<BranchConfig> setUpstreamTo(
     GitRemoteConfig remote,
     String remoteBranchName,
   ) async =>
@@ -166,14 +166,14 @@ class GitAsyncRepository {
         _SetUpstreamToInput(remote, remoteBranchName),
       );
 
-  Future<Result<BranchConfig>> setBranchUpstreamTo(String branchName,
+  Future<BranchConfig> setBranchUpstreamTo(String branchName,
           GitRemoteConfig remote, String remoteBranchName) async =>
       await _compute(
         _Command.setBranchUpstreamTo,
         _SetBranchUpstreamToInput(branchName, remote, remoteBranchName),
       );
 
-  Future<Result<GitHash>> createBranch(
+  Future<GitHash> createBranch(
     String name, {
     GitHash? hash,
     bool overwrite = false,
@@ -183,46 +183,43 @@ class GitAsyncRepository {
         _CreateBranchInput(name, hash, overwrite),
       );
 
-  Future<Result<GitHash>> deleteBranch(String branchName) async =>
+  Future<GitHash> deleteBranch(String branchName) async =>
       await _compute(_Command.deleteBranch, branchName);
 
-  Future<Result<GitCommit>> headCommit() async =>
+  Future<GitCommit> headCommit() async =>
       await _compute(_Command.headCommit, null);
 
-  Future<Result<GitHash>> headHash() async =>
-      await _compute(_Command.headHash, null);
+  Future<GitHash> headHash() async => await _compute(_Command.headHash, null);
 
-  Future<Result<bool>> canPush() async =>
-      await _compute(_Command.canPush, null);
+  Future<bool> canPush() async => await _compute(_Command.canPush, null);
 
-  Future<Result<int>> numChangesToPush() async =>
+  Future<int> numChangesToPush() async =>
       await _compute(_Command.numChangesToPush, null);
 
   //
   // index.dart
   //
 
-  Future<Result<void>> add(String pathSpec) async =>
-      await _compute(_Command.add, pathSpec);
+  Future<void> add(String pathSpec) async => _compute(_Command.add, pathSpec);
 
-  Future<Result<void>> rm(String pathSpec, {bool rmFromFs = true}) async =>
-      await _compute(_Command.rm, _RemoveInput(pathSpec, rmFromFs));
+  Future<void> rm(String pathSpec, {bool rmFromFs = true}) async =>
+      _compute(_Command.rm, _RemoveInput(pathSpec, rmFromFs));
 
   //
   // checkout.dart
   //
 
-  Future<Result<int>> checkout(String path) async =>
+  Future<int> checkout(String path) async =>
       await _compute(_Command.checkout, path);
 
-  Future<Result<Reference>> checkoutBranch(String branchName) async =>
+  Future<Reference> checkoutBranch(String branchName) async =>
       await _compute(_Command.checkoutBranch, branchName);
 
   //
   // commit.dart
   //
 
-  Future<Result<GitCommit>> commit({
+  Future<GitCommit> commit({
     required String message,
     required GitAuthor author,
     GitAuthor? committer,
@@ -236,25 +233,25 @@ class GitAsyncRepository {
   //
   // merge.dart
   //
-  Future<Result<void>> mergeCurrentTrackingBranch({
+  Future<void> mergeCurrentTrackingBranch({
     required GitAuthor author,
   }) async =>
-      await _compute(_Command.mergeCurrentTrackingBranch, author);
+      _compute(_Command.mergeTrackingBranch, author);
 
   //
   // reset.dart
   //
-  Future<Result<void>> resetHard(GitHash hash) async =>
-      await _compute(_Command.resetHard, hash);
+  Future<void> resetHard(GitHash hash) async =>
+      _compute(_Command.resetHard, hash);
 
   //
   // remotes.dart
   //
 
-  Future<Result<List<Reference>>> remoteBranches(String remoteName) async =>
+  Future<List<Reference>> remoteBranches(String remoteName) async =>
       await _compute(_Command.remoteBranches, remoteName);
 
-  Future<Result<Reference>> remoteBranch(
+  Future<Reference> remoteBranch(
     String remoteName,
     String branchName,
   ) async =>
@@ -263,13 +260,13 @@ class GitAsyncRepository {
         _DoubleString(remoteName, branchName),
       );
 
-  Future<Result<GitRemoteConfig>> addRemote(String name, String url) async =>
+  Future<GitRemoteConfig> addRemote(String name, String url) async =>
       await _compute(
         _Command.addRemote,
         _DoubleString(name, url),
       );
 
-  Future<Result<GitRemoteConfig>> addOrUpdateRemote(
+  Future<GitRemoteConfig> addOrUpdateRemote(
     String name,
     String url,
   ) async =>
@@ -278,7 +275,7 @@ class GitAsyncRepository {
         _DoubleString(name, url),
       );
 
-  Future<Result<GitRemoteConfig>> removeRemote(String name) async =>
+  Future<GitRemoteConfig> removeRemote(String name) async =>
       await _compute(_Command.removeRemote, name);
 }
 
@@ -302,7 +299,7 @@ enum _Command {
   rm,
   commit,
 
-  mergeCurrentTrackingBranch,
+  mergeTrackingBranch,
   resetHard,
 
   remoteBranches,
@@ -323,9 +320,7 @@ class _OutputMsg {
   _Command command;
   dynamic result;
 
-  _OutputMsg(this.command, this.result) {
-    assert(result is Result);
-  }
+  _OutputMsg(this.command, this.result);
 }
 
 typedef _LoadInput = Tuple3<String, FileSystem?, Duration?>;
@@ -347,12 +342,13 @@ Future<void> _isolateMain(SendPort toMainSender) async {
   var fs = input.item2;
   var autoCloseDuration = input.item3;
 
-  var repoLoadR = GitRepository.load(gitRootDir, fs: fs);
-  if (repoLoadR.isFailure) {
-    toMainSender.send(_ErrorMsg(repoLoadR.error!, repoLoadR.stackTrace!));
+  late GitRepository repo;
+  try {
+    repo = GitRepository.load(gitRootDir, fs: fs);
+  } catch (e, st) {
+    toMainSender.send(_ErrorMsg(e, st));
     return;
   }
-  var repo = repoLoadR.getOrThrow();
   toMainSender.send(repo.config);
 
   dynamic _;
@@ -438,8 +434,8 @@ dynamic _processCommand(GitRepository repo, _InputMsg input) {
         addAll: data.item4,
       );
 
-    case _Command.mergeCurrentTrackingBranch:
-      return repo.mergeCurrentTrackingBranch(author: input.data);
+    case _Command.mergeTrackingBranch:
+      return repo.mergeTrackingBranch(author: input.data);
 
     case _Command.resetHard:
       return repo.resetHard(input.data);

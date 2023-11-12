@@ -19,11 +19,11 @@ class CatFileCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var objectSha1 = argResults!.arguments[1];
     var objRes = repo.objStorage.read(GitHash(objectSha1));
-    var obj = objRes.getOrThrow();
+    var obj = objRes;
     var s = utf8.decode(obj.serializeData());
     print(s);
 

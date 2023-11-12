@@ -30,7 +30,7 @@ class BlobCTimeBuilder extends TreeEntryVisitor {
 
   @override
   void afterTree(GitTree tree) {
-    var _ = processedTrees.add(tree.hash);
+    processedTrees.add(tree.hash);
   }
 
   @override
@@ -39,7 +39,7 @@ class BlobCTimeBuilder extends TreeEntryVisitor {
 
   @override
   void afterCommit(GitCommit commit) {
-    var _ = processedCommits.add(commit.hash);
+    processedCommits.add(commit.hash);
   }
 
   @override

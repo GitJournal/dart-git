@@ -10,16 +10,16 @@ void main() {
 
   setUp(() async {
     gitDir = (await Directory.systemTemp.createTemp('_git_')).path;
-    var _ = await cloneGittedFixture('mtime', gitDir);
+    await cloneGittedFixture('mtime', gitDir);
   });
 
   test('Branch with a /', () {
-    var repo = GitRepository.load(gitDir).getOrThrow();
-    expect(repo.currentBranch().getOrThrow(), "master");
+    var repo = GitRepository.load(gitDir);
+    expect(repo.currentBranch(), "master");
 
-    repo.createBranch('hello/there').throwOnError();
-    expect(repo.branches().getOrThrow()..sort(), ["hello/there", "master"]);
+    repo.createBranch('hello/there');
+    expect(repo.branches()..sort(), ["hello/there", "master"]);
 
-    repo.close().throwOnError();
+    repo.close();
   });
 }

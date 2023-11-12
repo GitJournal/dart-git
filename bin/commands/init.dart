@@ -25,7 +25,7 @@ class InitCommand extends Command<int> {
     }
 
     var path = argResults!.rest.first;
-    GitRepository.init(path).throwOnError();
+    GitRepository.init(path);
 
     var quiet = argResults!['quiet'] as bool;
     if (quiet) {

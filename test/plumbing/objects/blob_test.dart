@@ -23,7 +23,7 @@ void main() {
       format: ascii.encode(GitBlob.fmt),
     ));
 
-    var obj = objStorage.readObjectFromPath(fp, hash).getOrThrow();
+    var obj = objStorage.readObjectFromPath(fp, hash);
 
     expect(obj is GitBlob, equals(true));
     expect(obj.serializeData(), equals(ascii.encode('FOO\n')));

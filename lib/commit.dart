@@ -12,7 +12,7 @@ import 'package:dart_git/utils/file_mode.dart';
 extension Commit on GitRepository {
   /// Exceptions -
   /// * GitEmptyCommit
-  Result<GitCommit> commit({
+  GitCommit commit({
     required String message,
     required GitAuthor author,
     GitAuthor? committer,
@@ -21,44 +21,26 @@ extension Commit on GitRepository {
     committer ??= author;
 
     if (addAll) {
-      var r = add(workTree);
-      if (r.isFailure) {
-        return fail(r);
-      }
+      add(workTree);
     }
 
-    var index = indexStorage.readIndex().getOrThrow();
+    var index = indexStorage.readIndex();
 
-    var treeHashR = writeTree(index);
-    if (treeHashR.isFailure) {
-      return fail(treeHashR);
-    }
-    var treeHash = treeHashR.getOrThrow();
+    var treeHash = writeTree(index);
     var parents = <GitHash>[];
 
-    var headRefResult = head();
-    if (headRefResult.isFailure) {
-      if (headRefResult.error is! GitRefNotFound) {
-        return fail(headRefResult);
-      }
-    } else {
-      var headRef = headRefResult.getOrThrow();
-      var parentRefResult = resolveReference(headRef);
-      if (parentRefResult.isSuccess) {
-        var parentRef = parentRefResult.getOrThrow();
-        parents.add(parentRef.hash!);
-      }
+    try {
+      var headRef = head();
+      var parentRef = resolveReference(headRef);
+      parents.add(parentRef.hash!);
+    } on GitRefNotFound {
+      // This is the first commit
     }
 
     for (var parent in parents) {
-      var parentCommitR = objStorage.readCommit(parent);
-      if (parentCommitR.isFailure) {
-        return fail(parentCommitR);
-      }
-      var parentCommit = parentCommitR.getOrThrow();
+      var parentCommit = objStorage.readCommit(parent);
       if (parentCommit.treeHash == treeHash) {
-        var ex = GitEmptyCommit();
-        return Result.fail(ex);
+        throw GitEmptyCommit();
       }
     }
 
@@ -69,44 +51,27 @@ extension Commit on GitRepository {
       message: message,
       treeHash: treeHash,
     );
-    var hashR = objStorage.writeObject(commit);
-    if (hashR.isFailure) {
-      return fail(hashR);
-    }
-    var hash = hashR.getOrThrow();
+    var hash = objStorage.writeObject(commit);
 
     // Update the ref of the current branch
     late String branchName;
 
-    var branchNameResult = currentBranch();
-    if (branchNameResult.isFailure) {
-      if (branchNameResult.error is GitHeadDetached) {
-        var result = head();
-        if (result.isFailure) {
-          return fail(result);
-        }
-
-        var h = result.getOrThrow();
-        var target = h.target!;
-        assert(target.isBranch());
-        branchName = target.branchName()!;
-      } else {
-        return fail(branchNameResult);
-      }
-    } else {
-      branchName = branchNameResult.getOrThrow();
+    try {
+      branchName = currentBranch();
+    } on GitHeadDetached {
+      var headRef = head();
+      var target = headRef.target!;
+      assert(target.isBranch());
+      branchName = target.branchName()!;
     }
 
     var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
-    var saveRefResult = refStorage.saveRef(newRef);
-    if (saveRefResult.isFailure) {
-      return fail(saveRefResult);
-    }
+    refStorage.saveRef(newRef);
 
-    return Result(commit);
+    return commit;
   }
 
-  Result<GitHash> writeTree(GitIndex index) {
+  GitHash writeTree(GitIndex index) {
     var allTreeDirs = {''};
     var treeObjects = {'': GitTree.create()};
 
@@ -119,7 +84,7 @@ extension Commit on GitRepository {
       // Construct all the tree objects
       var allDirs = <String>[];
       while (dirName != '.') {
-        var _ = allTreeDirs.add(dirName);
+        allTreeDirs.add(dirName);
         allDirs.add(dirName);
 
         dirName = p.dirname(dirName);
@@ -188,7 +153,7 @@ extension Commit on GitRepository {
           //
           assert(() {
             var leafObjRes = objStorage.read(leaf.hash);
-            var leafObj = leafObjRes.getOrThrow();
+            var leafObj = leafObjRes;
             return leafObj.formatStr() == 'blob';
           }());
 
@@ -210,15 +175,12 @@ extension Commit on GitRepository {
       tree = GitTree.create(entries);
       treeObjects[dir] = tree;
 
-      var hashR = objStorage.writeObject(tree);
-      if (hashR.isFailure) {
-        return fail(hashR);
-      }
+      var hash = objStorage.writeObject(tree);
       assert(!hashMap.containsKey(dir));
-      hashMap[dir] = hashR.getOrThrow();
+      hashMap[dir] = hash;
     }
 
-    return Result(hashMap['']!);
+    return hashMap['']!;
   }
 }
 

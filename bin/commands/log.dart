@@ -20,28 +20,23 @@ class LogCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     GitHash? sha;
     if (argResults!.rest.isNotEmpty) {
       sha = GitHash(argResults!.rest.first);
     } else {
-      var result = repo.headHash();
-      if (result.isFailure) {
+      try {
+        sha = repo.headHash();
+      } catch (ex) {
         print('fatal: head hash not found');
         return 1;
       }
-      sha = result.getOrThrow();
     }
 
     var iter = commitIteratorBFS(objStorage: repo.objStorage, from: sha);
     for (var result in iter) {
-      if (result.isFailure) {
-        print('panic: object with sha $sha not found');
-        return 1;
-      }
-
-      var commit = result.getOrThrow();
+      var commit = result;
       printCommit(commit, sha);
     }
 

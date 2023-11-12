@@ -31,21 +31,18 @@ abstract class TreeEntryVisitor {
 }
 
 extension Visitors on GitRepository {
-  Result<void> visitTree({
+  void visitTree({
     required GitHash fromCommitHash,
     required TreeEntryVisitor visitor,
-  }) =>
-      catchAllSync(() => Result(_visitTree(fromCommitHash, visitor)));
-
-  void _visitTree(GitHash from, TreeEntryVisitor visitor) {
+  }) {
     var cachedObjStorage = ObjectStorageCache(storage: objStorage);
     var iter = commitIteratorBFSFiltered(
       objStorage: cachedObjStorage,
-      from: from,
+      from: fromCommitHash,
       skipCommitHash: (hash) => !visitor.beforeCommit(hash),
     );
     for (var result in iter) {
-      var commit = result.getOrThrow();
+      var commit = result;
 
       var queue = Queue<Tuple2<GitHash, String>>();
       queue.add(Tuple2(commit.treeHash, ''));
@@ -59,7 +56,7 @@ extension Visitors on GitRepository {
           continue;
         }
 
-        var tree = cachedObjStorage.readTree(treeHash).getOrThrow();
+        var tree = cachedObjStorage.readTree(treeHash);
         for (var treeEntry in tree.entries) {
           assert(!parentPath.startsWith(p.separator));
           assert(!parentPath.endsWith(p.separator));

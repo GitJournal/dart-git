@@ -2,7 +2,7 @@ import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/plumbing/index.dart';
-import 'package:dart_git/utils/result.dart';
+
 import 'interfaces.dart';
 
 class IndexStorageFS implements IndexStorage {
@@ -12,30 +12,28 @@ class IndexStorageFS implements IndexStorage {
   IndexStorageFS(this._gitDir, this._fs);
 
   @override
-  Result<GitIndex> readIndex() {
+  GitIndex readIndex() {
     var file = _fs.file(p.join(_gitDir, 'index'));
     if (!file.existsSync()) {
-      var index = GitIndex(versionNo: 2);
-      return Result(index);
+      return GitIndex(versionNo: 2);
     }
 
-    var index = GitIndex.decode(file.readAsBytesSync());
-    return Result(index);
+    return GitIndex.decode(file.readAsBytesSync());
   }
 
   @override
-  Result<void> writeIndex(GitIndex index) {
+  void writeIndex(GitIndex index) {
     var path = p.join(_gitDir, 'index.new');
     var file = _fs.file(path);
 
     file.writeAsBytesSync(index.serialize());
-    var _ = file.renameSync(p.join(_gitDir, 'index'));
+    file.renameSync(p.join(_gitDir, 'index'));
 
-    return Result(null);
+    return;
   }
 
   @override
-  Result<void> close() => Result(null);
+  void close() {}
 }
 
 // Where do I put all the index operations which modify the index?

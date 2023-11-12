@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/utils/result.dart';
+
 import 'interfaces.dart';
 
 // FIXME: Revisions have a particular format!!
@@ -18,28 +18,28 @@ class ReferenceStorageFS implements ReferenceStorage {
   ReferenceStorageFS(this._dotGitDir, this._fs);
 
   @override
-  Result<Reference> reference(ReferenceName refName) {
+  Reference reference(ReferenceName refName) {
     var file = _fs.file(p.join(_dotGitDir, refName.value));
     if (file.existsSync()) {
       var contents = file.readAsStringSync().trimRight();
       if (contents.isEmpty) {
-        return Result.fail(GitRefNotFound(refName));
+        throw GitRefNotFound(refName);
       }
 
-      return Result(Reference(refName.value, contents));
+      return Reference(refName.value, contents);
     }
 
     for (var ref in _packedRefs()) {
       if (ref.name == refName) {
-        return Result(ref);
+        return ref;
       }
     }
 
-    return Result.fail(GitRefNotFound(refName));
+    throw GitRefNotFound(refName);
   }
 
   @override
-  Result<List<Reference>> listReferences(String prefix) {
+  List<Reference> listReferences(String prefix) {
     assert(prefix.startsWith(refPrefix));
 
     var refs = <Reference>[];
@@ -48,7 +48,7 @@ class ReferenceStorageFS implements ReferenceStorage {
 
     var dir = _fs.directory(refLocation);
     if (!dir.existsSync()) {
-      return Result(refs);
+      return refs;
     }
 
     var stream = dir.listSync(recursive: true);
@@ -61,13 +61,13 @@ class ReferenceStorageFS implements ReferenceStorage {
       }
 
       var refName = ReferenceName(fsEntity.path.substring(_dotGitDir.length));
-      var result = reference(refName);
-      if (result.isSuccess) {
-        var ref = result.getOrThrow();
+      try {
+        var ref = reference(refName);
         refs.add(ref);
-        var _ = processedRefNames.add(refName);
+        processedRefNames.add(refName);
+      } catch (ex) {
+        // FIXME: Handle the error!
       }
-      // FIXME: Handle the error!
     }
 
     for (var ref in _packedRefs()) {
@@ -79,26 +79,26 @@ class ReferenceStorageFS implements ReferenceStorage {
       }
     }
 
-    return Result(refs);
+    return refs;
   }
 
   // FIXME: removeRef should also look into packed-ref files?
   @override
-  Result<void> removeReferences(String prefix) {
+  void removeReferences(String prefix) {
     assert(prefix.startsWith(refPrefix));
 
     var refLocation = p.join(_dotGitDir, prefix);
     var dir = _fs.directory(refLocation);
     if (!dir.existsSync()) {
-      return Result(null);
+      return;
     }
 
     dir.deleteSync(recursive: true);
-    return Result(null);
+    return;
   }
 
   @override
-  Result<void> saveRef(Reference ref) {
+  void saveRef(Reference ref) {
     var refFileName = p.join(_dotGitDir, ref.name.value);
     var refFileName2 = '${refFileName}_';
 
@@ -108,7 +108,7 @@ class ReferenceStorageFS implements ReferenceStorage {
     file.writeAsStringSync(ref.serialize(), flush: true);
     file = file.renameSync(refFileName);
 
-    return Result(null);
+    return;
   }
 
   // FIXME: Maybe this doesn't need to read each time!
@@ -123,17 +123,17 @@ class ReferenceStorageFS implements ReferenceStorage {
   }
 
   @override
-  Result<void> deleteReference(ReferenceName refName) {
+  void deleteReference(ReferenceName refName) {
     var refFileName = p.join(_dotGitDir, refName.value);
-    var _ = _fs.file(refFileName).deleteSync();
+    _fs.file(refFileName).deleteSync();
 
-    return Result(null);
+    return;
     // FIXME: What if the deleted ref is in the packed-refs?
     //        The file is being locked in the go-git code!
   }
 
   @override
-  Result<void> close() => Result(null);
+  void close() {}
 }
 
 List<Reference> _loadPackedRefs(String raw) {

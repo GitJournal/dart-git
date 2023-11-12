@@ -12,7 +12,7 @@ import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/pack_file.dart';
-import 'package:dart_git/utils/result.dart';
+
 import 'package:dart_git/utils/uint8list.dart';
 import 'interfaces.dart';
 
@@ -27,7 +27,7 @@ class ObjectStorageFS implements ObjectStorage {
   ObjectStorageFS(this._gitDir, this._fs);
 
   @override
-  Result<GitObject> read(GitHash hash) {
+  GitObject read(GitHash hash) {
     var sha = hash.toString();
     var path =
         p.join(_gitDir, 'objects', sha.substring(0, 2), sha.substring(2));
@@ -48,11 +48,11 @@ class ObjectStorageFS implements ObjectStorage {
     for (var packFile in _packFiles) {
       var obj = packFile.object(hash);
       if (obj != null) {
-        return Result<GitObject>(obj);
+        return obj;
       }
     }
 
-    return Result.fail(GitObjectNotFound(hash));
+    throw GitObjectNotFound(hash);
   }
 
   void _loadPackFiles(String packDirPath) {
@@ -81,30 +81,30 @@ class ObjectStorageFS implements ObjectStorage {
   }
 
   // FIXME: This method should not be public
-  Result<GitObject> readObjectFromPath(String filePath, GitHash hash) {
+  GitObject readObjectFromPath(String filePath, GitHash hash) {
     var contents = _fs.file(filePath).readAsBytesSync();
     var raw = zlib.decode(contents) as Uint8List;
 
     // Read Object Type
     var x = raw.indexOf($space);
     if (x == -1) {
-      return Result.fail(GitObjectCorruptedMissingType());
+      throw GitObjectCorruptedMissingType();
     }
     var fmt = raw.sublistView(0, x);
 
     // Read and validate object size
     var y = raw.indexOf(0x0, x);
     if (y == -1) {
-      return Result.fail(GitObjectCorruptedMissingSize());
+      throw GitObjectCorruptedMissingSize();
     }
 
     var size = int.tryParse(ascii.decode(raw.sublistView(x, y)));
     if (size == null) {
-      return Result.fail(GitObjectCorruptedInvalidIntSize());
+      throw GitObjectCorruptedInvalidIntSize();
     }
 
     if (size != (raw.length - y - 1)) {
-      return Result.fail(GitObjectCorruptedBadSize());
+      throw GitObjectCorruptedBadSize();
     }
 
     var fmtStr = ascii.decode(fmt);
@@ -113,7 +113,7 @@ class ObjectStorageFS implements ObjectStorage {
   }
 
   @override
-  Result<GitHash> writeObject(GitObject obj) {
+  GitHash writeObject(GitObject obj) {
     assert(
       obj.formatStr() != GitBlob.fmt ? obj.serializeData().isNotEmpty : true,
       "${obj.hash} ${obj.formatStr()} is empty",
@@ -132,20 +132,20 @@ class ObjectStorageFS implements ObjectStorage {
 
     var exists = _fs.isFileSync(path);
     if (exists) {
-      return Result(hash);
+      return hash;
     }
     var file = _fs.file(path).openSync(mode: FileMode.writeOnly);
     file.writeFromSync(zlib.encode(result));
     file.closeSync();
 
-    return Result(hash);
+    return hash;
   }
 
   @override
-  Result<void> close() {
+  void close() {
     for (var packFile in _packFiles) {
       packFile.close();
     }
-    return Result(null);
+    return;
   }
 }

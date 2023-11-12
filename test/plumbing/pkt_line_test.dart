@@ -69,7 +69,7 @@ void main() {
     });
 
     // TODO: Error too long
-    var _ = [
+    [
       ['a' * (PktLine.MaxPayloadSize + 1)],
       ['hello world!', 'a' * (PktLine.MaxPayloadSize + 1)],
       ['hello world!', 'a' * (PktLine.MaxPayloadSize + 1), 'foo'],

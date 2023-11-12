@@ -17,15 +17,16 @@ class StatusCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
-    var headResult = repo.head();
-    if (headResult.isFailure) {
+    late Reference head;
+    try {
+      head = repo.head();
+    } catch (ex) {
+      // FIXME: Catch the exact exception
       print('fatal: no head found');
       return 1;
     }
-
-    var head = headResult.getOrThrow();
     if (head.isHash) {
       print('HEAD detached at ${head.hash}');
     } else {
@@ -36,27 +37,28 @@ class StatusCommand extends Command<int> {
       return 0;
     }
 
-    var branch = repo.config.branch(head.target!.branchName()!)!;
+    var branch = repo.config.branch(head.target!.branchName()!);
 
     // Construct remote's branch
-    var remoteBranchName = branch.merge!.branchName()!;
-    var remoteRef = ReferenceName.remote(branch.remote!, remoteBranchName);
+    if (branch != null) {
+      var remoteBranchName = branch.merge!.branchName()!;
+      var remoteRef = ReferenceName.remote(branch.remote!, remoteBranchName);
 
-    var headHash = repo.resolveReference(head).getOrThrow().hash;
-    var remoteHash = repo.resolveReferenceName(remoteRef).getOrThrow().hash;
+      var headHash = repo.resolveReference(head).hash;
+      var remoteHash = repo.resolveReferenceName(remoteRef).hash;
 
-    var remoteStr = '${branch.remote}/$remoteBranchName';
-    if (headHash != remoteHash) {
-      var aheadBy = repo.countTillAncestor(headHash!, remoteHash!).getOrThrow();
-      if (aheadBy != -1) {
-        print('Your branch is ahead of $remoteStr by $aheadBy commits');
-      } else {
-        var behindBy =
-            repo.countTillAncestor(remoteHash, headHash).getOrThrow();
-        if (behindBy != -1) {
-          print('Your branch is behind $remoteStr by $behindBy commits');
+      var remoteStr = '${branch.remote}/$remoteBranchName';
+      if (headHash != remoteHash) {
+        var aheadBy = repo.countTillAncestor(headHash!, remoteHash!);
+        if (aheadBy != -1) {
+          print('Your branch is ahead of $remoteStr by $aheadBy commits');
         } else {
-          print('Your branch is not equal to $remoteRef');
+          var behindBy = repo.countTillAncestor(remoteHash, headHash);
+          if (behindBy != -1) {
+            print('Your branch is behind $remoteStr by $behindBy commits');
+          } else {
+            print('Your branch is not equal to $remoteRef');
+          }
         }
       }
     }

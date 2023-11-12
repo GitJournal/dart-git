@@ -59,14 +59,14 @@ DiffTreeResults diffTree({required GitTree? from, required GitTree? to}) {
   var aPaths = <String, GitTreeEntry>{};
   var aPathSet = <String>{};
   for (var leaf in from.entries) {
-    var _ = aPathSet.add(leaf.name);
+    aPathSet.add(leaf.name);
     aPaths[leaf.name] = leaf;
   }
 
   var bPaths = <String, GitTreeEntry>{};
   var bPathSet = <String>{};
   for (var leaf in to.entries) {
-    var _ = bPathSet.add(leaf.name);
+    bPathSet.add(leaf.name);
     bPaths[leaf.name] = leaf;
   }
 

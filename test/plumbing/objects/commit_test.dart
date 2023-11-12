@@ -30,9 +30,7 @@ Also add tons of comments
       format: ascii.encode(GitCommit.fmt),
     ));
 
-    var obj = objStorage
-        .readObjectFromPath('test/data/commit-object', hash)
-        .getOrThrow();
+    var obj = objStorage.readObjectFromPath('test/data/commit-object', hash);
     expect(obj.hash, GitHash('57bdd0dbc9868e53aead3c91714c282647265254'));
 
     expect(obj is GitCommit, true);

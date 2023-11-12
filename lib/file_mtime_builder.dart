@@ -51,7 +51,7 @@ class FileMTimeBuilder extends TreeEntryVisitor {
 
   @override
   void afterCommit(GitCommit commit) {
-    var _ = processedCommits.add(commit.hash);
+    processedCommits.add(commit.hash);
   }
 
   @override

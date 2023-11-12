@@ -19,14 +19,14 @@ class RemoteCommand extends Command<int> {
 
   RemoteCommand() {
     argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
-    var _ = argParser.addCommand('add', addArgParser);
-    var __ = argParser.addCommand('rm', rmArgParser);
+    argParser.addCommand('add', addArgParser);
+    argParser.addCommand('rm', rmArgParser);
   }
 
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var verbose = argResults!['verbose'] as bool?;
 
@@ -40,7 +40,7 @@ class RemoteCommand extends Command<int> {
         var name = result.arguments[0];
         var url = result.arguments[1];
 
-        repo.addRemote(name, url).throwOnError();
+        repo.addRemote(name, url);
         return 0;
       }
 
@@ -51,12 +51,13 @@ class RemoteCommand extends Command<int> {
         }
 
         var name = result.arguments[0];
-        var configResult = repo.removeRemote(name);
-        if (configResult.isFailure) {
+        try {
+          repo.removeRemote(name);
+          return 0;
+        } catch (ex) {
           print("fatal: No such remote: '$name'");
           return 1;
         }
-        return 0;
       }
 
       return 1;

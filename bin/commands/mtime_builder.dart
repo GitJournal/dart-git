@@ -21,13 +21,13 @@ class MTimeBuilderCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var builder = FileMTimeBuilder();
-    var headHash = repo.headHash().getOrThrow();
+    var headHash = repo.headHash();
 
     var stopwatch = Stopwatch()..start();
-    repo.visitTree(fromCommitHash: headHash, visitor: builder).throwOnError();
+    repo.visitTree(fromCommitHash: headHash, visitor: builder);
     print("Building took: ${stopwatch.elapsed}");
 
     if (argResults!['debug'] == true) {

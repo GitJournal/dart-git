@@ -8,7 +8,6 @@ import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/storage/interfaces.dart';
 import 'package:dart_git/utils/file_mode.dart';
-import 'package:dart_git/utils/result.dart';
 
 class CommitBlobChanges {
   final List<Change> add;
@@ -105,7 +104,7 @@ class _Item {
 
 /// Returns the changes that once applied on `fromCommit` to transform
 /// it to `toCommit`
-Result<CommitBlobChanges> diffCommits({
+CommitBlobChanges diffCommits({
   required GitCommit fromCommit,
   required GitCommit toCommit,
   required ObjectStorage objStore,
@@ -135,18 +134,10 @@ Result<CommitBlobChanges> diffCommits({
     GitTree? toTree;
 
     if (item.fromTreeHash != null) {
-      var fromResult = objStore.readTree(item.fromTreeHash!);
-      if (fromResult.isFailure) {
-        return fail(fromResult);
-      }
-      fromTree = fromResult.getOrThrow();
+      fromTree = objStore.readTree(item.fromTreeHash!);
     }
     if (item.toTreeHash != null) {
-      var toResult = objStore.readTree(item.toTreeHash!);
-      if (toResult.isFailure) {
-        return fail(toResult);
-      }
-      toTree = toResult.getOrThrow();
+      toTree = objStore.readTree(item.toTreeHash!);
     }
 
     var diffTreeResults = diffTree(from: fromTree, to: toTree);
@@ -205,7 +196,7 @@ Result<CommitBlobChanges> diffCommits({
     remove: removedChanges,
     modify: modifiedChanges,
   );
-  return Result(changes);
+  return changes;
 }
 
 // FIXME: Paths should not start with /

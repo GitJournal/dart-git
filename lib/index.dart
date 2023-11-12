@@ -8,35 +8,24 @@ import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 
 extension Index on GitRepository {
-  Result<void> add(String pathSpec) {
+  void add(String pathSpec) {
     pathSpec = normalizePath(pathSpec);
 
-    var indexR = indexStorage.readIndex();
-    if (indexR.isFailure) {
-      return fail(indexR);
-    }
-    var index = indexR.getOrThrow();
+    var index = indexStorage.readIndex();
 
     var stat = fs.statSync(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
-      var result = addFileToIndex(index, pathSpec);
-      if (result.isFailure) {
-        return fail(result);
-      }
+      addFileToIndex(index, pathSpec);
     } else if (stat.type == FileSystemEntityType.directory) {
-      var result = addDirectoryToIndex(index, pathSpec, recursive: true);
-      if (result.isFailure) {
-        return fail(result);
-      }
+      addDirectoryToIndex(index, pathSpec, recursive: true);
     } else {
-      var ex = InvalidFileType(pathSpec);
-      return Result.fail(ex);
+      throw InvalidFileType(pathSpec);
     }
 
     return indexStorage.writeIndex(index);
   }
 
-  Result<GitIndexEntry> addFileToIndex(
+  GitIndexEntry addFileToIndex(
     GitIndex index,
     String filePath,
   ) {
@@ -45,17 +34,13 @@ extension Index on GitRepository {
     var file = fs.file(filePath);
     if (!file.existsSync()) {
       var ex = GitFileNotFound(filePath);
-      return Result.fail(ex);
+      return throw ex;
     }
 
     // Save that file as a blob
     var data = file.readAsBytesSync();
     var blob = GitBlob(data, null);
-    var hashR = objStorage.writeObject(blob);
-    if (hashR.isFailure) {
-      return fail(hashR);
-    }
-    var hash = hashR.getOrThrow();
+    var hash = objStorage.writeObject(blob);
 
     var pathSpec = filePath;
     if (pathSpec.startsWith(workTree)) {
@@ -74,16 +59,16 @@ extension Index on GitRepository {
 
       entry.cTime = stat.changed;
       entry.mTime = stat.modified;
-      return Result(entry);
+      return entry;
     }
 
     // New file
     entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
     index.entries.add(entry);
-    return Result(entry);
+    return entry;
   }
 
-  Result<void> addDirectoryToIndex(
+  void addDirectoryToIndex(
     GitIndex index,
     String dirPath, {
     bool recursive = false,
@@ -101,50 +86,36 @@ extension Index on GitRepository {
         continue;
       }
 
-      var r = addFileToIndex(index, fsEntity.path);
-      if (r.isFailure) {
-        return fail(r);
-      }
+      addFileToIndex(index, fsEntity.path);
     }
 
-    return Result(null);
+    return;
   }
 
-  Result<void> rm(String pathSpec, {bool rmFromFs = true}) {
+  void rm(String pathSpec, {bool rmFromFs = true}) {
     pathSpec = normalizePath(pathSpec);
 
-    var indexR = indexStorage.readIndex();
-    if (indexR.isFailure) {
-      return fail(indexR);
-    }
-    var index = indexR.getOrThrow();
+    var index = indexStorage.readIndex();
 
     var stat = fs.statSync(pathSpec);
     if (stat.type == FileSystemEntityType.file) {
-      var r = rmFileFromIndex(index, pathSpec);
-      if (r.isFailure) {
-        return fail(r);
-      }
+      rmFileFromIndex(index, pathSpec);
       if (rmFromFs) {
         fs.file(pathSpec).deleteSync();
       }
     } else if (stat.type == FileSystemEntityType.directory) {
-      var r = rmDirectoryFromIndex(index, pathSpec, recursive: true);
-      if (r.isFailure) {
-        return fail(r);
-      }
+      rmDirectoryFromIndex(index, pathSpec, recursive: true);
       if (rmFromFs) {
         fs.directory(pathSpec).deleteSync(recursive: true);
       }
     } else {
-      var ex = InvalidFileType(pathSpec);
-      return Result.fail(ex);
+      throw InvalidFileType(pathSpec);
     }
 
     return indexStorage.writeIndex(index);
   }
 
-  Result<GitHash> rmFileFromIndex(
+  GitHash rmFileFromIndex(
     GitIndex index,
     String filePath,
   ) {
@@ -152,12 +123,12 @@ extension Index on GitRepository {
     var hash = index.removePath(pathSpec);
     if (hash == null) {
       var ex = GitNotFound();
-      return Result.fail(ex);
+      return throw ex;
     }
-    return Result(hash);
+    return hash;
   }
 
-  Result<void> rmDirectoryFromIndex(
+  void rmDirectoryFromIndex(
     GitIndex index,
     String dirPath, {
     bool recursive = false,
@@ -177,12 +148,9 @@ extension Index on GitRepository {
         continue;
       }
 
-      var r = rmFileFromIndex(index, fsEntity.path);
-      if (r.isFailure) {
-        return fail(r);
-      }
+      rmFileFromIndex(index, fsEntity.path);
     }
 
-    return Result(null);
+    return;
   }
 }

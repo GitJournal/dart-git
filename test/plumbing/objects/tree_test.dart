@@ -23,7 +23,7 @@ void main() {
       format: ascii.encode(GitTree.fmt),
     ));
 
-    var obj = objStorage.readObjectFromPath(fp, hash).getOrThrow();
+    var obj = objStorage.readObjectFromPath(fp, hash);
     expect(obj is GitTree, equals(true));
 
     var tree = obj as GitTree;

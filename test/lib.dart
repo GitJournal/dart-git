@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 import 'package:dart_git/config.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
-import 'package:dart_git/utils/result.dart';
+
 import '../bin/main.dart' as git;
 
 var inCI = Platform.environment["CI"] != null;
@@ -291,12 +291,11 @@ Future<String> openFixture(String filePath) async {
     var filename = file.name;
     if (file.isFile) {
       var data = file.content as List<int>;
-      var _ = File(p.join(gitDotDir, filename))
+      File(p.join(gitDotDir, filename))
         ..createSync(recursive: true)
         ..writeAsBytesSync(data);
     } else {
-      var _ =
-          await Directory(p.join(gitDotDir, filename)).create(recursive: true);
+      await Directory(p.join(gitDotDir, filename)).create(recursive: true);
     }
   }
 
@@ -334,11 +333,11 @@ Future<String> cloneGittedFixture(String fixtureName, String newDirPath,
   return newDirPath;
 }
 
-extension GitIterable on Iterable<Result<GitCommit>> {
+extension GitIterable on Iterable<GitCommit> {
   List<String> asHashStrings() {
     var list = <String>[];
     for (var commitR in this) {
-      var commit = commitR.getOrThrow();
+      var commit = commitR;
       var hash = commit.hash.toString();
       list.add(hash);
     }

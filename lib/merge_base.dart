@@ -8,22 +8,19 @@ extension MergeBase on GitRepository {
   /// mergeBase mimics the behavior of `git merge-base actual other`, returning the
   /// best common ancestor between the actual and the passed one.
   /// The best common ancestors can not be reached from other common ancestors.
-  Result<List<GitCommit>> mergeBase(GitCommit a, GitCommit b) {
+  List<GitCommit> mergeBase(GitCommit a, GitCommit b) {
     var clist = [a, b];
     clist.sort(_commitDateDec);
 
     var newer = clist[0];
     var older = clist[1];
 
-    var newerHistoryR = allAncestors(newer, shouldNotContain: older);
-    if (newerHistoryR.isFailure) {
-      if (newerHistoryR.error is GitShouldNotContainFound) {
-        return Result([older]);
-      }
-      return fail(newerHistoryR);
+    late Set<GitHash> newerHistory;
+    try {
+      newerHistory = allAncestors(newer, shouldNotContain: older);
+    } on GitShouldNotContainFound {
+      return [older];
     }
-    var newerHistory = newerHistoryR.getOrThrow();
-
     var inNewerHistory = (GitCommit c) => newerHistory.contains(c.hash);
 
     var results = <GitCommit>[];
@@ -33,69 +30,55 @@ extension MergeBase on GitRepository {
       isValid: inNewerHistory,
       isLimit: inNewerHistory,
     );
-    for (var r in iter) {
-      if (r.isFailure) {
-        return fail(r);
-      }
-      var commit = r.getOrThrow();
+    for (var commit in iter) {
       results.add(commit);
     }
 
     return independents(results);
   }
 
-  Result<Set<GitHash>> allAncestors(
+  Set<GitHash> allAncestors(
     GitCommit start, {
     required GitCommit shouldNotContain,
   }) {
     if (start.hash == shouldNotContain.hash) {
-      var ex = GitShouldNotContainFound();
-      return Result.fail(ex);
+      throw GitShouldNotContainFound();
     }
 
     var all = <GitHash>{};
     var iter = commitIteratorBFS(objStorage: objStorage, from: start.hash);
-    for (var commitR in iter) {
-      if (commitR.isFailure) {
-        return fail(commitR);
-      }
-      var commit = commitR.getOrThrow();
+    for (var commit in iter) {
       if (commit.hash == shouldNotContain.hash) {
-        var ex = GitShouldNotContainFound();
-        return Result.fail(ex);
+        throw GitShouldNotContainFound();
       }
 
-      var _ = all.add(commit.hash);
+      all.add(commit.hash);
     }
 
-    return Result(all);
+    return all;
   }
 
   /// isAncestor returns true if the actual commit is ancestor of the passed one.
   /// It returns an error if the history is not transversable
   /// It mimics the behavior of `git merge --is-ancestor actual other`
-  Result<bool> isAncestor(GitCommit ancestor, GitCommit child) {
+  bool isAncestor(GitCommit ancestor, GitCommit child) {
     var iter = commitPreOrderIterator(objStorage: objStorage, from: child.hash);
-    for (var commitR in iter) {
-      if (commitR.isFailure) {
-        return fail(commitR);
-      }
-      var commit = commitR.getOrThrow();
+    for (var commit in iter) {
       if (commit.hash == ancestor.hash) {
-        return Result(true);
+        return true;
       }
     }
-    return Result(false);
+    return false;
   }
 
   /// Independents returns a subset of the passed commits, that are not reachable the others
   /// It mimics the behavior of `git merge-base --independent commit...`.
-  Result<List<GitCommit>> independents(List<GitCommit> commits) {
+  List<GitCommit> independents(List<GitCommit> commits) {
     commits.sort(_commitDateDec);
     _removeDuplicates(commits);
 
     if (commits.length < 2) {
-      return Result(commits);
+      return commits;
     }
 
     var seen = GitHashSet();
@@ -113,14 +96,10 @@ extension MergeBase on GitRepository {
         isLimit: isLimit,
       );
 
-      for (var fromAncestorR in fromHistoryIter) {
-        if (fromAncestorR.isFailure) {
-          return fail(fromAncestorR);
-        }
-        var fromAncestor = fromAncestorR.getOrThrow();
+      for (var fromAncestor in fromHistoryIter) {
         others.removeWhere((other) {
           if (fromAncestor.hash == other.hash) {
-            var _ = commits.remove(other);
+            commits.remove(other);
             return true;
           }
           return false;
@@ -131,7 +110,7 @@ extension MergeBase on GitRepository {
           throw Exception('Stop?');
         }
 
-        var _ = seen.add(fromAncestor.hash);
+        seen.add(fromAncestor.hash);
       }
 
       pos = commits.indexOf(from) + 1;
@@ -140,7 +119,7 @@ extension MergeBase on GitRepository {
       }
     }
 
-    return Result(commits);
+    return commits;
   }
 }
 
@@ -153,7 +132,7 @@ void _removeDuplicates(List<GitCommit> commits) {
   commits.removeWhere((c) {
     var contains = seen.contains(c.hash);
     if (!contains) {
-      var _ = seen.add(c.hash);
+      seen.add(c.hash);
     }
     return contains;
   });

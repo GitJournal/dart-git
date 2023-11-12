@@ -16,9 +16,9 @@ class DumpIndexCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
-    var index = repo.indexStorage.readIndex().getOrThrow();
+    var index = repo.indexStorage.readIndex();
     print('Index Version: ${index.versionNo}');
     for (var entry in index.entries) {
       var str = entry.toString();

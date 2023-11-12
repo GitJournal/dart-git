@@ -9,18 +9,18 @@ import 'package:dart_git/utils/file_extensions.dart'
     if (dart.library.html) 'package:dart_git/utils/file_extensions_na.dart';
 
 extension Reset on GitRepository {
-  Result<void> _resetHard(GitHash hash) {
-    var headCommit = this.headCommit().getOrThrow();
-    var toCommit = objStorage.readCommit(hash).getOrThrow();
+  void resetHard(GitHash hash) {
+    var headCommit = this.headCommit();
+    var toCommit = objStorage.readCommit(hash);
 
     var changes = diffCommits(
       fromCommit: headCommit,
       toCommit: toCommit,
       objStore: objStorage,
-    ).getOrThrow();
+    );
 
     for (var change in changes.add) {
-      var obj = objStorage.readBlob(change.hash).getOrThrow();
+      var obj = objStorage.readBlob(change.hash);
       var path = p.join(workTree, change.path);
 
       fs.directory(p.dirname(path)).createSync(recursive: true);
@@ -32,14 +32,14 @@ extension Reset on GitRepository {
       var path = p.join(workTree, change.path);
       var file = fs.file(path);
       if (file.existsSync()) {
-        var _ = file.deleteSync(recursive: true);
+        file.deleteSync(recursive: true);
       }
 
       deleteEmptyDirectories(fs, workTree, change.path);
     }
 
     for (var change in changes.modify) {
-      var obj = objStorage.readBlob(change.to!.hash).getOrThrow();
+      var obj = objStorage.readBlob(change.to!.hash);
       var path = p.join(workTree, change.to!.path);
 
       fs.directory(p.dirname(path)).createSync(recursive: true);
@@ -48,18 +48,16 @@ extension Reset on GitRepository {
     }
 
     // Make the current branch point towards 'hash'
-    var headRef = head().getOrThrow();
+    var headRef = head();
     var branchNameRef = headRef.target!;
     assert(branchNameRef.isBranch());
 
     var newRef = Reference.hash(branchNameRef, hash);
-    refStorage.saveRef(newRef).throwOnError();
+    refStorage.saveRef(newRef);
 
     // Redo the index
-    var _ = checkout('.').getOrThrow();
+    checkout('.');
 
-    return Result(null);
+    return;
   }
-
-  Result<void> resetHard(GitHash hash) => catchAllSync(() => _resetHard(hash));
 }

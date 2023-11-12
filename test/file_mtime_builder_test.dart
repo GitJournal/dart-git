@@ -38,19 +38,17 @@ void main() {
 
   setUp(() async {
     gitDir = (await Directory.systemTemp.createTemp('_git_')).path;
-    var _ = await cloneGittedFixture('mtime', gitDir);
+    await cloneGittedFixture('mtime', gitDir);
   });
 
   test('Basic', () async {
-    var repo = GitRepository.load(gitDir).getOrThrow();
+    var repo = GitRepository.load(gitDir);
 
     var tf = FileMTimeBuilder();
-    repo
-        .visitTree(
-          fromCommitHash: GitHash('b0a13aeafa9933dea95c06e0130e35c22dab816a'),
-          visitor: tf,
-        )
-        .throwOnError();
+    repo.visitTree(
+      fromCommitHash: GitHash('b0a13aeafa9933dea95c06e0130e35c22dab816a'),
+      visitor: tf,
+    );
 
     expect(
       tf.mTime('1.md')!.toUtc().toIso8601String(),
@@ -61,12 +59,10 @@ void main() {
       DateTime.parse('2022-01-12 14:33:01 +0100').toUtc().toIso8601String(),
     );
 
-    repo
-        .visitTree(
-          fromCommitHash: GitHash('386de870a014e32234ce7f87e59a1beb06f720df'),
-          visitor: tf,
-        )
-        .throwOnError();
+    repo.visitTree(
+      fromCommitHash: GitHash('386de870a014e32234ce7f87e59a1beb06f720df'),
+      visitor: tf,
+    );
 
     expect(
       tf.mTime('1.md')!.toUtc().toIso8601String(),

@@ -145,7 +145,7 @@ class Config {
       rs.options['url'] = remote.url;
       rs.options['fetch'] = remote.fetch;
 
-      var _ = serializedRemotes.add(remote.name);
+      serializedRemotes.add(remote.name);
     }
     remoteSection.keepSections(serializedRemotes);
 
@@ -163,7 +163,7 @@ class Config {
       }
 
       if (serializedRemotes.contains(branch.remote)) {
-        var _ = serializedBranches.add(branch.name);
+        serializedBranches.add(branch.name);
       }
     }
     branchSection.keepSections(serializedBranches);

@@ -8,25 +8,19 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
-import 'package:dart_git/storage/config_storage_exception_catcher.dart';
 import 'package:dart_git/storage/config_storage_fs.dart';
-import 'package:dart_git/storage/index_storage_exception_catcher.dart';
 import 'package:dart_git/storage/index_storage_fs.dart';
 import 'package:dart_git/storage/interfaces.dart';
-import 'package:dart_git/storage/object_storage_exception_catcher.dart';
 import 'package:dart_git/storage/object_storage_fs.dart';
-import 'package:dart_git/storage/reference_storage_exception_catcher.dart';
 import 'package:dart_git/storage/reference_storage_fs.dart';
 import 'package:dart_git/utils/git_hash_set.dart';
 import 'package:dart_git/utils/local_fs_with_checks.dart';
-import 'package:dart_git/utils/result.dart';
 
 export 'commit.dart';
 export 'checkout.dart';
 export 'merge_base.dart';
 export 'merge.dart';
 export 'remotes.dart';
-export 'utils/result.dart';
 export 'index.dart';
 export 'vistors.dart';
 export 'reset.dart';
@@ -84,7 +78,7 @@ class GitRepository {
     return null;
   }
 
-  static Result<GitRepository> load(
+  static GitRepository load(
     String gitRootDir, {
     FileSystem? fs,
   }) {
@@ -92,30 +86,18 @@ class GitRepository {
 
     if (!isValidRepo(gitRootDir, fs: fs)) {
       var ex = InvalidRepoException(gitRootDir);
-      return Result.fail(ex);
+      return throw ex;
     }
 
     var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
 
-    repo.objStorage = ObjectStorageExceptionCatcher(
-      storage: ObjectStorageFS(repo.gitDir, fs),
-    );
-    repo.refStorage = ReferenceStorageExceptionCatcher(
-      storage: ReferenceStorageFS(repo.gitDir, fs),
-    );
-    repo.indexStorage = IndexStorageExceptionCatcher(
-      storage: IndexStorageFS(repo.gitDir, fs),
-    );
-    repo.configStorage = ConfigStorageExceptionCatcher(
-      storage: ConfigStorageFS(repo.gitDir, fs),
-    );
+    repo.objStorage = ObjectStorageFS(repo.gitDir, fs);
+    repo.refStorage = ReferenceStorageFS(repo.gitDir, fs);
+    repo.indexStorage = IndexStorageFS(repo.gitDir, fs);
+    repo.configStorage = ConfigStorageFS(repo.gitDir, fs);
 
-    var configResult = repo.reloadConfig();
-    if (configResult.isFailure) {
-      return fail(configResult);
-    }
-
-    return Result(repo);
+    repo.reloadConfig();
+    return repo;
   }
 
   static bool isValidRepo(String gitRootDir, {FileSystem? fs}) {
@@ -133,7 +115,7 @@ class GitRepository {
     }
 
     repo.configStorage = ConfigStorageFS(repo.gitDir, fs);
-    var configExists = repo.configStorage.exists().getOrThrow();
+    var configExists = repo.configStorage.exists();
     if (!configExists) {
       return false;
     }
@@ -141,25 +123,11 @@ class GitRepository {
     return true;
   }
 
-  static Result<void> init(
+  static void init(
     String path, {
     FileSystem? fs,
-    String defaultBranch = 'master',
+    String defaultBranch = 'main',
     bool ignoreIfExists = false,
-  }) {
-    return catchAllSync(() => Result(GitRepository._init(
-          path,
-          fs: fs,
-          defaultBranch: defaultBranch,
-          ignoreIfExists: ignoreIfExists,
-        )));
-  }
-
-  static void _init(
-    String path, {
-    required FileSystem? fs,
-    required String defaultBranch,
-    required bool ignoreIfExists,
   }) {
     fs ??= const LocalFileSystem();
 
@@ -175,7 +143,7 @@ class GitRepository {
       'refs/tags',
     ];
     for (var dir in dirsToCreate) {
-      var _ = fs.directory(p.join(gitDir, dir)).createSync(recursive: true);
+      fs.directory(p.join(gitDir, dir)).createSync(recursive: true);
     }
 
     fs.file(p.join(gitDir, 'description')).writeAsStringSync(
@@ -193,85 +161,48 @@ class GitRepository {
     fs.file(p.join(gitDir, 'config')).writeAsStringSync(config.serialize());
   }
 
-  Result<void> close() {
-    late Result<void> r;
-
-    r = objStorage.close();
-    if (r.isFailure) {
-      return fail(r);
-    }
-
-    r = refStorage.close();
-    if (r.isFailure) {
-      return fail(r);
-    }
-
-    r = indexStorage.close();
-    if (r.isFailure) {
-      return fail(r);
-    }
-
-    return Result(null);
+  void close() {
+    objStorage.close();
+    refStorage.close();
+    indexStorage.close();
   }
 
-  Result<void> reloadConfig() {
-    var configResult = configStorage.readConfig();
-    if (configResult.isFailure) {
-      return fail(configResult);
-    }
-    config = configResult.getOrThrow();
-
-    return Result(null);
+  void reloadConfig() {
+    config = configStorage.readConfig();
   }
 
-  Result<void> saveConfig() {
+  void saveConfig() {
     return configStorage.writeConfig(config);
   }
 
-  Result<List<String>> branches() {
-    var refsResult = refStorage.listReferences(refHeadPrefix);
-    if (refsResult.isFailure) {
-      return fail(refsResult);
-    }
-
-    var refs = refsResult.getOrThrow();
+  List<String> branches() {
+    var refs = refStorage.listReferences(refHeadPrefix);
     var refNames = refs.map((r) => r.name);
     var branchNames = refNames.map((r) => r.branchName()!).toList();
 
-    return Result(branchNames);
+    return branchNames;
   }
 
-  Result<String> currentBranch() {
-    var headResult = head();
-    if (headResult.isFailure) {
-      return fail(headResult);
-    }
-
-    var _head = headResult.getOrThrow();
+  String currentBranch() {
+    var _head = head();
     if (_head.isHash) {
       var ex = GitHeadDetached();
-      return Result.fail(ex);
+      return throw ex;
     }
 
-    // FIXE: Am I sure this will never throw an error?
     var name = _head.target!.branchName()!;
-    return Result(name);
+    return name;
   }
 
-  Result<BranchConfig> setUpstreamTo(
+  BranchConfig setUpstreamTo(
     GitRemoteConfig remote,
     String remoteBranchName,
   ) {
-    var branchNameResult = currentBranch();
-    if (branchNameResult.isFailure) {
-      return fail(branchNameResult);
-    }
-
-    var branchName = branchNameResult.getOrThrow();
+    var branchName = currentBranch();
     return setBranchUpstreamTo(branchName, remote, remoteBranchName);
   }
 
-  Result<BranchConfig> setBranchUpstreamTo(
+  BranchConfig setBranchUpstreamTo(
       String branchName, GitRemoteConfig remote, String remoteBranchName) {
     var brConfig = config.branch(branchName);
     if (brConfig == null) {
@@ -281,168 +212,96 @@ class GitRepository {
     brConfig.remote = remote.name;
     brConfig.merge = ReferenceName.branch(remoteBranchName);
 
-    var saveR = saveConfig();
-    if (saveR.isFailure) {
-      return fail(saveR);
-    }
-    return Result(brConfig);
+    saveConfig();
+    return brConfig;
   }
 
-  Result<GitHash> createBranch(
+  GitHash createBranch(
     String name, {
     GitHash? hash,
     bool overwrite = false,
   }) {
-    if (hash == null) {
-      var headHashResult = headHash();
-      if (headHashResult.isFailure) {
-        return fail(headHashResult);
-      }
-      hash = headHashResult.getOrThrow();
-    }
+    hash ??= headHash();
 
     var branch = ReferenceName.branch(name);
-    var refResult = refStorage.reference(branch);
-    if (refResult.isFailure && refResult.error is! GitRefNotFound) {
-      return fail(refResult);
-    }
-    if (!overwrite && refResult.isSuccess) {
-      var ex = GitBranchAlreadyExists(name);
-      return Result.fail(ex);
+    try {
+      // Try to read the reference
+      refStorage.reference(branch);
+
+      if (!overwrite) {
+        throw GitBranchAlreadyExists(name);
+      }
+    } on GitRefNotFound {
+      // That's fine
     }
 
-    var result = refStorage.saveRef(Reference.hash(branch, hash));
-    if (result.isFailure) {
-      return fail(result);
-    }
-    return Result(hash);
+    refStorage.saveRef(Reference.hash(branch, hash));
+    return hash;
   }
 
-  Result<GitHash> deleteBranch(String branchName) {
+  GitHash deleteBranch(String branchName) {
     var refName = ReferenceName.branch(branchName);
-    var refResult = refStorage.reference(refName);
-    if (refResult.isFailure) {
-      return fail(refResult);
-    }
-    var ref = refResult.getOrThrow();
+    var ref = refStorage.reference(refName);
+    refStorage.deleteReference(refName);
 
-    var res = refStorage.deleteReference(refName);
-    if (res.isFailure) {
-      return fail(res);
-    }
-
-    return Result(ref.hash!);
+    return ref.hash!;
   }
 
-  Result<GitCommit> branchCommit(String branchName) {
+  GitCommit branchCommit(String branchName) {
     var refName = ReferenceName.branch(branchName);
-    var refResult = refStorage.reference(refName);
-    if (refResult.isFailure) {
-      return fail(refResult);
-    }
-    var ref = refResult.getOrThrow();
+    var ref = refStorage.reference(refName);
 
-    var objR = objStorage.readCommit(ref.hash!);
-    if (objR.isFailure) {
-      return fail(objR);
-    }
-
-    return Result(objR.getOrThrow());
+    return objStorage.readCommit(ref.hash!);
   }
 
-  Result<Reference> head() {
-    var result = refStorage.reference(ReferenceName.HEAD());
-    if (result.isFailure) {
-      return fail(result);
-    }
-
-    return Result(result.getOrThrow());
+  Reference head() {
+    return refStorage.reference(ReferenceName.HEAD());
   }
 
-  Result<GitHash> headHash() {
-    var result = refStorage.reference(ReferenceName.HEAD());
-    if (result.isFailure) {
-      return fail(result);
-    }
+  GitHash headHash() {
+    var ref = refStorage.reference(ReferenceName.HEAD());
 
-    var ref = result.getOrThrow();
-    result = resolveReference(ref);
-    if (result.isFailure) {
-      return fail(result);
-    }
-
-    ref = result.getOrThrow();
-    return Result(ref.hash!);
+    ref = resolveReference(ref);
+    return ref.hash!;
   }
 
-  Result<GitCommit> headCommit() {
-    var hashResult = headHash();
-    if (hashResult.isFailure) {
-      return fail(hashResult);
-    }
-    var hash = hashResult.getOrThrow();
-
-    var result = objStorage.readCommit(hash);
-    if (result.isFailure) {
-      return fail(result);
-    }
-    return Result(result.getOrThrow());
+  GitCommit headCommit() {
+    var hash = headHash();
+    return objStorage.readCommit(hash);
   }
 
-  Result<GitTree> headTree() {
-    var commitResult = headCommit();
-    if (commitResult.isFailure) {
-      return fail(commitResult);
-    }
-    var commit = commitResult.getOrThrow();
-
-    var res = objStorage.readTree(commit.treeHash);
-    if (res.isFailure) {
-      return fail(res);
-    }
-    return Result(res.getOrThrow());
+  GitTree headTree() {
+    var commit = headCommit();
+    return objStorage.readTree(commit.treeHash);
   }
 
-  Result<Reference> resolveReference(Reference ref, {bool recursive = true}) {
+  Reference resolveReference(Reference ref, {bool recursive = true}) {
     if (ref.type == ReferenceType.Hash) {
-      return Result(ref);
+      return ref;
     }
 
-    var resolvedRefResult = refStorage.reference(ref.target!);
-    if (resolvedRefResult.isFailure) {
-      return fail(resolvedRefResult);
-    }
-
-    var resolvedRef = resolvedRefResult.getOrThrow();
-    return recursive ? resolveReference(resolvedRef) : Result(resolvedRef);
+    var resolvedRef = refStorage.reference(ref.target!);
+    return recursive ? resolveReference(resolvedRef) : resolvedRef;
   }
 
-  Result<Reference> resolveReferenceName(ReferenceName refName) {
-    var resolvedRefResult = refStorage.reference(refName);
-    if (resolvedRefResult.isFailure) {
-      return fail(resolvedRefResult);
-    }
-
-    var resolvedRef = resolvedRefResult.getOrThrow();
+  Reference resolveReferenceName(ReferenceName refName) {
+    var resolvedRef = refStorage.reference(refName);
     return resolveReference(resolvedRef);
   }
 
-  Result<bool> canPush() {
+  bool canPush() {
     if (config.remotes.isEmpty) {
-      return Result(false);
+      return false;
     }
 
-    var headResult = head();
-    if (headResult.isFailure) {
-      if (headResult.error is! GitRefNotFound) {
-        return fail(headResult);
-      }
-      return Result(false);
+    late Reference _head;
+    try {
+      _head = head();
+    } on GitRefNotFound {
+      return false;
     }
-
-    var _head = headResult.getOrThrow();
     if (_head.isHash) {
-      return Result(false);
+      return false;
     }
 
     var brConfig = config.branch(_head.target!.branchName()!);
@@ -450,99 +309,71 @@ class GitRepository {
     var brConfigRemote = brConfig?.remote;
     if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
       // FIXME: Maybe we can push other branches!
-      return Result(false);
+      return false;
     }
 
-    var resolvedHeadResult = resolveReference(_head);
-    if (resolvedHeadResult.isFailure) {
-      return fail(resolvedHeadResult);
-    }
-    var resolvedHead = resolvedHeadResult.getOrThrow();
+    var resolvedHead = resolveReference(_head);
 
     // Construct remote's branch
     var remoteBranchName = brConfigMerge.branchName()!;
     var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
-    var remoteRefResult = resolveReferenceName(remoteRefName);
-    if (remoteRefResult.isFailure) {
-      return fail(remoteRefResult);
-    }
-    var remoteRef = remoteRefResult.getOrThrow();
+    var remoteRef = resolveReferenceName(remoteRefName);
 
-    return Result(resolvedHead.hash != remoteRef.hash);
+    return resolvedHead.hash != remoteRef.hash;
   }
 
   /// Returns -1 if unreachable
-  Result<int> countTillAncestor(GitHash from, GitHash ancestor) {
+  int countTillAncestor(GitHash from, GitHash ancestor) {
     var seen = GitHashSet();
     var parents = <GitHash>[];
-    var _ = parents.add(from);
+    parents.add(from);
     while (parents.isNotEmpty) {
       var sha = parents[0];
       if (sha == ancestor) {
         break;
       }
-      var _ = parents.removeAt(0);
-      var __ = seen.add(sha);
+      parents.removeAt(0);
+      seen.add(sha);
 
-      var commitR = objStorage.readCommit(sha);
-      if (commitR.isFailure) {
-        return fail(commitR);
-      }
-      var commit = commitR.getOrThrow();
-
+      var commit = objStorage.readCommit(sha);
       for (var p in commit.parents) {
         if (seen.contains(p)) continue;
         parents.add(p);
       }
     }
 
-    return Result(parents.isEmpty ? -1 : seen.length);
+    return parents.isEmpty ? -1 : seen.length;
   }
 
-  Result<int> numChangesToPush() {
-    var headR = this.head();
-    if (headR.isFailure) {
-      return fail(headR);
-    }
-    var head = headR.getOrThrow();
+  int numChangesToPush() {
+    var head = this.head();
     if (head.isHash || head.target == null) {
-      return Result(0);
+      return 0;
     }
 
     var brConfig = config.branch(head.target!.branchName()!);
     var brConfigMerge = brConfig?.merge;
     var brConfigRemote = brConfig?.remote;
     if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
-      return Result(0);
+      return 0;
     }
 
     // Construct remote's branch
     var remoteBranchName = brConfigMerge.branchName()!;
     var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
 
-    var headRefResult = resolveReference(head);
-    var remoteRefResult = resolveReferenceName(remoteRefName);
-    if (headRefResult.isFailure) {
-      return fail(headRefResult);
-    }
-    if (remoteRefResult.isFailure) {
-      return fail(remoteRefResult);
-    }
+    var headRef = resolveReference(head);
+    var remoteRef = resolveReferenceName(remoteRefName);
 
-    var headHash = headRefResult.getOrThrow().hash!;
-    var remoteHash = remoteRefResult.getOrThrow().hash!;
+    var headHash = headRef.hash!;
+    var remoteHash = remoteRef.hash!;
 
     if (headHash == remoteHash) {
-      return Result(0);
+      return 0;
     }
 
-    var aheadByResult = countTillAncestor(headHash, remoteHash);
-    if (aheadByResult.isFailure) {
-      return fail(aheadByResult);
-    }
-    var aheadBy = aheadByResult.getOrThrow();
-
-    return Result(aheadBy != -1 ? aheadBy : 0);
+    var aheadBy = countTillAncestor(headHash, remoteHash);
+    return aheadBy != -1 ? aheadBy : 0;
   }
 
   String normalizePath(String path) {

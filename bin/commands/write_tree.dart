@@ -16,10 +16,10 @@ class WriteTreeCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
-    var index = repo.indexStorage.readIndex().getOrThrow();
-    var hash = repo.writeTree(index).getOrThrow();
+    var index = repo.indexStorage.readIndex();
+    var hash = repo.writeTree(index);
     print(hash);
 
     return 0;

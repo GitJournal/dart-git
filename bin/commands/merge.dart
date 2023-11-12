@@ -29,8 +29,8 @@ class MergeCommand extends Command<int> {
 
     var branchName = args[0];
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
-    var branchCommit = repo.branchCommit(branchName).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
+    var branchCommit = repo.branchCommit(branchName);
 
     var user = repo.config.user;
     if (user == null) {
@@ -54,14 +54,12 @@ class MergeCommand extends Command<int> {
 
     var msg = argResults!['message'] ?? "Merge branch '$branchName'\n";
 
-    repo
-        .merge(
-          theirCommit: branchCommit,
-          author: user,
-          committer: committer,
-          message: msg,
-        )
-        .throwOnError();
+    repo.merge(
+      theirCommit: branchCommit,
+      author: user,
+      committer: committer,
+      message: msg,
+    );
 
     return 0;
   }

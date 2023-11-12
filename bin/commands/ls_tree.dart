@@ -21,21 +21,21 @@ class LsTreeCommand extends Command<int> {
     var objectSha1 = argResults!.rest.first;
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var objRes = repo.objStorage.read(GitHash(objectSha1));
-    var obj = objRes.getOrThrow();
+    var obj = objRes;
     GitTree? tree;
     if (obj is GitTree) {
       tree = obj;
     } else if (obj is GitCommit) {
-      tree = repo.objStorage.readTree(obj.treeHash).getOrThrow();
+      tree = repo.objStorage.readTree(obj.treeHash);
     } else {
       assert(false);
     }
 
     for (var leaf in tree!.entries) {
-      var leafObj = repo.objStorage.read(leaf.hash).getOrThrow();
+      var leafObj = repo.objStorage.read(leaf.hash);
       var type = leafObj.formatStr();
       var mode = leaf.mode.toString().padLeft(6, '0');
       print('$mode $type ${leaf.hash}    ${leaf.name}');

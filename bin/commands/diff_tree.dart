@@ -20,15 +20,10 @@ class DiffTreeCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var hash = argResults!.arguments[0];
-    var objRes = repo.objStorage.read(GitHash(hash));
-    if (objRes.isFailure) {
-      print('fatal: bad object $hash');
-      return 1;
-    }
-    var obj = objRes.getOrThrow();
+    var obj = repo.objStorage.read(GitHash(hash));
 
     if (obj is! GitCommit) {
       print('error: object $hash is a ${obj.formatStr()}, not a commit');
@@ -36,11 +31,11 @@ class DiffTreeCommand extends Command<int> {
     }
     var commit = obj;
     var parentHash = commit.parents.first;
-    var parentObj = repo.objStorage.readCommit(parentHash).getOrThrow();
+    var parentObj = repo.objStorage.readCommit(parentHash);
 
     var results = diffTree(
-      from: repo.objStorage.readTree(parentObj.treeHash).getOrThrow(),
-      to: repo.objStorage.readTree(obj.treeHash).getOrThrow(),
+      from: repo.objStorage.readTree(parentObj.treeHash),
+      to: repo.objStorage.readTree(obj.treeHash),
     );
 
     print(hash);

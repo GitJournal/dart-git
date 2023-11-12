@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
+import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/utils.dart';
 
 class CheckoutCommand extends Command<int> {
@@ -21,7 +22,7 @@ class CheckoutCommand extends Command<int> {
   @override
   int run() {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var branchName = argResults!['branch'] as String;
     if (branchName.isNotEmpty) {
@@ -29,9 +30,9 @@ class CheckoutCommand extends Command<int> {
       if (argResults!.rest.isNotEmpty) {
         remoteFullBranchName = argResults!.rest[0];
       } else {
-        var branches = repo.branches().getOrThrow();
+        var branches = repo.branches();
         if (branches.contains(branchName)) {
-          repo.checkoutBranch(branchName).throwOnError();
+          repo.checkoutBranch(branchName);
           return 0;
         } else {
           // FIXME: This should lookup which remote has it
@@ -42,33 +43,33 @@ class CheckoutCommand extends Command<int> {
       var remoteName = splitPath(remoteFullBranchName).item1;
       var remoteBranchName = splitPath(remoteFullBranchName).item2;
 
-      var remoteRefR = repo.remoteBranch(remoteName, remoteBranchName);
-      if (remoteRefR.isFailure) {
+      late Reference remoteRef;
+      try {
+        remoteRef = repo.remoteBranch(remoteName, remoteBranchName);
+      } catch (ex) {
+        // FIXME: Catch the exact exception
         print('fatal: remote $remoteName branch $remoteBranchName not found');
         return 1;
       }
-      var remoteRef = remoteRefR.getOrThrow();
 
-      repo.createBranch(branchName, hash: remoteRef.hash).throwOnError();
-      repo.checkout('.').throwOnError();
-      repo
-          .setUpstreamTo(repo.config.remote(remoteName)!, remoteBranchName)
-          .throwOnError();
+      repo.createBranch(branchName, hash: remoteRef.hash);
+      repo.checkoutBranch(branchName);
+      repo.setUpstreamTo(repo.config.remote(remoteName)!, remoteBranchName);
       print(
           "Branch '$branchName' set up to track remote branch '$remoteBranchName' from '$remoteName'.");
 
-      var headRefResult = repo.head();
-      if (headRefResult.isFailure) {
+      try {
+        var headRef = repo.head();
+        if (headRef.target!.branchName() == branchName) {
+          print("Already on '$branchName'");
+        }
+
+        return 0;
+      } catch (ex) {
+        // FIXME: Catch the exact exception
         print('fatal: head not found');
         return 1;
       }
-
-      var headRef = headRefResult.getOrThrow();
-      if (headRef.target!.branchName() == branchName) {
-        print("Already on '$branchName'");
-      }
-
-      return 0;
     }
 
     if (argResults!.arguments.isEmpty) {
@@ -77,24 +78,22 @@ class CheckoutCommand extends Command<int> {
     }
 
     var pathSpec = argResults!.arguments[0];
-    var branches = repo.branches().getOrThrow();
+    var branches = repo.branches();
     if (branches.contains(pathSpec)) {
-      repo.checkoutBranch(pathSpec).throwOnError();
+      repo.checkoutBranch(pathSpec);
       return 0;
     }
 
     // TODO: Check if one of the remotes contains this branch
-
-    var objectsUpdatedR = repo.checkout(pathSpec);
-
-    if (objectsUpdatedR.isFailure) {
+    try {
+      var objectsUpdated = repo.checkout(pathSpec);
+      print('Updated $objectsUpdated path from the index');
+      return 0;
+    } catch (ex) {
+      // FIXME: Catch the exact exception
       print(
           "error: pathspec '$pathSpec' did not match any file(s) known to git");
       return 1;
     }
-    var objectsUpdated = objectsUpdatedR.getOrThrow();
-    print('Updated $objectsUpdated path from the index');
-
-    return 0;
   }
 }

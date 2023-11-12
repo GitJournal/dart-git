@@ -29,7 +29,7 @@ class DiffCommand extends Command<int> {
     }
 
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
-    var repo = GitRepository.load(gitRootDir).getOrThrow();
+    var repo = GitRepository.load(gitRootDir);
 
     var fromStr = argResults!.arguments[0];
     var toStr = argResults!.arguments[1];
@@ -37,14 +37,14 @@ class DiffCommand extends Command<int> {
     var fromCommitRes = repo.objStorage.readCommit(GitHash(fromStr));
     var toCommitRes = repo.objStorage.readCommit(GitHash(toStr));
 
-    var fromCommit = fromCommitRes.getOrThrow();
-    var toCommit = toCommitRes.getOrThrow();
+    var fromCommit = fromCommitRes;
+    var toCommit = toCommitRes;
 
     var changes = diffCommits(
       fromCommit: fromCommit,
       toCommit: toCommit,
       objStore: repo.objStorage,
-    ).getOrThrow();
+    );
 
     for (var r in changes.merged()) {
       var prevMode = ''.padLeft(6, '0');

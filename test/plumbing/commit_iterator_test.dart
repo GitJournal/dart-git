@@ -15,9 +15,9 @@ void main() {
     gitDir = await openFixture(
         'test/data/git-7a725350b88b05ca03541b59dd0649fda7f521f2.tgz');
 
-    var repo = GitRepository.load(gitDir).getOrThrow();
+    var repo = GitRepository.load(gitDir);
     objStorage = repo.objStorage;
-    headHash = repo.headHash().getOrThrow();
+    headHash = repo.headHash();
   });
 
   test('BFS', () async {

@@ -28,11 +28,11 @@ void main() {
 
 Future<void> testFixture(String name, String headHash, String treeHash) async {
   var gitDir = Directory.systemTemp.createTempSync('_git_').path;
-  var _ = await cloneGittedFixture(name, gitDir, GitHash(headHash));
-  var repo = GitRepository.load(gitDir).getOrThrow();
-  var index = repo.indexStorage.readIndex().getOrThrow();
-  var treeH = repo.writeTree(index).getOrThrow();
+  await cloneGittedFixture(name, gitDir, GitHash(headHash));
+  var repo = GitRepository.load(gitDir);
+  var index = repo.indexStorage.readIndex();
+  var treeH = repo.writeTree(index);
   expect(treeH, GitHash(treeHash));
 
-  repo.close().throwOnError();
+  repo.close();
 }

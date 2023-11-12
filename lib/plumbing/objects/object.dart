@@ -9,7 +9,6 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
-import 'package:dart_git/utils/result.dart';
 
 abstract class GitObject {
   static Uint8List envelope({
@@ -47,24 +46,21 @@ abstract class GitObject {
 
 Function _listEq = const ListEquality().equals;
 
-Result<GitObject> createObject(int type, Uint8List rawData, GitHash hash) {
+GitObject createObject(int type, Uint8List rawData, GitHash hash) {
   switch (type) {
     case ObjectTypes.COMMIT:
       // FIXME: Handle the case of this being null
-      var obj = GitCommit.parse(rawData, hash)!;
-      return Result(obj);
+      return GitCommit.parse(rawData, hash)!;
 
     case ObjectTypes.TREE:
-      var obj = GitTree(rawData, hash);
-      return Result(obj);
+      return GitTree(rawData, hash);
 
     case ObjectTypes.BLOB:
-      var obj = GitBlob(rawData, hash);
-      return Result(obj);
+      return GitBlob(rawData, hash);
 
     default:
       var typeStr = ObjectTypes.getTypeString(type);
-      return Result.fail(GitObjectInvalidType(typeStr));
+      throw GitObjectInvalidType(typeStr);
   }
 }
 

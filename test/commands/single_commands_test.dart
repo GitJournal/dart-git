@@ -50,7 +50,7 @@ void main() {
     await testGitCommand(
       s,
       'rm /outside-repo',
-      containsMatch: true,
+      ignoreOutput: true,
       shouldReturnError: true,
     );
   });

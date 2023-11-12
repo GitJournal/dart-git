@@ -15,7 +15,7 @@ class GitHashSet {
 
     if (set == null) return;
     for (var hash in set) {
-      var _ = this.set.add(hash);
+      this.set.add(hash);
       _bloomAdd(hash);
     }
   }
@@ -30,7 +30,7 @@ class GitHashSet {
   }
 
   void add(GitHash hash) {
-    var _ = set.add(hash);
+    set.add(hash);
     _bloomAdd(hash);
   }
 

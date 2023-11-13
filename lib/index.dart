@@ -33,8 +33,7 @@ extension Index on GitRepository {
 
     var file = fs.file(filePath);
     if (!file.existsSync()) {
-      var ex = GitFileNotFound(filePath);
-      return throw ex;
+      throw GitFileNotFound(filePath);
     }
 
     // Save that file as a blob
@@ -122,8 +121,7 @@ extension Index on GitRepository {
     var pathSpec = toPathSpec(normalizePath(filePath));
     var hash = index.removePath(pathSpec);
     if (hash == null) {
-      var ex = GitNotFound();
-      return throw ex;
+      throw GitNotFound();
     }
     return hash;
   }

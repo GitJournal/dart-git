@@ -14,7 +14,7 @@ extension ObjectStorageExtension on ObjectStorage {
     assert(!spec.startsWith(p.separator));
 
     if (spec.isEmpty) {
-      return throw GitObjectWithRefSpecNotFound(spec);
+      throw GitObjectWithRefSpecNotFound(spec);
     }
 
     var parts = splitPath(spec);
@@ -35,7 +35,7 @@ extension ObjectStorageExtension on ObjectStorage {
         throw GitObjectWithRefSpecNotFound(spec);
       }
     }
-    return throw GitObjectWithRefSpecNotFound(spec);
+    throw GitObjectWithRefSpecNotFound(spec);
   }
 
   // TODO: What happens when we call readBlob on a commit?

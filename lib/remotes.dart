@@ -8,8 +8,7 @@ import 'package:dart_git/plumbing/reference.dart';
 extension Remotes on GitRepository {
   List<Reference> remoteBranches(String remoteName) {
     if (config.remote(remoteName) == null) {
-      var ex = GitRemoteNotFound(remoteName);
-      return throw ex;
+      throw GitRemoteNotFound(remoteName);
     }
 
     var remoteRefsPrefix = '$refRemotePrefix$remoteName/';
@@ -21,8 +20,7 @@ extension Remotes on GitRepository {
     String branchName,
   ) {
     if (config.remote(remoteName) == null) {
-      var ex = GitRemoteNotFound(remoteName);
-      return throw ex;
+      throw GitRemoteNotFound(remoteName);
     }
 
     var remoteRef = ReferenceName.remote(remoteName, branchName);
@@ -32,8 +30,7 @@ extension Remotes on GitRepository {
   GitRemoteConfig addRemote(String name, String url) {
     var existingRemote = config.remotes.firstWhereOrNull((r) => r.name == name);
     if (existingRemote != null) {
-      var ex = GitRemoteAlreadyExists(name);
-      return throw ex;
+      throw GitRemoteAlreadyExists(name);
     }
 
     var remote = GitRemoteConfig.create(name: name, url: url);
@@ -65,8 +62,7 @@ extension Remotes on GitRepository {
   GitRemoteConfig removeRemote(String name) {
     var i = config.remotes.indexWhere((r) => r.name == name);
     if (i == -1) {
-      var ex = GitRemoteNotFound(name);
-      return throw ex;
+      throw GitRemoteNotFound(name);
     }
 
     var remote = config.remotes.removeAt(i);

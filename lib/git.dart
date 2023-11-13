@@ -85,8 +85,7 @@ class GitRepository {
     fs ??= const LocalFileSystemWithChecks();
 
     if (!isValidRepo(gitRootDir, fs: fs)) {
-      var ex = InvalidRepoException(gitRootDir);
-      return throw ex;
+      throw InvalidRepoException(gitRootDir);
     }
 
     var repo = GitRepository._internal(rootDir: gitRootDir, fs: fs);
@@ -186,8 +185,7 @@ class GitRepository {
   String currentBranch() {
     var _head = head();
     if (_head.isHash) {
-      var ex = GitHeadDetached();
-      return throw ex;
+      throw GitHeadDetached();
     }
 
     var name = _head.target!.branchName()!;

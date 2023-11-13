@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class GitBlob extends GitObject {
   static const fmt = ObjectTypes.BLOB_STR;
   static final _fmt = ascii.encode(fmt);

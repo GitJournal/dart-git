@@ -209,8 +209,13 @@ class GitRepository {
       brConfig = BranchConfig(name: branchName);
       config.branches[branchName] = brConfig;
     }
-    brConfig.remote = remote.name;
-    brConfig.merge = ReferenceName.branch(remoteBranchName);
+
+    brConfig = BranchConfig(
+      name: branchName,
+      remote: remote.name,
+      merge: ReferenceName.branch(remoteBranchName),
+    );
+    config.branches[branchName] = brConfig;
 
     saveConfig();
     return brConfig;

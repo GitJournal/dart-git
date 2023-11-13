@@ -10,6 +10,7 @@ import 'package:dart_git/plumbing/idx_file.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/pack_file_delta.dart';
 import 'package:dart_git/utils/bytes_data_reader.dart';
+import 'package:meta/meta.dart';
 
 class PackFile {
   int numObjects = 0;
@@ -204,6 +205,7 @@ class PackFile {
   //
 }
 
+@immutable
 class RawObject {
   final Uint8List data;
   final int type;
@@ -211,6 +213,7 @@ class RawObject {
   RawObject({required this.data, required this.type});
 }
 
+@immutable
 class PackObjectHeader {
   final int size;
   final int type;

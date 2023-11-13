@@ -1,15 +1,17 @@
 import 'package:dart_git/plumbing/git_hash.dart';
+import 'package:meta/meta.dart';
 
 enum ReferenceType {
   Hash,
   Symbolic,
 }
 
+@immutable
 class Reference {
-  late ReferenceType type;
-  late ReferenceName name;
-  GitHash? hash;
-  ReferenceName? target;
+  late final ReferenceType type;
+  late final ReferenceName name;
+  late final GitHash? hash;
+  late final ReferenceName? target;
 
   Reference(String source, String target) {
     assert(source.isNotEmpty);

@@ -4,10 +4,12 @@ import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 
 import 'package:dart_git/exceptions.dart';
+import 'package:meta/meta.dart';
 import 'objects/object.dart';
 
+@immutable
 class GitHash implements Comparable<GitHash> {
-  late Uint8List _bytes;
+  late final Uint8List _bytes;
 
   Uint8List get bytes => _bytes;
 

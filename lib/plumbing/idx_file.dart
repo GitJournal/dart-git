@@ -5,11 +5,13 @@ import 'package:equatable/equatable.dart';
 
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/utils/uint8list.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class IdxFile {
-  var entries = <IdxFileEntry>[];
+  late final List<IdxFileEntry> entries;
   final fanTable = Uint32List(_FAN_TABLE_LENGTH);
-  late GitHash packFileHash;
+  late final GitHash packFileHash;
 
   static const _PACK_IDX_SIGNATURE = 0xff744f63;
   static const _PACK_VERSION = 2;
@@ -184,6 +186,7 @@ int _binarySearch(
   return -1;
 }
 
+@immutable
 class IdxFileEntry extends Equatable implements Comparable {
   final GitHash hash;
   final int crc32;

@@ -4,11 +4,13 @@ import 'package:collection/collection.dart';
 
 import 'package:dart_git/plumbing/objects/commit.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class BranchConfig {
   final String name;
-  String? remote;
-  ReferenceName? merge;
+  final String? remote;
+  final ReferenceName? merge;
 
   BranchConfig({required this.name, this.remote, this.merge});
 
@@ -19,6 +21,7 @@ class BranchConfig {
   String remoteTrackingBranch() => '$remote/${trackingBranch()}';
 }
 
+@immutable
 class GitRemoteConfig {
   final String name;
   final String url;

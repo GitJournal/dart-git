@@ -5,12 +5,14 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/utils/date_time.dart';
 import 'package:dart_git/utils/kvlm.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class GitAuthor {
   final String name;
   final String email;
 
-  late DateTime date;
+  late final DateTime date;
 
   GitAuthor({required this.name, required this.email, DateTime? date}) {
     this.date = date ?? DateTime.now();
@@ -55,6 +57,7 @@ class GitAuthor {
   }
 }
 
+@immutable
 class GitCommit extends GitObject {
   static const fmt = ObjectTypes.COMMIT_STR;
   static final _fmt = ascii.encode(fmt);

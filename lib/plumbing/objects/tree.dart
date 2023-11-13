@@ -9,7 +9,9 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/utils/file_mode.dart';
 import 'package:dart_git/utils/uint8list.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class GitTreeEntry extends Equatable {
   final GitFileMode mode;
   final String name;
@@ -24,6 +26,7 @@ class GitTreeEntry extends Equatable {
   bool get stringify => true;
 }
 
+@immutable
 class GitTree extends GitObject {
   static const fmt = ObjectTypes.TREE_STR;
   static final _fmt = ascii.encode(fmt);

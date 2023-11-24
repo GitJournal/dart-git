@@ -19,15 +19,13 @@ class GitCommandSetupResult {
 }
 
 Future<GitCommandSetupResult> gitCommandTestSetupAll() async {
-  dynamic _;
-
   var result = GitCommandSetupResult();
   result.tmpDir = (await Directory.systemTemp.createTemp('_git_')).path;
 
   // Using the local file url doesn't work as not all branches will be copied
   var cloneUrl = 'https://github.com/GitJournal/dart_git.git';
   // var cloneUrl = 'file:///${Directory.current.path}';
-  _ = await runGitCommand(
+  await runGitCommand(
     'clone $cloneUrl',
     result.tmpDir,
     throwOnError: true,
@@ -63,7 +61,7 @@ for i in $(git branch -r | grep -vE 'HEAD|master' | sed 's/^[ ]\+//')
 
   var sink = NullStreamSink<List<int>>();
 
-  _ = await shell.run(
+  await shell.run(
     script,
     workingDirectory: result.clonedGitDir,
     includeParentEnvironment: false,
@@ -165,12 +163,11 @@ Future<void> testCommands(
   bool ignoreOutput = false,
 }) async {
   if (emptyDirs) {
-    dynamic _;
-    _ = await Directory(s.dartGitDir).delete(recursive: true);
-    _ = await Directory(s.realGitDir).delete(recursive: true);
+    await Directory(s.dartGitDir).delete(recursive: true);
+    await Directory(s.realGitDir).delete(recursive: true);
 
-    _ = await Directory(s.dartGitDir).create();
-    _ = await Directory(s.realGitDir).create();
+    await Directory(s.dartGitDir).create();
+    await Directory(s.realGitDir).create();
   }
 
   for (var c in commands) {
@@ -180,8 +177,7 @@ Future<void> testCommands(
     } else {
       var sink = NullStreamSink<List<int>>();
 
-      dynamic _;
-      _ = await shell.run(
+      await shell.run(
         c,
         workingDirectory: s.dartGitDir,
         includeParentEnvironment: false,
@@ -191,7 +187,7 @@ Future<void> testCommands(
         stderr: silenceShellOutput ? sink : null,
       );
 
-      _ = await shell.run(
+      await shell.run(
         c,
         workingDirectory: s.realGitDir,
         includeParentEnvironment: false,

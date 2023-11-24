@@ -85,8 +85,6 @@ for o in [0-9a-f][0-9a-f]/*([0-9a-f]) ; do
     echo ${o/\/}
 done''';
 
-  dynamic _;
-
   var script = p.join(Directory.systemTemp.path, 'list-objects');
   File(script).writeAsStringSync(listObjScript);
 
@@ -265,16 +263,15 @@ Future<List<String>> runDartGitCommand(
 }
 
 Future<void> copyDirectory(String source, String destination) async {
-  dynamic _;
-  _ = await Directory(destination).create(recursive: true);
+  await Directory(destination).create(recursive: true);
   await for (var entity in Directory(source).list(recursive: false)) {
     if (entity is Directory) {
       var newDirectory = Directory(p.join(
           Directory(destination).absolute.path, p.basename(entity.path)));
-      _ = await newDirectory.create();
+      await newDirectory.create();
       await copyDirectory(entity.absolute.path, newDirectory.path);
     } else if (entity is File) {
-      _ = await entity.copy(p.join(destination, p.basename(entity.path)));
+      await entity.copy(p.join(destination, p.basename(entity.path)));
     }
   }
 }
@@ -304,17 +301,15 @@ Future<String> openFixture(String filePath) async {
 
 Future<String> cloneGittedFixture(String fixtureName, String newDirPath,
     [GitHash? hash]) async {
-  dynamic _;
-
   var fixtureDirPath = 'test/data/$fixtureName';
   assert(Directory(fixtureDirPath).existsSync());
   assert(Directory('$fixtureDirPath/.gitted').existsSync());
 
   await copyDirectory(fixtureDirPath, newDirPath);
   assert(Directory('$newDirPath/.gitted').existsSync());
-  _ = await Directory('$newDirPath/.gitted').rename('$newDirPath/.git');
+  await Directory('$newDirPath/.gitted').rename('$newDirPath/.git');
 
-  _ = await shell.run(
+  await shell.run(
     'git reset HEAD .',
     workingDirectory: newDirPath,
     includeParentEnvironment: false,
@@ -322,7 +317,7 @@ Future<String> cloneGittedFixture(String fixtureName, String newDirPath,
   );
 
   if (hash != null) {
-    _ = await shell.run(
+    await shell.run(
       'git checkout $hash',
       workingDirectory: newDirPath,
       includeParentEnvironment: false,

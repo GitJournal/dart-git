@@ -270,9 +270,8 @@ class Ignore {
     while (toVisit.isNotEmpty) {
       final topOfStack = toVisit.last;
       if (topOfStack.isEmpty) {
-        dynamic _;
-        _ = toVisit.removeLast();
-        _ = ignoreStack.removeLast();
+        toVisit.removeLast();
+        ignoreStack.removeLast();
         continue;
       }
       final current = topOfStack.removeLast();

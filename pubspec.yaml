@@ -8,7 +8,6 @@ publish_to: none
 
 dependencies:
   args: ^2.3.2
-  async: ^2.9.0
   buffer: ^1.2.0
   charcode: ^1.2.0
   collection: ^1.16.0
@@ -24,6 +23,7 @@ dependencies:
 
 dev_dependencies:
   archive: ^3.3.5
+  async: ^2.9.0
   build_runner:
   lints: ^3.0.0
   process_run: ^0.12.5+2

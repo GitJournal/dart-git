@@ -1,19 +1,52 @@
 library git_url_parse;
 
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:meta/meta.dart';
 
-part 'git_url_parse.freezed.dart';
+@immutable
+class GitUrlParseResult {
+  final int port;
+  final String resource;
+  final String user;
+  final String path;
+  final String protocol;
+  final String token;
 
-@freezed
-class GitUrlParseResult with _$GitUrlParseResult {
-  factory GitUrlParseResult({
-    required int port,
-    required String resource,
-    required String user,
-    required String path,
-    required String protocol,
-    required String token,
-  }) = _GitUrlParseResult;
+  GitUrlParseResult({
+    required this.port,
+    required this.resource,
+    required this.user,
+    required this.path,
+    required this.protocol,
+    required this.token,
+  });
+
+  @override
+  String toString() {
+    return 'GitUrlParseResult(port: $port, resource: $resource, user: $user, path: $path, protocol: $protocol, token: $token)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is GitUrlParseResult &&
+        other.port == port &&
+        other.resource == resource &&
+        other.user == user &&
+        other.path == path &&
+        other.protocol == protocol &&
+        other.token == token;
+  }
+
+  @override
+  int get hashCode {
+    return port.hashCode ^
+        resource.hashCode ^
+        user.hashCode ^
+        path.hashCode ^
+        protocol.hashCode ^
+        token.hashCode;
+  }
 }
 
 GitUrlParseResult? gitUrlParse(String url) {

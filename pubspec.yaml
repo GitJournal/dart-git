@@ -25,7 +25,6 @@ dependencies:
 dev_dependencies:
   archive: ^3.3.5
   build_runner:
-  import_sorter: ^4.6.0
   lints: ^3.0.0
   process_run: ^0.12.5+2
   test:
@@ -33,5 +32,3 @@ dev_dependencies:
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
-import_sorter:
-  comments: false

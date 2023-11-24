@@ -81,7 +81,7 @@ extension Checkout on GitRepository {
     return updated;
   }
 
-  Reference checkoutBranch(String branchName) {
+  HashReference checkoutBranch(String branchName) {
     var branchRef = ReferenceName.branch(branchName);
     var ref = refStorage.reference(branchRef);
     if (ref == null) {

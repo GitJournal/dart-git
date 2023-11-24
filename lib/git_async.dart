@@ -215,7 +215,7 @@ class GitAsyncRepository {
   Future<int> checkout(String path) async =>
       await _compute(_Command.checkout, path);
 
-  Future<Reference> checkoutBranch(String branchName) async =>
+  Future<HashReference> checkoutBranch(String branchName) async =>
       await _compute(_Command.checkoutBranch, branchName);
 
   //

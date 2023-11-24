@@ -305,13 +305,10 @@ class GitIndexEntry {
         mode = stat.mode == GitFileMode.Executable.val
             ? GitFileMode.Executable
             : GitFileMode.Regular;
-        break;
       case FileSystemEntityType.directory:
         mode = GitFileMode.Dir;
-        break;
       case FileSystemEntityType.link:
         mode = GitFileMode.Symlink;
-        break;
     }
 
     // FIXME: uid, gid don't seem accessible in Dart -https://github.com/dart-lang/sdk/issues/15078
@@ -400,7 +397,6 @@ class GitIndexEntry {
         const nameMask = 0xfff;
         var len = flags & nameMask;
         path = utf8.decode(reader.read(len));
-        break;
 
       case 4:
         var l = reader.readVariableWidthInt();
@@ -410,7 +406,6 @@ class GitIndexEntry {
         }
         var name = reader.readUntil(0x00);
         path = base + utf8.decode(name);
-        break;
 
       default:
         throw Exception('Index version not supported');

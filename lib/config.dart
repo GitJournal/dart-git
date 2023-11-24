@@ -51,16 +51,12 @@ class Config {
       switch (section.name) {
         case 'branch':
           section.sections.forEach(_parseBranch);
-          break;
         case 'remote':
           section.sections.forEach(_parseRemote);
-          break;
         case 'user':
           _parseUser(section);
-          break;
         case 'core':
           _parseCore(section);
-          break;
       }
     }
   }
@@ -79,10 +75,8 @@ class Config {
       switch (entry.key) {
         case 'remote':
           remote = entry.value;
-          break;
         case 'merge':
           merge = ReferenceName(entry.value);
-          break;
       }
     }
 
@@ -101,10 +95,8 @@ class Config {
       switch (entry.key) {
         case 'url':
           url = entry.value;
-          break;
         case 'fetch':
           fetch = entry.value;
-          break;
       }
     }
 
@@ -118,10 +110,8 @@ class Config {
       switch (entry.key) {
         case 'name':
           name = entry.value;
-          break;
         case 'email':
           email = entry.value;
-          break;
       }
     }
 
@@ -134,7 +124,6 @@ class Config {
       switch (entry.key) {
         case 'bare':
           bare = entry.value == 'true';
-          break;
       }
     }
   }

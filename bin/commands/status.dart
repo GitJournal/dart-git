@@ -27,17 +27,15 @@ class StatusCommand extends Command<int> {
       print('fatal: no head found');
       return 1;
     }
-    if (head.isHash) {
-      print('HEAD detached at ${head.hash}');
-    } else {
-      print('On branch ${head.target!.branchName()}');
+    switch (head) {
+      case HashReference():
+        print('HEAD detached at ${head.hash.toOid()}');
+        return 0;
+      case SymbolicReference _:
     }
 
-    if (head.isHash) {
-      return 0;
-    }
-
-    var branch = repo.config.branch(head.target!.branchName()!);
+    print('On branch ${head.target.branchName()}');
+    var branch = repo.config.branch(head.target.branchName()!);
 
     // Construct remote's branch
     if (branch != null) {
@@ -47,7 +45,7 @@ class StatusCommand extends Command<int> {
       var headHash = repo.resolveReference(head).hash;
       var remoteHash = repo.resolveReferenceName(remoteRefN)?.hash;
 
-      if (headHash == null || remoteHash == null) {
+      if (remoteHash == null) {
         print('fatal: unable to resolve reference');
         return 1;
       }

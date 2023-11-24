@@ -24,7 +24,7 @@ class ReferenceStorageFS implements ReferenceStorage {
       var contents = file.readAsStringSync().trimRight();
       if (contents.isEmpty) return null;
 
-      return Reference(refName.value, contents);
+      return Reference.build(refName.value, contents);
     }
 
     for (var ref in _packedRefs()) {
@@ -148,7 +148,7 @@ List<Reference> _loadPackedRefs(String raw) {
     if (parts.length != 2) {
       continue;
     }
-    refs.add(Reference(parts[1], parts[0]));
+    refs.add(Reference.build(parts[1], parts[0]));
   }
 
   return refs;

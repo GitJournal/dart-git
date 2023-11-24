@@ -32,7 +32,7 @@ extension Commit on GitRepository {
     try {
       var headRef = head();
       var parentRef = resolveReference(headRef);
-      parents.add(parentRef.hash!);
+      parents.add(parentRef.hash);
     } on GitMissingHEAD {
       // This is the first commit
     } on GitRefNotFound {
@@ -56,18 +56,8 @@ extension Commit on GitRepository {
     var hash = objStorage.writeObject(commit);
 
     // Update the ref of the current branch
-    late String branchName;
-
-    try {
-      branchName = currentBranch();
-    } on GitHeadDetached {
-      var headRef = head();
-      var target = headRef.target!;
-      assert(target.isBranch());
-      branchName = target.branchName()!;
-    }
-
-    var newRef = Reference.hash(ReferenceName.branch(branchName), hash);
+    var branchName = currentBranch();
+    var newRef = HashReference(ReferenceName.branch(branchName), hash);
     refStorage.saveRef(newRef);
 
     return commit;

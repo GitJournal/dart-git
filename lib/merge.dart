@@ -17,12 +17,14 @@ extension Merge on GitRepository {
 
     // fetch the head commit
     var headRef = head();
-
-    if (headRef.isHash) {
-      throw GitMergeOnHashNotAllowed();
+    switch (headRef) {
+      case HashReference():
+        throw GitMergeOnHashNotAllowed();
+      case SymbolicReference():
+        break;
     }
 
-    var headHash = resolveReference(headRef).hash!;
+    var headHash = resolveReference(headRef).hash;
     var headCommit = objStorage.readCommit(headHash);
 
     // up to date
@@ -44,10 +46,10 @@ extension Merge on GitRepository {
 
       // fastforward
       if (baseHash == headCommit.hash) {
-        var branchNameRef = headRef.target!;
+        var branchNameRef = headRef.target;
         assert(branchNameRef.isBranch());
 
-        var newRef = Reference.hash(branchNameRef, commitB.hash);
+        var newRef = HashReference(branchNameRef, commitB.hash);
         refStorage.saveRef(newRef);
 
         checkout('.');
@@ -153,7 +155,7 @@ extension Merge on GitRepository {
       branchConfig.trackingBranch()!,
     );
 
-    var hash = remoteBranchRef.hash!;
+    var hash = remoteBranchRef.hash;
     var commit = objStorage.readCommit(hash);
     merge(
       theirCommit: commit,

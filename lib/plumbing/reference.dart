@@ -7,61 +7,60 @@ enum ReferenceType {
 }
 
 @immutable
-class Reference {
-  late final ReferenceType type;
-  late final ReferenceName name;
-  late final GitHash? hash;
-  late final ReferenceName? target;
+sealed class Reference {
+  ReferenceName get name;
 
-  Reference(String source, String target) {
-    assert(source.isNotEmpty);
-    assert(target.isNotEmpty);
+  String serialize();
+  String toDisplayString();
 
-    name = ReferenceName(source);
+  static Reference build(String source, String target) {
+    if (source.isEmpty) throw ArgumentError('source is empty');
+    if (target.isEmpty) throw ArgumentError('target is empty');
+
+    var name = ReferenceName(source);
     if (target.startsWith(symbolicRefPrefix)) {
-      this.target = ReferenceName(target.substring(symbolicRefPrefix.length));
-      type = ReferenceType.Symbolic;
-      return;
+      var targetRef = ReferenceName(target.substring(symbolicRefPrefix.length));
+      return SymbolicReference(name, targetRef);
     }
 
-    hash = GitHash(target);
-    type = ReferenceType.Hash;
+    return HashReference(name, GitHash(target));
   }
+}
 
-  Reference.hash(this.name, this.hash) {
-    type = ReferenceType.Hash;
-  }
+@immutable
+class HashReference extends Reference {
+  @override
+  final ReferenceName name;
+  final GitHash hash;
 
-  Reference.symbolic(this.name, this.target) {
-    type = ReferenceType.Symbolic;
-  }
-
-  Reference.empty(this.name) {
-    type = ReferenceType.Hash;
-    hash = GitHash.zero();
-  }
-
-  String toDisplayString() {
-    switch (type) {
-      case ReferenceType.Hash:
-        return '$name $hash';
-      case ReferenceType.Symbolic:
-        return '$name $symbolicRefPrefix$target';
-      default:
-        assert(false, 'Reference has an invalid type');
-    }
-    return '';
-  }
-
-  bool get isSymbolic => type == ReferenceType.Symbolic;
-  bool get isHash => type == ReferenceType.Hash;
-  bool get isEmpty => isHash && hash!.isEmpty;
+  HashReference(this.name, this.hash);
+  HashReference.empty(this.name) : hash = GitHash.zero();
 
   @override
-  String toString() => isSymbolic ? '$name -> $target' : '$name -> sha1($hash)';
+  String toString() => '$name -> sha1($hash)';
 
-  String serialize() =>
-      isHash ? '$hash\n' : '$symbolicRefPrefix${target!.value}\n';
+  @override
+  String serialize() => '$hash\n';
+
+  @override
+  String toDisplayString() => '$name $hash';
+}
+
+class SymbolicReference extends Reference {
+  @override
+  final ReferenceName name;
+  final ReferenceName target;
+
+  SymbolicReference(this.name, this.target);
+
+  @override
+  String toString() => '$name -> $target';
+
+  @override
+  String serialize() => '$symbolicRefPrefix${target.value}\n';
+
+  @override
+  String toDisplayString() => '$name $symbolicRefPrefix$target';
 }
 
 const refHead = 'HEAD';

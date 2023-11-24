@@ -184,12 +184,12 @@ class GitRepository {
 
   String currentBranch() {
     var _head = head();
-    if (_head.isHash) {
-      throw GitHeadDetached();
+    switch (_head) {
+      case HashReference():
+        throw GitHeadDetached();
+      case SymbolicReference():
+        return _head.target.branchName()!;
     }
-
-    var name = _head.target!.branchName()!;
-    return name;
   }
 
   BranchConfig setUpstreamTo(
@@ -232,7 +232,7 @@ class GitRepository {
       throw GitBranchAlreadyExists(name);
     }
 
-    refStorage.saveRef(Reference.hash(branch, hash));
+    refStorage.saveRef(HashReference(branch, hash));
     return hash;
   }
 
@@ -242,9 +242,15 @@ class GitRepository {
     if (ref == null) {
       throw GitRefNotFound(refName);
     }
-    refStorage.deleteReference(refName);
 
-    return ref.hash!;
+    // A branch by definition is always a HashReference, but lets still check
+    switch (ref) {
+      case HashReference():
+        refStorage.deleteReference(refName);
+        return ref.hash;
+      case SymbolicReference():
+        throw GitRefNotHash(refName);
+    }
   }
 
   GitCommit? branchCommit(String branchName) {
@@ -252,7 +258,12 @@ class GitRepository {
     var ref = refStorage.reference(refName);
     if (ref == null) return null;
 
-    return objStorage.readCommit(ref.hash!);
+    switch (ref) {
+      case HashReference():
+        return objStorage.readCommit(ref.hash);
+      case SymbolicReference():
+        throw GitRefNotHash(refName);
+    }
   }
 
   /// Throws GitMissingHEAD on an empty repo
@@ -266,7 +277,7 @@ class GitRepository {
   /// Throws GitMissingHEAD on an empty repo
   GitHash headHash() {
     var ref = resolveReference(head());
-    return ref.hash!;
+    return ref.hash;
   }
 
   /// Throws GitMissingHEAD on an empty repo
@@ -281,24 +292,22 @@ class GitRepository {
     return objStorage.readTree(commit.treeHash);
   }
 
-  Reference resolveReference(Reference ref, {bool recursive = true}) {
-    if (ref.type == ReferenceType.Hash) {
-      return ref;
-    }
+  HashReference resolveReference(Reference ref) {
+    switch (ref) {
+      case HashReference():
+        return ref;
 
-    var target = ref.target!;
-    var resolvedRef = refStorage.reference(target);
-    if (resolvedRef == null) {
-      if (target == ReferenceName.HEAD()) {
-        throw GitMissingHEAD();
-      }
-      throw GitRefNotFound(target);
-    }
+      case SymbolicReference():
+        var resolvedRef = refStorage.reference(ref.target);
+        if (resolvedRef == null) {
+          throw GitRefNotFound(ref.target);
+        }
 
-    return recursive ? resolveReference(resolvedRef) : resolvedRef;
+        return resolveReference(resolvedRef);
+    }
   }
 
-  Reference? resolveReferenceName(ReferenceName refName) {
+  HashReference? resolveReferenceName(ReferenceName refName) {
     var ref = refStorage.reference(refName);
     if (ref == null) return null;
     return resolveReference(ref);
@@ -315,11 +324,14 @@ class GitRepository {
     } on GitRefNotFound {
       return false;
     }
-    if (_head.isHash) {
-      return false;
+
+    switch (_head) {
+      case HashReference():
+        return false;
+      case SymbolicReference _:
     }
 
-    var brConfig = config.branch(_head.target!.branchName()!);
+    var brConfig = config.branch(_head.target.branchName()!);
     var brConfigMerge = brConfig?.merge;
     var brConfigRemote = brConfig?.remote;
     if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
@@ -362,11 +374,14 @@ class GitRepository {
 
   int numChangesToPush() {
     var head = this.head();
-    if (head.isHash || head.target == null) {
-      return 0;
+
+    switch (head) {
+      case HashReference():
+        return 0;
+      case SymbolicReference _:
     }
 
-    var brConfig = config.branch(head.target!.branchName()!);
+    var brConfig = config.branch(head.target.branchName()!);
     var brConfigMerge = brConfig?.merge;
     var brConfigRemote = brConfig?.remote;
     if (brConfig == null || brConfigMerge == null || brConfigRemote == null) {
@@ -383,7 +398,7 @@ class GitRepository {
     var headHash = headRef.hash;
     var remoteHash = remoteRef?.hash;
 
-    if (headHash == remoteHash || headHash == null || remoteHash == null) {
+    if (headHash == remoteHash || remoteHash == null) {
       return 0;
     }
 

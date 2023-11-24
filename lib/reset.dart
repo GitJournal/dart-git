@@ -1,3 +1,4 @@
+import 'package:dart_git/exceptions.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/diff_commit.dart';
@@ -49,15 +50,18 @@ extension Reset on GitRepository {
 
     // Make the current branch point towards 'hash'
     var headRef = head();
-    var branchNameRef = headRef.target!;
-    assert(branchNameRef.isBranch());
+    switch (headRef) {
+      case HashReference():
+        throw GitHeadDetached();
+      case SymbolicReference():
+        var branchNameRef = headRef.target;
+        assert(branchNameRef.isBranch());
 
-    var newRef = Reference.hash(branchNameRef, hash);
-    refStorage.saveRef(newRef);
+        var newRef = HashReference(branchNameRef, hash);
+        refStorage.saveRef(newRef);
 
-    // Redo the index
-    checkout('.');
-
-    return;
+        // Redo the index
+        checkout('.');
+    }
   }
 }

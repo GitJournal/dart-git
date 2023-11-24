@@ -87,13 +87,15 @@ extension Checkout on GitRepository {
     if (ref == null) {
       throw GitRefNotFound(branchRef);
     }
-    assert(ref.isHash);
+    if (ref is! HashReference) {
+      throw GitRefNotHash(branchRef);
+    }
 
     late GitCommit _headCommit;
     try {
       _headCommit = headCommit();
     } on GitRefNotFound {
-      var commit = objStorage.readCommit(ref.hash!);
+      var commit = objStorage.readCommit(ref.hash);
       var treeObj = objStorage.readTree(commit.treeHash);
 
       var index = GitIndex(versionNo: 2);
@@ -101,13 +103,13 @@ extension Checkout on GitRepository {
       indexStorage.writeIndex(index);
 
       // Set HEAD to to it
-      var headRef = Reference.symbolic(ReferenceName.HEAD(), branchRef);
+      var headRef = SymbolicReference(ReferenceName.HEAD(), branchRef);
       refStorage.saveRef(headRef);
 
       return ref;
     }
 
-    var branchCommit = objStorage.readCommit(ref.hash!);
+    var branchCommit = objStorage.readCommit(ref.hash);
 
     var blobChanges = diffCommits(
       fromCommit: _headCommit,
@@ -145,7 +147,7 @@ extension Checkout on GitRepository {
     indexStorage.writeIndex(index);
 
     // Set HEAD to to it
-    var headRef = Reference.symbolic(ReferenceName.HEAD(), branchRef);
+    var headRef = SymbolicReference(ReferenceName.HEAD(), branchRef);
     refStorage.saveRef(headRef);
 
     return ref;

@@ -106,6 +106,14 @@ class GitRefNotFound implements GitNotFound {
   String toString() => 'GitRefNotFound: $refName';
 }
 
+class GitRefNotHash implements GitNotFound {
+  ReferenceName refName;
+  GitRefNotHash(this.refName);
+
+  @override
+  String toString() => 'GitRefNotHash: $refName';
+}
+
 class GitMissingHEAD implements GitNotFound {
   GitMissingHEAD();
 

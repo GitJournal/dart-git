@@ -33,19 +33,26 @@ class BranchCommand extends Command<int> {
     if (hasNoArgs) {
       if (argResults!.rest.isEmpty) {
         var head = repo.head();
-        if (head.isHash) {
-          print('* (HEAD detached at ${head.hash!.toOid()})');
+        switch (head) {
+          case HashReference():
+            print('* (HEAD detached at ${head.hash.toOid()})');
+          case SymbolicReference _:
         }
 
         var branches = repo.branches();
         branches.sort();
 
         for (var branch in branches) {
-          if (head.isSymbolic && head.target!.branchName() == branch) {
-            print('* ${head.target!.branchName()}');
-            continue;
+          switch (head) {
+            case SymbolicReference():
+              if (head.target.branchName() == branch) {
+                print('* $branch');
+                continue;
+              }
+              print('  $branch');
+            case HashReference():
+              print('  $branch');
           }
-          print('  $branch');
         }
 
         if (showAll!) {
@@ -57,14 +64,16 @@ class BranchCommand extends Command<int> {
 
             for (var ref in refs) {
               var branch = ref.name.branchName();
-              if (ref.isHash) {
-                print('  remotes/${remote.name}/$branch');
-              } else {
-                var tb = ref.target!.branchName();
-                if (ref.target!.isRemote()) {
-                  tb = '${ref.target!.remoteName()}/$tb';
-                }
-                print('  remotes/${remote.name}/$branch -> $tb');
+              switch (ref) {
+                case HashReference():
+                  print('  remotes/${remote.name}/$branch');
+
+                case SymbolicReference():
+                  var tb = ref.target.branchName();
+                  if (ref.target.isRemote()) {
+                    tb = '${ref.target.remoteName()}/$tb';
+                  }
+                  print('  remotes/${remote.name}/$branch -> $tb');
               }
             }
           }
@@ -94,7 +103,6 @@ class BranchCommand extends Command<int> {
             print('fatal: ref not found $refName');
             return 1;
           }
-          assert(ref.isHash);
           repo.createBranch(branchName, hash: ref.hash);
 
           var remote = repo.config.remote(remoteName)!;

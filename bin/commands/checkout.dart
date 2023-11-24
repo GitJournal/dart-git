@@ -43,7 +43,7 @@ class CheckoutCommand extends Command<int> {
       var remoteName = splitPath(remoteFullBranchName).item1;
       var remoteBranchName = splitPath(remoteFullBranchName).item2;
 
-      late Reference remoteRef;
+      late HashReference remoteRef;
       try {
         remoteRef = repo.remoteBranch(remoteName, remoteBranchName);
       } catch (ex) {
@@ -60,8 +60,12 @@ class CheckoutCommand extends Command<int> {
 
       try {
         var headRef = repo.head();
-        if (headRef.target!.branchName() == branchName) {
-          print("Already on '$branchName'");
+        switch (headRef) {
+          case SymbolicReference():
+            if (headRef.target.branchName() == branchName) {
+              print("Already on '$branchName'");
+            }
+          case HashReference():
         }
 
         return 0;

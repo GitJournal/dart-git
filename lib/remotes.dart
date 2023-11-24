@@ -15,7 +15,7 @@ extension Remotes on GitRepository {
     return refStorage.listReferences(remoteRefsPrefix);
   }
 
-  Reference remoteBranch(
+  HashReference remoteBranch(
     String remoteName,
     String branchName,
   ) {
@@ -26,8 +26,12 @@ extension Remotes on GitRepository {
     var remoteRef = ReferenceName.remote(remoteName, branchName);
     var ref = refStorage.reference(remoteRef);
     if (ref == null) throw GitRefNotFound(remoteRef);
-
-    return ref;
+    switch (ref) {
+      case HashReference():
+        return ref;
+      case SymbolicReference():
+        throw GitRefNotHash(remoteRef);
+    }
   }
 
   GitRemoteConfig addRemote(String name, String url) {
@@ -91,7 +95,7 @@ extension Remotes on GitRepository {
     var i = branches.indexWhere((b) => b.name.branchName() == refHead);
     if (i != -1) {
       var remoteHead = branches[i];
-      assert(remoteHead.isSymbolic);
+      assert(remoteHead is SymbolicReference);
 
       return resolveReference(remoteHead);
     } else {

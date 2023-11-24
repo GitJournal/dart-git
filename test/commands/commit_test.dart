@@ -20,7 +20,7 @@ void main() {
     }
 
     '';
-    await runGitCommand('init .', tmpDir1);
+    await runGitCommand('init --initial-branch=main .', tmpDir1);
     GitRepository.init(tmpDir2);
 
     // Add the same file to both of them

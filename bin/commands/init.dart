@@ -15,6 +15,7 @@ class InitCommand extends Command<int> {
 
   InitCommand() {
     argParser.addFlag('quiet', abbr: 'q', defaultsTo: false);
+    argParser.addOption('initial-branch', abbr: 'b', defaultsTo: 'main');
   }
 
   @override
@@ -25,7 +26,8 @@ class InitCommand extends Command<int> {
     }
 
     var path = argResults!.rest.first;
-    GitRepository.init(path);
+    var defaultBranch = argResults!['initial-branch'] as String;
+    GitRepository.init(path, defaultBranch: defaultBranch);
 
     var quiet = argResults!['quiet'] as bool;
     if (quiet) {

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file/local.dart';
 import 'package:test/test.dart';
@@ -82,7 +81,7 @@ gpgsig -----BEGIN PGP SIGNATURE-----
  -----END PGP SIGNATURE-----
 
 Create first draft''';
-    var data = utf8.encode(rawStr) as Uint8List;
+    var data = utf8.encode(rawStr);
     var hash = GitHash.compute(GitObject.envelope(
       data: data,
       format: ascii.encode(GitCommit.fmt),

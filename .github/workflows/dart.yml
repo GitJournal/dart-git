@@ -71,28 +71,3 @@ jobs:
           name: dartgit
           path: dartgit
           if-no-files-found: error
-
-  coverage:
-    needs: test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        sdk: [stable]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dart-lang/setup-dart@v1.0
-        with:
-          sdk: ${{ matrix.sdk }}
-      - id: install
-        name: Install dependencies
-        run: dart pub get
-      - name: Generate Coverate
-        run: ./scripts/gen_coverage.sh
-        if: always() && steps.install.outcome == 'success'
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
-        with:
-          name: code-coverage-report
-          path: coverage_html

@@ -27,6 +27,7 @@
 /// [Ignore.listFiles].
 ///
 /// [1]: https://git-scm.com/docs/gitignore
+library;
 
 import 'package:meta/meta.dart';
 

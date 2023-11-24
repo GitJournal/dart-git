@@ -82,7 +82,11 @@ extension Checkout on GitRepository {
   }
 
   Reference checkoutBranch(String branchName) {
-    var ref = refStorage.reference(ReferenceName.branch(branchName));
+    var branchRef = ReferenceName.branch(branchName);
+    var ref = refStorage.reference(branchRef);
+    if (ref == null) {
+      throw GitRefNotFound(branchRef);
+    }
     assert(ref.isHash);
 
     late GitCommit _headCommit;
@@ -97,7 +101,6 @@ extension Checkout on GitRepository {
       indexStorage.writeIndex(index);
 
       // Set HEAD to to it
-      var branchRef = ReferenceName.branch(branchName);
       var headRef = Reference.symbolic(ReferenceName.HEAD(), branchRef);
       refStorage.saveRef(headRef);
 
@@ -142,7 +145,6 @@ extension Checkout on GitRepository {
     indexStorage.writeIndex(index);
 
     // Set HEAD to to it
-    var branchRef = ReferenceName.branch(branchName);
     var headRef = Reference.symbolic(ReferenceName.HEAD(), branchRef);
     refStorage.saveRef(headRef);
 

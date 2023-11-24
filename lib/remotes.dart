@@ -24,7 +24,10 @@ extension Remotes on GitRepository {
     }
 
     var remoteRef = ReferenceName.remote(remoteName, branchName);
-    return refStorage.reference(remoteRef);
+    var ref = refStorage.reference(remoteRef);
+    if (ref == null) throw GitRefNotFound(remoteRef);
+
+    return ref;
   }
 
   GitRemoteConfig addRemote(String name, String url) {

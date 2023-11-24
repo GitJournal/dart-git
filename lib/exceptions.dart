@@ -106,6 +106,17 @@ class GitRefNotFound implements GitNotFound {
   String toString() => 'GitRefNotFound: $refName';
 }
 
+class GitMissingHEAD implements GitNotFound {
+  GitMissingHEAD();
+
+  @override
+  String toString() => 'GitMissingHEAD';
+}
+
+class GitRefStoreCorrupted implements GitException {
+  GitRefStoreCorrupted();
+}
+
 class GitRemoteNotFound implements GitNotFound {
   String name;
   GitRemoteNotFound(this.name);

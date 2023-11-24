@@ -14,7 +14,7 @@ abstract class ConfigStorage {
 }
 
 abstract class ReferenceStorage {
-  Reference reference(ReferenceName refName);
+  Reference? reference(ReferenceName refName);
   List<Reference> listReferences(String prefix);
 
   void saveRef(Reference ref);
@@ -25,7 +25,7 @@ abstract class ReferenceStorage {
 }
 
 abstract class ObjectStorage {
-  GitObject read(GitHash hash);
+  GitObject? read(GitHash hash);
   GitHash writeObject(GitObject obj);
 
   void close();

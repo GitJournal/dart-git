@@ -42,14 +42,19 @@ class StatusCommand extends Command<int> {
     // Construct remote's branch
     if (branch != null) {
       var remoteBranchName = branch.merge!.branchName()!;
-      var remoteRef = ReferenceName.remote(branch.remote!, remoteBranchName);
+      var remoteRefN = ReferenceName.remote(branch.remote!, remoteBranchName);
 
       var headHash = repo.resolveReference(head).hash;
-      var remoteHash = repo.resolveReferenceName(remoteRef).hash;
+      var remoteHash = repo.resolveReferenceName(remoteRefN)?.hash;
+
+      if (headHash == null || remoteHash == null) {
+        print('fatal: unable to resolve reference');
+        return 1;
+      }
 
       var remoteStr = '${branch.remote}/$remoteBranchName';
       if (headHash != remoteHash) {
-        var aheadBy = repo.countTillAncestor(headHash!, remoteHash!);
+        var aheadBy = repo.countTillAncestor(headHash, remoteHash);
         if (aheadBy != -1) {
           print('Your branch is ahead of $remoteStr by $aheadBy commits');
         } else {
@@ -57,7 +62,7 @@ class StatusCommand extends Command<int> {
           if (behindBy != -1) {
             print('Your branch is behind $remoteStr by $behindBy commits');
           } else {
-            print('Your branch is not equal to $remoteRef');
+            print('Your branch is not equal to $remoteRefN');
           }
         }
       }

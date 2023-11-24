@@ -1,9 +1,9 @@
 import 'dart:convert';
 
+import 'package:dart_git/exceptions.dart';
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/reference.dart';
 
 import 'interfaces.dart';
@@ -18,13 +18,11 @@ class ReferenceStorageFS implements ReferenceStorage {
   ReferenceStorageFS(this._dotGitDir, this._fs);
 
   @override
-  Reference reference(ReferenceName refName) {
+  Reference? reference(ReferenceName refName) {
     var file = _fs.file(p.join(_dotGitDir, refName.value));
     if (file.existsSync()) {
       var contents = file.readAsStringSync().trimRight();
-      if (contents.isEmpty) {
-        throw GitRefNotFound(refName);
-      }
+      if (contents.isEmpty) return null;
 
       return Reference(refName.value, contents);
     }
@@ -34,8 +32,7 @@ class ReferenceStorageFS implements ReferenceStorage {
         return ref;
       }
     }
-
-    throw GitRefNotFound(refName);
+    return null;
   }
 
   @override
@@ -63,6 +60,9 @@ class ReferenceStorageFS implements ReferenceStorage {
       var refName = ReferenceName(fsEntity.path.substring(_dotGitDir.length));
       try {
         var ref = reference(refName);
+        if (ref == null) {
+          throw GitRefStoreCorrupted();
+        }
         refs.add(ref);
         processedRefNames.add(refName);
       } catch (ex) {

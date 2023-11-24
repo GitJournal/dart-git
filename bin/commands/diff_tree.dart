@@ -24,7 +24,10 @@ class DiffTreeCommand extends Command<int> {
 
     var hash = argResults!.arguments[0];
     var obj = repo.objStorage.read(GitHash(hash));
-
+    if (obj == null) {
+      print('error: object $hash not found');
+      return 1;
+    }
     if (obj is! GitCommit) {
       print('error: object $hash is a ${obj.formatStr()}, not a commit');
       return 1;

@@ -36,6 +36,10 @@ class LsTreeCommand extends Command<int> {
 
     for (var leaf in tree!.entries) {
       var leafObj = repo.objStorage.read(leaf.hash);
+      if (leafObj == null) {
+        print('error: object ${leaf.hash} not found');
+        return 1;
+      }
       var type = leafObj.formatStr();
       var mode = leaf.mode.toString().padLeft(6, '0');
       print('$mode $type ${leaf.hash}    ${leaf.name}');

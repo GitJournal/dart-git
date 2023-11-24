@@ -15,7 +15,7 @@ class ObjectStorageCache implements ObjectStorage {
   ObjectStorageCache({required ObjectStorage storage}) : _ = storage;
 
   @override
-  GitObject read(GitHash hash) {
+  GitObject? read(GitHash hash) {
     var val = cache[hash];
     if (val != null) {
       return val;

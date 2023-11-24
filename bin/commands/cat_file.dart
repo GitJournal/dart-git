@@ -22,8 +22,11 @@ class CatFileCommand extends Command<int> {
     var repo = GitRepository.load(gitRootDir);
 
     var objectSha1 = argResults!.arguments[1];
-    var objRes = repo.objStorage.read(GitHash(objectSha1));
-    var obj = objRes;
+    var obj = repo.objStorage.read(GitHash(objectSha1));
+    if (obj == null) {
+      print('Object not found');
+      return 1;
+    }
     var s = utf8.decode(obj.serializeData());
     print(s);
 

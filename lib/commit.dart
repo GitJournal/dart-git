@@ -33,6 +33,8 @@ extension Commit on GitRepository {
       var headRef = head();
       var parentRef = resolveReference(headRef);
       parents.add(parentRef.hash!);
+    } on GitMissingHEAD {
+      // This is the first commit
     } on GitRefNotFound {
       // This is the first commit
     }
@@ -152,9 +154,8 @@ extension Commit on GitRepository {
           // Making sure the leaf is a blob
           //
           assert(() {
-            var leafObjRes = objStorage.read(leaf.hash);
-            var leafObj = leafObjRes;
-            return leafObj.formatStr() == 'blob';
+            var leafObj = objStorage.read(leaf.hash);
+            return leafObj?.formatStr() == 'blob';
           }());
 
           continue;

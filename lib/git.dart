@@ -227,15 +227,9 @@ class GitRepository {
     hash ??= headHash();
 
     var branch = ReferenceName.branch(name);
-    try {
-      // Try to read the reference
-      refStorage.reference(branch);
-
-      if (!overwrite) {
-        throw GitBranchAlreadyExists(name);
-      }
-    } on GitRefNotFound {
-      // That's fine
+    var ref = refStorage.reference(branch);
+    if (ref != null && !overwrite) {
+      throw GitBranchAlreadyExists(name);
     }
 
     refStorage.saveRef(Reference.hash(branch, hash));
@@ -245,34 +239,43 @@ class GitRepository {
   GitHash deleteBranch(String branchName) {
     var refName = ReferenceName.branch(branchName);
     var ref = refStorage.reference(refName);
+    if (ref == null) {
+      throw GitRefNotFound(refName);
+    }
     refStorage.deleteReference(refName);
 
     return ref.hash!;
   }
 
-  GitCommit branchCommit(String branchName) {
+  GitCommit? branchCommit(String branchName) {
     var refName = ReferenceName.branch(branchName);
     var ref = refStorage.reference(refName);
+    if (ref == null) return null;
 
     return objStorage.readCommit(ref.hash!);
   }
 
+  /// Throws GitMissingHEAD on an empty repo
   Reference head() {
-    return refStorage.reference(ReferenceName.HEAD());
+    var ref = refStorage.reference(ReferenceName.HEAD());
+    if (ref == null) throw GitMissingHEAD();
+
+    return ref;
   }
 
+  /// Throws GitMissingHEAD on an empty repo
   GitHash headHash() {
-    var ref = refStorage.reference(ReferenceName.HEAD());
-
-    ref = resolveReference(ref);
+    var ref = resolveReference(head());
     return ref.hash!;
   }
 
+  /// Throws GitMissingHEAD on an empty repo
   GitCommit headCommit() {
     var hash = headHash();
     return objStorage.readCommit(hash);
   }
 
+  /// Throws GitMissingHEAD on an empty repo
   GitTree headTree() {
     var commit = headCommit();
     return objStorage.readTree(commit.treeHash);
@@ -283,13 +286,22 @@ class GitRepository {
       return ref;
     }
 
-    var resolvedRef = refStorage.reference(ref.target!);
+    var target = ref.target!;
+    var resolvedRef = refStorage.reference(target);
+    if (resolvedRef == null) {
+      if (target == ReferenceName.HEAD()) {
+        throw GitMissingHEAD();
+      }
+      throw GitRefNotFound(target);
+    }
+
     return recursive ? resolveReference(resolvedRef) : resolvedRef;
   }
 
-  Reference resolveReferenceName(ReferenceName refName) {
-    var resolvedRef = refStorage.reference(refName);
-    return resolveReference(resolvedRef);
+  Reference? resolveReferenceName(ReferenceName refName) {
+    var ref = refStorage.reference(refName);
+    if (ref == null) return null;
+    return resolveReference(ref);
   }
 
   bool canPush() {
@@ -322,7 +334,7 @@ class GitRepository {
     var remoteRefName = ReferenceName.remote(brConfigRemote, remoteBranchName);
     var remoteRef = resolveReferenceName(remoteRefName);
 
-    return resolvedHead.hash != remoteRef.hash;
+    return resolvedHead.hash != remoteRef?.hash;
   }
 
   /// Returns -1 if unreachable
@@ -368,10 +380,10 @@ class GitRepository {
     var headRef = resolveReference(head);
     var remoteRef = resolveReferenceName(remoteRefName);
 
-    var headHash = headRef.hash!;
-    var remoteHash = remoteRef.hash!;
+    var headHash = headRef.hash;
+    var remoteHash = remoteRef?.hash;
 
-    if (headHash == remoteHash) {
+    if (headHash == remoteHash || headHash == null || remoteHash == null) {
       return 0;
     }
 

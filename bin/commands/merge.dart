@@ -31,6 +31,10 @@ class MergeCommand extends Command<int> {
     var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
     var repo = GitRepository.load(gitRootDir);
     var branchCommit = repo.branchCommit(branchName);
+    if (branchCommit == null) {
+      print('Branch $branchName not found');
+      return 1;
+    }
 
     var user = repo.config.user;
     if (user == null) {

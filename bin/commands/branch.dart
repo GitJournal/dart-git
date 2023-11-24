@@ -89,11 +89,9 @@ class BranchCommand extends Command<int> {
           var branchName = rest.first;
 
           var refName = ReferenceName.remote(remoteName, remoteBranchName);
-          late Reference ref;
-          try {
-            ref = repo.resolveReferenceName(refName);
-          } catch (ex) {
-            print('fatal: $ex');
+          var ref = repo.resolveReferenceName(refName);
+          if (ref == null) {
+            print('fatal: ref not found $refName');
             return 1;
           }
           assert(ref.isHash);

@@ -254,7 +254,7 @@ class GitAsyncRepository {
   Future<List<Reference>> remoteBranches(String remoteName) async =>
       await _compute(_Command.remoteBranches, remoteName);
 
-  Future<Reference> remoteBranch(
+  Future<HashReference> remoteBranch(
     String remoteName,
     String branchName,
   ) async =>

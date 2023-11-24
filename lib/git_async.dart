@@ -124,10 +124,9 @@ class GitAsyncRepository {
       return repo;
     }
 
-    // FIXME: What about the original stack trace?
     assert(resp is _ErrorMsg);
     var errMsg = resp as _ErrorMsg;
-    throw errMsg.item1;
+    Error.throwWithStackTrace(errMsg.item1, errMsg.item2);
   }
 
   void close() {
@@ -144,10 +143,15 @@ class GitAsyncRepository {
 
     return _lock.synchronized(() async {
       _sendPort.send(_InputMsg(cmd, inputData));
-      var output = await _receiveStream.first as _OutputMsg;
-
-      assert(output.command == cmd, "Actual: ${output.command}, Exp: $cmd");
-      return output.result;
+      var output = await _receiveStream.first;
+      if (output is _OutputMsg) {
+        assert(output.command == cmd, "Actual: ${output.command}, Exp: $cmd");
+        return output.result;
+      } else if (output is _ErrorMsg) {
+        Error.throwWithStackTrace(output.item1, output.item2);
+      } else {
+        throw "Unknown output: $output";
+      }
     });
   }
 
@@ -367,8 +371,12 @@ Future<void> _isolateMain(SendPort toMainSender) async {
 
   _ = fromMainRec.listen((msg) {
     var input = msg as _InputMsg;
-    var out = _processCommand(repo, input);
-    toMainSender.send(_OutputMsg(input.command, out));
+    try {
+      var out = _processCommand(repo, input);
+      toMainSender.send(_OutputMsg(input.command, out));
+    } catch (ex, st) {
+      toMainSender.send(_ErrorMsg(ex, st));
+    }
 
     lastCommandTime = DateTime.now();
   });

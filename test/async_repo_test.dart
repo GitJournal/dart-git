@@ -21,6 +21,9 @@ void main() {
     expect(await repo.branches(), ["master"]);
     expect(await repo.headHash(),
         GitHash('386de870a014e32234ce7f87e59a1beb06f720df'));
+    await expectLater(() async {
+      await repo.deleteBranch('non-existent-branch');
+    }, throwsA(isA<Exception>()));
 
     repo.close();
   });

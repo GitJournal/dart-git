@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dart_git/diff_tree.dart';
@@ -10,15 +11,17 @@ import 'package:dart_git/storage/interfaces.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 class CommitBlobChanges {
-  final List<Change> add;
-  final List<Change> remove;
-  final List<Change> modify;
+  final IList<Change> add;
+  final IList<Change> remove;
+  final IList<Change> modify;
 
   CommitBlobChanges({
-    required this.add,
-    required this.remove,
-    required this.modify,
-  });
+    required Iterable<Change> add,
+    required Iterable<Change> remove,
+    required Iterable<Change> modify,
+  })  : add = add.toIList(),
+        remove = remove.toIList(),
+        modify = modify.toIList();
 
   bool get isEmpty => add.isEmpty && modify.isEmpty && remove.isEmpty;
 

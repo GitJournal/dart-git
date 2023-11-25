@@ -1,5 +1,6 @@
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/utils/file_mode.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 class DiffTreeChange {
   final GitTreeEntry? from;
@@ -25,15 +26,17 @@ class DiffTreeChange {
 
 /// Change which should be applied on a tree to transform it to another tree
 class DiffTreeResults {
-  final List<DiffTreeChange> add;
-  final List<DiffTreeChange> modify;
-  final List<DiffTreeChange> remove;
+  final IList<DiffTreeChange> add;
+  final IList<DiffTreeChange> modify;
+  final IList<DiffTreeChange> remove;
 
   DiffTreeResults({
-    required this.add,
-    required this.modify,
-    required this.remove,
-  });
+    required Iterable<DiffTreeChange> add,
+    required Iterable<DiffTreeChange> modify,
+    required Iterable<DiffTreeChange> remove,
+  })  : add = add.toIList(),
+        modify = modify.toIList(),
+        remove = remove.toIList();
 
   bool get isEmpty => add.isEmpty && modify.isEmpty && remove.isEmpty;
 

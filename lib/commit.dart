@@ -128,9 +128,12 @@ extension Commit on GitRepository {
     // Write all the tree objects
     var hashMap = <String, GitHash>{};
 
+    // sort dir paths by number of slashes
     var allDirs = allTreeDirs.toList();
     allDirs.sort(dirSortFunc);
 
+    // `reversed`-> start with the deepest folders as we need the hash of
+    // all the sub-folders before we can write the parent folder.
     for (var dir in allDirs.reversed) {
       var tree = treeObjects[dir]!;
       var entries = tree.entries.unlock;
@@ -140,9 +143,10 @@ extension Commit on GitRepository {
         var leaf = entries[i];
 
         if (leaf.hash.isNotEmpty) {
-          //
-          // Making sure the leaf is a blob
-          //
+          // Making sure the leaf is a blob.
+          // This is slow because it reads every leaf,
+          // but that is alright because asserts get
+          // removed for release builds.
           assert(() {
             var leafObj = objStorage.read(leaf.hash);
             return leafObj?.formatStr() == 'blob';

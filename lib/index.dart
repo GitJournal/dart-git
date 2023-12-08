@@ -36,19 +36,30 @@ extension Index on GitRepository {
       throw GitFileNotFound(filePath);
     }
 
-    // Save that file as a blob
-    var data = file.readAsBytesSync();
-    var blob = GitBlob(data, null);
-    var hash = objStorage.writeObject(blob);
-
     var pathSpec = filePath;
     if (pathSpec.startsWith(workTree)) {
       pathSpec = filePath.substring(workTree.length);
     }
-
-    // Add it to the index
+    // LB: Wait is this a linear search over all files??
+    //     Maybe... but omitting it fully does not speed things up.
     var entry = index.entries.firstWhereOrNull((e) => e.path == pathSpec);
     var stat = FileStat.statSync(filePath);
+    if (entry != null &&
+        entry.cTime.isAtSameMomentAs(stat.changed) &&
+        entry.mTime.isAtSameMomentAs(stat.modified) &&
+        entry.fileSize == stat.size){
+      // We assume it is the same file.
+      return entry;
+    }
+
+    // LB: Note that this reads and hashes the file, even if nothing changed.
+    //     .. hence the check above using the ctime/mtime.
+    // Save that file as a blob (takes ~0.3 seconds)
+
+    var data = file.readAsBytesSync();
+    // Hash the file (takes time!)
+    var blob = GitBlob(data, null);
+    var hash = objStorage.writeObject(blob);
 
     // Existing file
     if (entry != null) {

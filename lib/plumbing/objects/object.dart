@@ -49,8 +49,11 @@ Function _listEq = const ListEquality().equals;
 GitObject createObject(int type, Uint8List rawData, GitHash hash) {
   switch (type) {
     case ObjectTypes.COMMIT:
-      // FIXME: Handle the case of this being null
-      return GitCommit.parse(rawData, hash)!;
+      var commit = GitCommit.parse(rawData, hash);
+      if (commit == null) {
+        throw GitObjectInvalidType('commit');
+      }
+      return commit;
 
     case ObjectTypes.TREE:
       return GitTree(rawData, hash);

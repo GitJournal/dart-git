@@ -17,7 +17,6 @@ class IdxFile {
   static const _PACK_VERSION = 2;
   static const _FAN_TABLE_LENGTH = 256;
 
-  // FIXME: BytesDataReader can throw a range error!
   IdxFile.decode(Uint8List bytes) {
     var allBytes = bytes.toList();
     var reader = ByteDataReader(endian: Endian.big, copy: false);

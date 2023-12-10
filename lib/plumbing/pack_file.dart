@@ -21,7 +21,6 @@ class PackFile {
 
   static final int _headerSize = 16;
 
-  // FIXME: BytesDataReader can throw a range error!
   PackFile.decode({
     required this.idx,
     required this.file,

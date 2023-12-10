@@ -25,7 +25,6 @@ class GitIndex {
 
   GitIndex({required this.versionNo});
 
-  // FIXME: BytesDataReader can throw a range error!
   GitIndex.decode(Uint8List bytes) {
     var reader = ByteDataReader(endian: Endian.big, copy: false);
     reader.add(bytes);
@@ -106,7 +105,6 @@ class GitIndex {
     return false;
   }
 
-  // FIXME: Use sublistView everywhere!
   void _parseCacheTreeExtension(Uint8List data) {
     var pos = 0;
     while (pos < data.length) {

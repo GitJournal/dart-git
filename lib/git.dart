@@ -59,7 +59,6 @@ class GitRepository {
     }
   }
 
-  // FIXME: The FS operations could throw an error!
   static String? findRootDir(String path, {FileSystem? fs}) {
     fs ??= const LocalFileSystemWithChecks();
 

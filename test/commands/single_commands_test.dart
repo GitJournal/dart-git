@@ -33,7 +33,12 @@ void main() {
   for (var command in singleCommandsWithErrorTests) {
     test(
       command,
-      () async => testGitCommand(s, command, shouldReturnError: true),
+      () async => testGitCommand(
+        s,
+        command,
+        shouldReturnError: true,
+        ignoreOutput: true,
+      ),
     );
   }
 

@@ -45,6 +45,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest] # FIXME: Add windows-latest, need the git executable!
         sdk: [stable]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1.0

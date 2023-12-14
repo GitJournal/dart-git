@@ -106,8 +106,7 @@ extension MergeBase on GitRepository {
         });
 
         if (commits.length == 1) {
-          // FIXME: Wtf? Where are we stopping?
-          throw Exception('Stop?');
+          break;
         }
 
         seen.add(fromAncestor.hash);

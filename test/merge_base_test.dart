@@ -101,6 +101,7 @@ var independentData = [
   Test(['C', 'G', 'dev', 'M', 'N'], ['C', 'G', 'dev'], 'AcrossCrossMerges'),
   Test(['A', 'A^', 'A', 'M', 'N'], ['A', 'N'], 'ChangingOrderRepetition'),
   Test(['A^^^', 'A^', 'A^^', 'A', 'N'], ['A', 'N'], 'ChangingOrder'),
+  Test(['A', 'CD1'], ['CD1'], 'ParentChild'),
 ];
 
 class ATest {

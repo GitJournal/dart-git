@@ -39,9 +39,15 @@ class MergeCommand extends Command<int> {
     var user = repo.config.user;
     if (user == null) {
       print('Git user not set. Fetching from env variables');
+      var author = Platform.environment['GIT_AUTHOR_NAME'];
+      var email = Platform.environment['GIT_AUTHOR_EMAIL'];
+      if (author == null || email == null) {
+        print('GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL not set');
+        return 1;
+      }
       user = GitAuthor(
-        name: Platform.environment['GIT_AUTHOR_NAME']!,
-        email: Platform.environment['GIT_AUTHOR_EMAIL']!,
+        name: author,
+        email: email,
       );
     }
 

@@ -14,6 +14,10 @@ class MergeBaseCommand extends Command<int> {
   @override
   final description = 'Find as good common ancestors as possible for a merge';
 
+  MergeBaseCommand() {
+    argParser.addFlag('independent', defaultsTo: false);
+  }
+
   @override
   int run() {
     var args = argResults!.rest;
@@ -31,7 +35,10 @@ class MergeBaseCommand extends Command<int> {
     var aRes = repo.objStorage.readCommit(aHash);
     var bRes = repo.objStorage.readCommit(bHash);
 
-    var commits = repo.mergeBase(aRes, bRes);
+    var independent = argResults!['independent'] as bool;
+    var commits = independent
+        ? repo.independents([aRes, bRes])
+        : repo.mergeBase(aRes, bRes);
     for (var c in commits) {
       print(c.hash);
     }

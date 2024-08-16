@@ -98,7 +98,7 @@ done''';
   var repo2Objects =
       repo2Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
 
-  expect(repo1Objects, repo2Objects);
+  expect(repo1Objects, repo2Objects, reason: 'Objects are different');
 
   // Test if all the references are the same
   var listRefScript = 'git show-ref --head';
@@ -115,7 +115,7 @@ done''';
   var repo2Refs =
       repo2Result.stdout.split('\n').where((String e) => e.isNotEmpty).toSet();
 
-  expect(repo1Refs, repo2Refs);
+  expect(repo1Refs, repo2Refs, reason: 'Refs are different');
 
   // Test if the index is the same
   var listIndexScript = 'git ls-files --stage';
@@ -136,7 +136,7 @@ done''';
       .where((String e) => e.isNotEmpty)
       .toSet() as Set<String>?;
 
-  expect(repo1Index, repo2Index);
+  expect(repo1Index, repo2Index, reason: 'Index is different');
 
   // Test if the config is the same
   var config1Data = await File(p.join(repo1, '.git', 'config')).readAsString();
@@ -249,7 +249,7 @@ Future<List<String>> runDartGitCommand(
     reason: "Command ran with an exception. This shouldn't happen",
   );
   if (!shouldReturnError) {
-    expect(ret, 0);
+    expect(ret, 0, reason: 'Dart command `$command` failed in $workingDir');
   } else {
     expect(ret, isNot(0));
   }

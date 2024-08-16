@@ -57,6 +57,7 @@ extension Merge on GitRepository {
       }
     }
 
+    var baseTree = objStorage.readTree(bases.first.treeHash);
     var headTree = objStorage.readTree(headCommit.treeHash);
     var bTree = objStorage.readTree(commitB.treeHash);
 
@@ -70,35 +71,36 @@ extension Merge on GitRepository {
       committer: committer,
       parents: parents,
       message: message,
-      treeHash: _combineTrees(headTree, bTree),
+      treeHash: _combineTrees(headTree, bTree, baseTree),
     );
     objStorage.writeObject(commit);
     return resetHard(commit.hash);
-
-    // - unborn ?
-
-    // Full 3 way
-    // https://stackoverflow.com/questions/4129049/why-is-a-3-way-merge-advantageous-over-a-2-way-merge
   }
 
   /// throws exceptions
-  GitHash _combineTrees(GitTree a, GitTree b) {
+  GitHash _combineTrees(GitTree a, GitTree b, GitTree base) {
     // Get all the paths
     var names = a.entries.map((e) => e.name).toSet();
     names.addAll(b.entries.map((e) => e.name));
 
     var entries = <GitTreeEntry>[];
-    for (var name in names) {
+    for (var baseEntry in base.entries) {
+      var name = baseEntry.name;
       var aIndex = a.entries.indexWhere((e) => e.name == name);
       var bIndex = b.entries.indexWhere((e) => e.name == name);
 
       var aContains = aIndex != -1;
       var bContains = bIndex != -1;
 
-      if (aContains && !bContains) {
-        var aEntry = a.entries[aIndex];
-        entries.add(aEntry);
+      if (!aContains && !bContains) {
+        // both don't contain it!
+        continue;
+      } else if (aContains && !bContains) {
+        // Entry deleted in 'b', but exists in 'a'
+        // Delete this entry in the merged result
+        continue;
       } else if (!aContains && bContains) {
+        // Entry deleted in 'a', but exists in 'b'
         var bEntry = b.entries[bIndex];
         entries.add(bEntry);
       } else {
@@ -106,38 +108,67 @@ extension Merge on GitRepository {
         var aEntry = a.entries[aIndex];
         var bEntry = b.entries[bIndex];
 
-        if (aEntry.mode == GitFileMode.Dir && bEntry.mode == GitFileMode.Dir) {
-          var aEntryTree = objStorage.readTree(aEntry.hash);
-          var bEntryTree = objStorage.readTree(bEntry.hash);
-
-          var newTreeHash = _combineTrees(
-            aEntryTree,
-            bEntryTree,
-          );
-
-          var entry = GitTreeEntry(
-            mode: GitFileMode.Dir,
-            name: aEntry.name,
-            hash: newTreeHash,
-          );
-          entries.add(entry);
-          continue;
-        } else if (aEntry.mode != GitFileMode.Dir &&
-            bEntry.mode != GitFileMode.Dir) {
-          // FIXME: Which one to pick?
-          var aEntry = a.entries[aIndex];
-          entries.add(aEntry);
-          continue;
-        }
-
-        throw GitNotImplemented();
+        var newEntry = _resolvConflicts(aEntry, bEntry, baseEntry);
+        entries.add(newEntry);
       }
+    }
+
+    for (var entry in [...a.entries, ...b.entries]) {
+      var name = entry.name;
+
+      // If the entry was already in the base
+      var baseIndex = base.entries.indexWhere((e) => e.name == name);
+      if (baseIndex != -1) {
+        continue;
+      }
+
+      // If the entry was already in the merged entries
+      var mergedIndex = entries.indexWhere((e) => e.name == name);
+      if (mergedIndex != -1) {
+        continue;
+      }
+
+      entries.add(entry);
     }
 
     var newTree = GitTree.create(entries);
     objStorage.writeObject(newTree);
 
     return newTree.hash;
+  }
+
+  GitTreeEntry _resolvConflicts(
+      GitTreeEntry a, GitTreeEntry b, GitTreeEntry base) {
+    if (a.hash == b.hash) {
+      return a;
+    }
+
+    // Both are not Directories
+    if (a.mode != GitFileMode.Dir && b.mode != GitFileMode.Dir) {
+      return _resolveBlobConflict(a, b, base);
+    }
+
+    if (a.mode == GitFileMode.Dir && b.mode == GitFileMode.Dir) {
+      var aTree = objStorage.readTree(a.hash);
+      var bTree = objStorage.readTree(b.hash);
+      var baseTree = base.mode == GitFileMode.Dir
+          ? objStorage.readTree(base.hash)
+          : GitTree.create();
+
+      var newTreeHash = _combineTrees(aTree, bTree, baseTree);
+      return GitTreeEntry(
+        mode: GitFileMode.Dir,
+        name: a.name,
+        hash: newTreeHash,
+      );
+    }
+
+    throw GitNotImplemented();
+  }
+
+  GitTreeEntry _resolveBlobConflict(
+      GitTreeEntry a, GitTreeEntry b, GitTreeEntry base) {
+    return a;
   }
 
   void mergeTrackingBranch({required GitAuthor author}) {

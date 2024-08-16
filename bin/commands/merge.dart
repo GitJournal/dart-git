@@ -53,13 +53,16 @@ class MergeCommand extends Command<int> {
 
     var authorDate = Platform.environment['GIT_AUTHOR_DATE'];
     if (authorDate != null) {
-      user.date = GDateTime.parse(authorDate);
+      var date = GDateTime.parse(authorDate);
+      user = GitAuthor(name: user.name, email: user.email, date: date);
     }
 
     var committer = user;
     var comitterDate = Platform.environment['GIT_COMMITTER_DATE'];
     if (comitterDate != null) {
-      committer.date = GDateTime.parse(comitterDate);
+      var date = GDateTime.parse(comitterDate);
+      committer =
+          GitAuthor(name: committer.name, email: committer.email, date: date);
     }
 
     var msg = argResults!['message'] ?? "Merge branch '$branchName'\n";

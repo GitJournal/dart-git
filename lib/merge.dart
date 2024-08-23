@@ -36,25 +36,26 @@ extension Merge on GitRepository {
     if (bases.length > 1) {
       throw GitMergeTooManyBases();
     }
-    if (bases.isNotEmpty) {
-      var baseHash = bases.first.hash;
+    if (bases.isEmpty) {
+      throw GitMergeNoCommonAncestor();
+    }
+    var baseHash = bases.first.hash;
 
-      // up to date
-      if (baseHash == commitB.hash) {
-        return;
-      }
+    // up to date
+    if (baseHash == commitB.hash) {
+      return;
+    }
 
-      // fastforward
-      if (baseHash == headCommit.hash) {
-        var branchNameRef = headRef.target;
-        assert(branchNameRef.isBranch());
+    // fastforward
+    if (baseHash == headCommit.hash) {
+      var branchNameRef = headRef.target;
+      assert(branchNameRef.isBranch());
 
-        var newRef = HashReference(branchNameRef, commitB.hash);
-        refStorage.saveRef(newRef);
+      var newRef = HashReference(branchNameRef, commitB.hash);
+      refStorage.saveRef(newRef);
 
-        checkout('.');
-        return;
-      }
+      checkout('.');
+      return;
     }
 
     var baseTree = objStorage.readTree(bases.first.treeHash);

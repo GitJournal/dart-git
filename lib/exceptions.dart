@@ -155,6 +155,8 @@ class GitMergeTooManyBases extends GitException {}
 
 class GitMergeOnHashNotAllowed extends GitException {}
 
+class GitMergeNoCommonAncestor extends GitException {}
+
 class GitNotImplemented extends GitException {}
 
 class GitRepoExists implements GitException {}

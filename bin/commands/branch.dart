@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
@@ -15,7 +13,9 @@ class BranchCommand extends Command<int> {
   @override
   final description = 'List, create, or delete branches';
 
-  BranchCommand() {
+  final String currentDir;
+
+  BranchCommand(this.currentDir) {
     argParser.addOption('set-upstream-to');
     argParser.addFlag('all', abbr: 'a', defaultsTo: false);
     argParser.addFlag('delete', abbr: 'd', defaultsTo: false);
@@ -23,7 +23,7 @@ class BranchCommand extends Command<int> {
 
   @override
   int run() {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var showAll = argResults!['all'] as bool?;

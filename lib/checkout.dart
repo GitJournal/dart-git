@@ -131,7 +131,8 @@ extension Checkout on GitRepository {
         fs.file(filePath).writeAsBytesSync(blobObj.blobData);
         fs.file(filePath).chmodSync(change.to!.mode.val);
 
-        index.updatePath(to.path, to.hash);
+        var stat = fs.file(filePath).statSync();
+        index.updatePath(to.path, to.hash, stat);
       } else if (change.delete) {
         var from = change.from!;
 

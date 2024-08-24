@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
@@ -14,13 +12,15 @@ class ResetCommand extends Command<int> {
   @override
   final description = 'Reset current HEAD to the specified state';
 
-  ResetCommand() {
+  final String currentDir;
+
+  ResetCommand(this.currentDir) {
     argParser.addFlag('hard', defaultsTo: false);
   }
 
   @override
   int run() {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     print(argResults!.rest);

@@ -27,34 +27,34 @@ import 'package:dart_git/exceptions.dart';
 import 'commands/commands.dart';
 
 Future<void> main(List<String> args) async {
-  var ret = await mainWithExitCode(args);
+  var ret = await mainWithExitCode(args, Directory.current.path);
   if (ret != 0) {
     exit(ret);
   }
 }
 
-Future<int> mainWithExitCode(List<String> args) async {
+Future<int> mainWithExitCode(List<String> args, String currentDir) async {
   var runner = CommandRunner<int>('git', 'Distributed version control.')
-    ..addCommand(InitCommand())
-    ..addCommand(AddCommand())
-    ..addCommand(BranchCommand())
-    ..addCommand(CatFileCommand())
-    ..addCommand(CheckoutCommand())
-    ..addCommand(DumpIndexCommand())
-    ..addCommand(HashObjectCommand())
-    ..addCommand(LogCommand())
-    ..addCommand(RemoteCommand())
-    ..addCommand(StatusCommand())
-    ..addCommand(RmCommand())
-    ..addCommand(ResetCommand())
-    ..addCommand(WriteTreeCommand())
-    ..addCommand(MergeBaseCommand())
-    ..addCommand(MergeCommand())
-    ..addCommand(DiffTreeCommand())
-    ..addCommand(DiffCommand())
-    ..addCommand(ShowCommand())
-    ..addCommand(MTimeBuilderCommand())
-    ..addCommand(LsTreeCommand());
+    ..addCommand(InitCommand(currentDir))
+    ..addCommand(AddCommand(currentDir))
+    ..addCommand(BranchCommand(currentDir))
+    ..addCommand(CatFileCommand(currentDir))
+    ..addCommand(CheckoutCommand(currentDir))
+    ..addCommand(DumpIndexCommand(currentDir))
+    ..addCommand(HashObjectCommand(currentDir))
+    ..addCommand(LogCommand(currentDir))
+    ..addCommand(RemoteCommand(currentDir))
+    ..addCommand(StatusCommand(currentDir))
+    ..addCommand(RmCommand(currentDir))
+    ..addCommand(ResetCommand(currentDir))
+    ..addCommand(WriteTreeCommand(currentDir))
+    ..addCommand(MergeBaseCommand(currentDir))
+    ..addCommand(MergeCommand(currentDir))
+    ..addCommand(DiffTreeCommand(currentDir))
+    ..addCommand(DiffCommand(currentDir))
+    ..addCommand(ShowCommand(currentDir))
+    ..addCommand(MTimeBuilderCommand(currentDir))
+    ..addCommand(LsTreeCommand(currentDir));
 
   try {
     return await runner.run(args) ?? 100;

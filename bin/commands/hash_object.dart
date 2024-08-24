@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:dart_git/git.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
@@ -16,7 +17,9 @@ class HashObjectCommand extends Command<int> {
   final description =
       'Compute object ID and optionally creates a blob from a file';
 
-  HashObjectCommand() {
+  final String currentDir;
+
+  HashObjectCommand(this.currentDir) {
     argParser.addOption(
       'type',
       abbr: 't',
@@ -39,10 +42,13 @@ class HashObjectCommand extends Command<int> {
       return 1;
     }
     var filePath = argResults!.rest[0];
+    if (!File(filePath).existsSync()) {
+      filePath = p.join(currentDir, filePath);
+    }
     var rawData = File(filePath).readAsBytesSync();
     var hash = GitHash.compute(rawData);
 
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var fmt = argResults!['type'] as String;

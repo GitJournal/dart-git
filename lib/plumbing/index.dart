@@ -207,31 +207,22 @@ class GitIndex {
 
   static final _listEq = const ListEquality().equals;
 
-  void addPath(String path, GitHash hash) {
-    // FIXME: Do not use FS operations over here!
-    var stat = FileStat.statSync(path);
-    var entry = GitIndexEntry.fromFS(path, stat, hash);
-    entries.add(entry);
-  }
-
-  void updatePath(String path, GitHash hash) {
-    var entry = entries.firstWhereOrNull((e) => e.path == path);
-    if (entry == null) {
-      // FIXME: Do not use FS operations over here!
-      var stat = FileStat.statSync(path);
+  void updatePath(String path, GitHash hash, FileStat stat) {
+    var ei = entries.indexWhere((e) => e.path == path);
+    if (ei == -1) {
       var entry = GitIndexEntry.fromFS(path, stat, hash);
       entries.add(entry);
       return;
     }
 
-    var stat = FileStat.statSync(path);
-
     // Existing file
-    entry.hash = hash;
-    entry.fileSize = stat.size;
-
-    entry.cTime = stat.changed;
-    entry.mTime = stat.modified;
+    var entry = entries[ei];
+    entries[ei] = entry.copyWith(
+      fileSize: stat.size,
+      hash: hash,
+      cTime: stat.changed,
+      mTime: stat.modified,
+    );
   }
 
   GitHash? removePath(String pathSpec) {
@@ -251,26 +242,26 @@ class GitIndex {
 }
 
 class GitIndexEntry {
-  DateTime cTime;
-  DateTime mTime;
+  final DateTime cTime;
+  final DateTime mTime;
 
-  int dev;
-  int ino;
+  final int dev;
+  final int ino;
 
-  GitFileMode mode;
+  final GitFileMode mode;
 
-  int uid;
-  int gid;
+  final int uid;
+  final int gid;
 
-  int fileSize;
-  GitHash hash;
+  final int fileSize;
+  final GitHash hash;
 
-  GitFileStage stage;
+  final GitFileStage stage;
 
-  String path;
+  final String path;
 
-  bool skipWorkTree;
-  bool intentToAdd;
+  final bool skipWorkTree;
+  final bool intentToAdd;
 
   GitIndexEntry({
     required this.cTime,
@@ -288,16 +279,51 @@ class GitIndexEntry {
     this.intentToAdd = false,
   });
 
+  GitIndexEntry copyWith({
+    DateTime? cTime,
+    DateTime? mTime,
+    int? dev,
+    int? ino,
+    GitFileMode? mode,
+    int? uid,
+    int? gid,
+    int? fileSize,
+    GitHash? hash,
+    GitFileStage? stage,
+    String? path,
+    bool? skipWorkTree,
+    bool? intentToAdd,
+  }) {
+    return GitIndexEntry(
+      cTime: cTime ?? this.cTime,
+      mTime: mTime ?? this.mTime,
+      dev: dev ?? this.dev,
+      ino: ino ?? this.ino,
+      mode: mode ?? this.mode,
+      uid: uid ?? this.uid,
+      gid: gid ?? this.gid,
+      fileSize: fileSize ?? this.fileSize,
+      hash: hash ?? this.hash,
+      stage: stage ?? this.stage,
+      path: path ?? this.path,
+      skipWorkTree: skipWorkTree ?? this.skipWorkTree,
+      intentToAdd: intentToAdd ?? this.intentToAdd,
+    );
+  }
+
   static GitIndexEntry fromFS(String path, FileStat stat, GitHash hash) {
     var cTime = stat.changed;
     var mTime = stat.modified;
+
+    if (stat.mode == 0) {
+      throw Exception('Invalid FileMode: ${stat.mode}');
+    }
     var mode = GitFileMode(stat.mode);
 
     // These don't seem to be exposed in Dart
     var ino = 0;
     var dev = 0;
 
-    // ignore: exhaustive_cases
     switch (stat.type) {
       case FileSystemEntityType.file:
         mode = stat.mode == GitFileMode.Executable.val
@@ -307,6 +333,12 @@ class GitIndexEntry {
         mode = GitFileMode.Dir;
       case FileSystemEntityType.link:
         mode = GitFileMode.Symlink;
+      case FileSystemEntityType.notFound:
+        throw Exception('Invalid FileType: ${stat.type}');
+      case FileSystemEntityType.pipe:
+        throw Exception('Invalid FileType: ${stat.type}');
+      case FileSystemEntityType.unixDomainSock:
+        throw Exception('Invalid FileType: ${stat.type}');
     }
 
     // FIXME: uid, gid don't seem accessible in Dart -https://github.com/dart-lang/sdk/issues/15078
@@ -441,13 +473,15 @@ class GitIndexEntry {
 
     var writer = ByteDataWriter(endian: Endian.big);
 
-    cTime = cTime.toUtc();
-    writer.writeUint32(cTime.millisecondsSinceEpoch ~/ 1000);
-    writer.writeUint32((cTime.millisecond * 1000 + cTime.microsecond) * 1000);
+    var w_cTime = cTime.toUtc();
+    writer.writeUint32(w_cTime.millisecondsSinceEpoch ~/ 1000);
+    writer
+        .writeUint32((w_cTime.millisecond * 1000 + w_cTime.microsecond) * 1000);
 
-    mTime = mTime.toUtc();
-    writer.writeUint32(mTime.millisecondsSinceEpoch ~/ 1000);
-    writer.writeUint32((mTime.millisecond * 1000 + mTime.microsecond) * 1000);
+    var w_mTime = mTime.toUtc();
+    writer.writeUint32(w_mTime.millisecondsSinceEpoch ~/ 1000);
+    writer
+        .writeUint32((w_mTime.millisecond * 1000 + w_mTime.microsecond) * 1000);
 
     writer.writeUint32(dev);
     writer.writeUint32(ino);

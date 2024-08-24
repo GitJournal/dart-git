@@ -229,17 +229,13 @@ Future<List<String>> runDartGitCommand(
     printLog.add(msg);
   });
   var ret = await Zone.current.fork(specification: spec).run(() async {
-    var prev = Directory.current;
-
-    Directory.current = workingDir;
     assert(!command.contains('"') && !command.contains("'"));
     int returnCode = 5000;
     try {
-      returnCode = await git.mainWithExitCode(command.split(' '));
+      returnCode = await git.mainWithExitCode(command.split(' '), workingDir);
     } catch (e) {
       printLog = ['$e'];
     }
-    Directory.current = prev;
     return returnCode;
   });
 

@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
@@ -13,9 +11,13 @@ class DumpIndexCommand extends Command<int> {
   @override
   final description = 'Prints the contents of the .git/index';
 
+  final String currentDir;
+
+  DumpIndexCommand(this.currentDir);
+
   @override
   int run() {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var index = repo.indexStorage.readIndex();

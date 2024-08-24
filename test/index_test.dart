@@ -84,8 +84,8 @@ void main() {
   test('Serialize', () async {
     var index = GitIndex(versionNo: 2);
     var entry = GitIndexEntry(
-      cTime: DateTime.now(),
-      mTime: DateTime.now(),
+      cTime: DateTime.now().toUtc(),
+      mTime: DateTime.now().toUtc(),
       dev: 4242,
       ino: 424242,
       mode: GitFileMode.Regular,

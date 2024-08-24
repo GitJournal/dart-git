@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/file_mtime_builder.dart';
@@ -14,13 +12,15 @@ class MTimeBuilderCommand extends Command<int> {
   @override
   final description = 'Internal Dart-Git tools';
 
-  MTimeBuilderCommand() {
+  final String currentDir;
+
+  MTimeBuilderCommand(this.currentDir) {
     argParser.addFlag('debug', abbr: 'd', defaultsTo: false);
   }
 
   @override
   int run() {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var builder = FileMTimeBuilder();

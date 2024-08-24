@@ -14,7 +14,9 @@ class MergeCommand extends Command<int> {
   @override
   final description = 'Join two or more development histories together';
 
-  MergeCommand() {
+  final String currentDir;
+
+  MergeCommand(this.currentDir) {
     argParser.addOption('strategy-option', abbr: 'X');
     argParser.addOption('message', abbr: 'm');
   }
@@ -28,7 +30,7 @@ class MergeCommand extends Command<int> {
     }
 
     var branchName = args[0];
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
     var branchCommit = repo.branchCommit(branchName);
     if (branchCommit == null) {

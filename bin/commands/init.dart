@@ -13,7 +13,9 @@ class InitCommand extends Command<int> {
   final description =
       'Create an empty Git repository or reinitialize an existing one';
 
-  InitCommand() {
+  final String currentDir;
+
+  InitCommand(this.currentDir) {
     argParser.addFlag('quiet', abbr: 'q', defaultsTo: false);
     argParser.addOption('initial-branch', abbr: 'b', defaultsTo: 'main');
   }
@@ -25,7 +27,7 @@ class InitCommand extends Command<int> {
       return 1;
     }
 
-    var path = argResults!.rest.first;
+    var path = p.join(currentDir, argResults!.rest.first);
     var defaultBranch = argResults!['initial-branch'] as String;
     GitRepository.init(path, defaultBranch: defaultBranch);
 

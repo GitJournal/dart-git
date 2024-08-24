@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
@@ -16,11 +14,15 @@ class LsTreeCommand extends Command<int> {
   @override
   final description = 'List the contents of a tree object';
 
+  final String currentDir;
+
+  LsTreeCommand(this.currentDir);
+
   @override
   int run() {
     var objectSha1 = argResults!.rest.first;
 
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var objRes = repo.objStorage.read(GitHash(objectSha1));

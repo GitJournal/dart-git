@@ -3,14 +3,20 @@ import 'package:equatable/equatable.dart';
 class GitFileMode extends Equatable {
   final int val;
 
-  const GitFileMode(this.val);
+  GitFileMode(this.val) {
+    if (val <= 0) {
+      throw Exception('Invalid FileMode: $val');
+    }
+  }
 
   static GitFileMode parse(String str) {
     var val = int.parse(str, radix: 8);
+    if (val <= 0) {
+      throw Exception('Invalid FileMode: $str');
+    }
     return GitFileMode(val);
   }
 
-  static final Empty = GitFileMode(0);
   static final Dir = GitFileMode(int.parse('40000', radix: 8));
   static final Regular = GitFileMode(int.parse('100644', radix: 8));
   static final Deprecated = GitFileMode(int.parse('100664', radix: 8));

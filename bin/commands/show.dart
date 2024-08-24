@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:diff_match_patch/diff_match_patch.dart';
@@ -19,9 +18,13 @@ class ShowCommand extends Command<int> {
   @override
   final description = 'Show various types of objects';
 
+  final String currentDir;
+
+  ShowCommand(this.currentDir);
+
   @override
   int run() {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var hash = GitHash(argResults!.arguments[0]);

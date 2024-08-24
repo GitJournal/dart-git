@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
@@ -17,7 +15,9 @@ class RemoteCommand extends Command<int> {
   final ArgParser addArgParser = ArgParser();
   final ArgParser rmArgParser = ArgParser();
 
-  RemoteCommand() {
+  final String currentDir;
+
+  RemoteCommand(this.currentDir) {
     argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
     argParser.addCommand('add', addArgParser);
     argParser.addCommand('rm', rmArgParser);
@@ -25,7 +25,7 @@ class RemoteCommand extends Command<int> {
 
   @override
   int run() {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var verbose = argResults!['verbose'] as bool?;

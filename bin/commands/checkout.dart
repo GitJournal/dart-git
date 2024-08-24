@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/git.dart';
@@ -15,13 +13,15 @@ class CheckoutCommand extends Command<int> {
   @override
   final description = 'Switch branches or restore working tree files';
 
-  CheckoutCommand() {
+  final String currentDir;
+
+  CheckoutCommand(this.currentDir) {
     argParser.addOption('branch', abbr: 'b', defaultsTo: '');
   }
 
   @override
   int run() {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var branchName = argResults!['branch'] as String;

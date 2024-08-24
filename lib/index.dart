@@ -58,13 +58,14 @@ extension Index on GitRepository {
 
     // Existing file
     if (entry != null) {
-      entry.hash = hash;
-      entry.fileSize = data.length;
       assert(data.length == stat.size);
 
-      entry.cTime = stat.changed;
-      entry.mTime = stat.modified;
-      return entry;
+      return entry.copyWith(
+        hash: hash,
+        fileSize: data.length,
+        cTime: stat.changed,
+        mTime: stat.modified,
+      );
     }
 
     // New file

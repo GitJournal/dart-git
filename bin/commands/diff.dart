@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/diff_commit.dart';
@@ -16,7 +14,9 @@ class DiffCommand extends Command<int> {
   final description =
       'Show changes between commits, commit and working tree, etc';
 
-  DiffCommand() {
+  final String currentDir;
+
+  DiffCommand(this.currentDir) {
     argParser.addFlag('raw');
   }
 
@@ -28,7 +28,7 @@ class DiffCommand extends Command<int> {
       return 1;
     }
 
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var fromStr = argResults!.arguments[0];

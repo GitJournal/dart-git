@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 
 import 'package:dart_git/diff_tree.dart';
@@ -17,9 +15,13 @@ class DiffTreeCommand extends Command<int> {
   final description =
       'Compares the content and mode of blobs found via two tree objects';
 
+  final String currentDir;
+
+  DiffTreeCommand(this.currentDir);
+
   @override
   int run() {
-    var gitRootDir = GitRepository.findRootDir(Directory.current.path)!;
+    var gitRootDir = GitRepository.findRootDir(currentDir)!;
     var repo = GitRepository.load(gitRootDir);
 
     var hash = argResults!.arguments[0];

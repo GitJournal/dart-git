@@ -36,29 +36,29 @@ extension Merge on GitRepository {
     if (bases.length > 1) {
       throw GitMergeTooManyBases();
     }
-    if (bases.isEmpty) {
-      throw GitMergeNoCommonAncestor();
+    if (bases.isNotEmpty) {
+      var baseHash = bases.first.hash;
+
+      // up to date
+      if (baseHash == commitB.hash) {
+        return;
+      }
+
+      // fastforward
+      if (baseHash == headCommit.hash) {
+        var branchNameRef = headRef.target;
+        assert(branchNameRef.isBranch());
+
+        var newRef = HashReference(branchNameRef, commitB.hash);
+        refStorage.saveRef(newRef);
+
+        checkout('.');
+        return;
+      }
     }
-    var baseHash = bases.first.hash;
 
-    // up to date
-    if (baseHash == commitB.hash) {
-      return;
-    }
-
-    // fastforward
-    if (baseHash == headCommit.hash) {
-      var branchNameRef = headRef.target;
-      assert(branchNameRef.isBranch());
-
-      var newRef = HashReference(branchNameRef, commitB.hash);
-      refStorage.saveRef(newRef);
-
-      checkout('.');
-      return;
-    }
-
-    var baseTree = objStorage.readTree(bases.first.treeHash);
+    var baseTree =
+        bases.isNotEmpty ? objStorage.readTree(bases.first.treeHash) : null;
     var headTree = objStorage.readTree(headCommit.treeHash);
     var bTree = objStorage.readTree(commitB.treeHash);
 
@@ -79,13 +79,13 @@ extension Merge on GitRepository {
   }
 
   /// throws exceptions
-  GitHash _combineTrees(GitTree a, GitTree b, GitTree base) {
+  GitHash _combineTrees(GitTree a, GitTree b, GitTree? base) {
     // Get all the paths
     var names = a.entries.map((e) => e.name).toSet();
     names.addAll(b.entries.map((e) => e.name));
 
     var entries = <GitTreeEntry>[];
-    for (var baseEntry in base.entries) {
+    for (var baseEntry in base?.entries ?? <GitTreeEntry>[]) {
       var name = baseEntry.name;
       var aIndex = a.entries.indexWhere((e) => e.name == name);
       var bIndex = b.entries.indexWhere((e) => e.name == name);
@@ -118,7 +118,8 @@ extension Merge on GitRepository {
       var name = entry.name;
 
       // If the entry was already in the base
-      var baseIndex = base.entries.indexWhere((e) => e.name == name);
+      var baseIndex =
+          base == null ? -1 : base.entries.indexWhere((e) => e.name == name);
       if (baseIndex != -1) {
         continue;
       }

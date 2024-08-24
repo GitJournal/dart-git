@@ -1,5 +1,6 @@
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
+import 'package:stdlibc/stdlibc.dart' as stdlibc;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
@@ -131,7 +132,7 @@ extension Checkout on GitRepository {
         fs.file(filePath).writeAsBytesSync(blobObj.blobData);
         fs.file(filePath).chmodSync(change.to!.mode.val);
 
-        var stat = fs.file(filePath).statSync();
+        var stat = stdlibc.stat(filePath)!;
         index.updatePath(to.path, to.hash, stat);
       } else if (change.delete) {
         var from = change.from!;

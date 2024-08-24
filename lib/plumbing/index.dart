@@ -6,6 +6,7 @@ import 'package:buffer/buffer.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:stdlibc/stdlibc.dart' as stdlibc;
 
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
@@ -207,7 +208,7 @@ class GitIndex {
 
   static final _listEq = const ListEquality().equals;
 
-  void updatePath(String path, GitHash hash, FileStat stat) {
+  void updatePath(String path, GitHash hash, stdlibc.Stat stat) {
     var ei = entries.indexWhere((e) => e.path == path);
     if (ei == -1) {
       var entry = GitIndexEntry.fromFS(path, stat, hash);
@@ -216,13 +217,7 @@ class GitIndex {
     }
 
     // Existing file
-    var entry = entries[ei];
-    entries[ei] = entry.copyWith(
-      fileSize: stat.size,
-      hash: hash,
-      cTime: stat.changed,
-      mTime: stat.modified,
-    );
+    entries[ei] = GitIndexEntry.fromFS(path, stat, hash);
   }
 
   GitHash? removePath(String pathSpec) {
@@ -279,87 +274,20 @@ class GitIndexEntry {
     this.intentToAdd = false,
   });
 
-  GitIndexEntry copyWith({
-    DateTime? cTime,
-    DateTime? mTime,
-    int? dev,
-    int? ino,
-    GitFileMode? mode,
-    int? uid,
-    int? gid,
-    int? fileSize,
-    GitHash? hash,
-    GitFileStage? stage,
-    String? path,
-    bool? skipWorkTree,
-    bool? intentToAdd,
-  }) {
-    return GitIndexEntry(
-      cTime: cTime ?? this.cTime,
-      mTime: mTime ?? this.mTime,
-      dev: dev ?? this.dev,
-      ino: ino ?? this.ino,
-      mode: mode ?? this.mode,
-      uid: uid ?? this.uid,
-      gid: gid ?? this.gid,
-      fileSize: fileSize ?? this.fileSize,
-      hash: hash ?? this.hash,
-      stage: stage ?? this.stage,
-      path: path ?? this.path,
-      skipWorkTree: skipWorkTree ?? this.skipWorkTree,
-      intentToAdd: intentToAdd ?? this.intentToAdd,
-    );
-  }
-
-  static GitIndexEntry fromFS(String path, FileStat stat, GitHash hash) {
-    var cTime = stat.changed;
-    var mTime = stat.modified;
-
-    if (stat.mode == 0) {
-      throw Exception('Invalid FileMode: ${stat.mode}');
-    }
-    var mode = GitFileMode(stat.mode);
-
-    // These don't seem to be exposed in Dart
-    var ino = 0;
-    var dev = 0;
-
-    switch (stat.type) {
-      case FileSystemEntityType.file:
-        mode = stat.mode == GitFileMode.Executable.val
-            ? GitFileMode.Executable
-            : GitFileMode.Regular;
-      case FileSystemEntityType.directory:
-        mode = GitFileMode.Dir;
-      case FileSystemEntityType.link:
-        mode = GitFileMode.Symlink;
-      case FileSystemEntityType.notFound:
-        throw Exception('Invalid FileType: ${stat.type}');
-      case FileSystemEntityType.pipe:
-        throw Exception('Invalid FileType: ${stat.type}');
-      case FileSystemEntityType.unixDomainSock:
-        throw Exception('Invalid FileType: ${stat.type}');
-    }
-
-    // FIXME: uid, gid don't seem accessible in Dart -https://github.com/dart-lang/sdk/issues/15078
-    var uid = 0;
-    var gid = 0;
-
-    var fileSize = stat.size;
-    var stage = GitFileStage(0);
-
+  static GitIndexEntry fromFS(String path, stdlibc.Stat stat, GitHash hash) {
     assert(!path.startsWith('/'));
+
     return GitIndexEntry(
-      cTime: cTime,
-      mTime: mTime,
-      dev: dev,
-      ino: ino,
-      mode: mode,
-      uid: uid,
-      gid: gid,
-      fileSize: fileSize,
+      cTime: stat.st_ctim,
+      mTime: stat.st_mtim,
+      dev: stat.st_dev,
+      ino: stat.st_ino,
+      mode: GitFileMode(stat.st_mode),
+      uid: stat.st_uid,
+      gid: stat.st_gid,
+      fileSize: stat.st_size,
       hash: hash,
-      stage: stage,
+      stage: GitFileStage(0),
       path: path,
     );
   }

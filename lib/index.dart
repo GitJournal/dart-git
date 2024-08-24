@@ -1,5 +1,6 @@
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
+import 'package:stdlibc/stdlibc.dart' as stdlibc;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/exceptions.dart';
@@ -44,12 +45,14 @@ extension Index on GitRepository {
     // LB: Wait is this a linear search over all files??
     //     Maybe... but omitting it fully does not speed things up.
     var ei = index.entries.indexWhere((e) => e.path == pathSpec);
-    var stat = FileStat.statSync(filePath);
+    var stat = stdlibc.stat(filePath)!;
     if (ei != -1) {
       var entry = index.entries[ei];
-      if (entry.cTime.isAtSameMomentAs(stat.changed) &&
-          entry.mTime.isAtSameMomentAs(stat.modified) &&
-          entry.fileSize == stat.size) {
+      if (entry.cTime.isAtSameMomentAs(stat.st_ctim) &&
+          entry.mTime.isAtSameMomentAs(stat.st_mtim) &&
+          entry.ino == stat.st_ino &&
+          entry.dev == stat.st_dev &&
+          entry.fileSize == stat.st_size) {
         // We assume it is the same file.
         return entry;
       }
@@ -61,14 +64,11 @@ extension Index on GitRepository {
 
     // Existing file
     if (ei != -1) {
-      assert(data.length == stat.size);
+      assert(data.length == stat.st_size);
 
-      var newEntry = index.entries[ei].copyWith(
-        hash: hash,
-        fileSize: data.length,
-        cTime: stat.changed,
-        mTime: stat.modified,
-      );
+      var hash = index.entries[ei].hash;
+      var path = index.entries[ei].path;
+      var newEntry = GitIndexEntry.fromFS(path, stat, hash);
       index.entries[ei] = newEntry;
       return newEntry;
     }

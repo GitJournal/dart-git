@@ -1,5 +1,5 @@
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:file/file.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/exceptions.dart';
@@ -13,7 +13,8 @@ extension Index on GitRepository {
 
     var index = indexStorage.readIndex();
 
-    var stat = fs.statSync(pathSpec);
+    var filePath = p.join(workTree, pathSpec);
+    var stat = fs.statSync(filePath);
     if (stat.type == FileSystemEntityType.file) {
       addFileToIndex(index, pathSpec);
     } else if (stat.type == FileSystemEntityType.directory) {
@@ -42,14 +43,16 @@ extension Index on GitRepository {
     }
     // LB: Wait is this a linear search over all files??
     //     Maybe... but omitting it fully does not speed things up.
-    var entry = index.entries.firstWhereOrNull((e) => e.path == pathSpec);
+    var ei = index.entries.indexWhere((e) => e.path == pathSpec);
     var stat = FileStat.statSync(filePath);
-    if (entry != null &&
-        entry.cTime.isAtSameMomentAs(stat.changed) &&
-        entry.mTime.isAtSameMomentAs(stat.modified) &&
-        entry.fileSize == stat.size) {
-      // We assume it is the same file.
-      return entry;
+    if (ei != -1) {
+      var entry = index.entries[ei];
+      if (entry.cTime.isAtSameMomentAs(stat.changed) &&
+          entry.mTime.isAtSameMomentAs(stat.modified) &&
+          entry.fileSize == stat.size) {
+        // We assume it is the same file.
+        return entry;
+      }
     }
 
     var data = file.readAsBytesSync();
@@ -57,19 +60,21 @@ extension Index on GitRepository {
     var hash = objStorage.writeObject(blob);
 
     // Existing file
-    if (entry != null) {
+    if (ei != -1) {
       assert(data.length == stat.size);
 
-      return entry.copyWith(
+      var newEntry = index.entries[ei].copyWith(
         hash: hash,
         fileSize: data.length,
         cTime: stat.changed,
         mTime: stat.modified,
       );
+      index.entries[ei] = newEntry;
+      return newEntry;
     }
 
     // New file
-    entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
+    var entry = GitIndexEntry.fromFS(pathSpec, stat, hash);
     index.entries.add(entry);
     return entry;
   }

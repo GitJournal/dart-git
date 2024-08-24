@@ -33,8 +33,8 @@ extension Index on GitRepository {
   ) {
     filePath = normalizePath(filePath);
 
-    var file = fs.file(filePath);
-    if (!file.existsSync()) {
+    var stat = stdlibc.stat(filePath);
+    if (stat == null) {
       throw GitFileNotFound(filePath);
     }
 
@@ -45,7 +45,6 @@ extension Index on GitRepository {
     // LB: Wait is this a linear search over all files??
     //     Maybe... but omitting it fully does not speed things up.
     var ei = index.entries.indexWhere((e) => e.path == pathSpec);
-    var stat = stdlibc.stat(filePath)!;
     if (ei != -1) {
       var entry = index.entries[ei];
       if (entry.cTime.isAtSameMomentAs(stat.st_ctim) &&
@@ -58,7 +57,7 @@ extension Index on GitRepository {
       }
     }
 
-    var data = file.readAsBytesSync();
+    var data = fs.file(filePath).readAsBytesSync();
     var blob = GitBlob(data, null); // Hash the file (takes time!)
     var hash = objStorage.writeObject(blob);
 

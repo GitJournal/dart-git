@@ -47,6 +47,25 @@ extension Remotes on GitRepository {
     return remote;
   }
 
+  GitRemoteConfig updateRemote(
+    String name,
+    String url,
+  ) {
+    var i = config.remotes.indexWhere((r) => r.name == name);
+    if (i == -1) {
+      throw GitRemoteNotFound(name);
+    }
+
+    config.remotes[i] = GitRemoteConfig(
+      name: config.remotes[i].name,
+      fetch: config.remotes[i].fetch,
+      url: url,
+    );
+    saveConfig();
+
+    return config.remotes[i];
+  }
+
   GitRemoteConfig addOrUpdateRemote(
     String name,
     String url,

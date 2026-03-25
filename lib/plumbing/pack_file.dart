@@ -134,25 +134,30 @@ class PackFile {
   }
 
   static Uint8List _decodeObject(RandomAccessFile file, int objSize) {
-    // FIXME: This is crashing in Sentry -
-    // https://sentry.io/organizations/gitjournal/issues/2254310735/?project=5168082&query=is%3Aunresolved
-    // - I'm getting there is a huge object cloned and we're loading all of
-    //   it into memory.
-    //   A proper fix might be to never give back the data, only a way to read it
-    //   -> Just use streams?
-    //
-
     // The number 512 is chosen since the block size is generally 512
-    // The dart zlib parser doesn't have a way to greedily keep reading
-    // till it reaches a certain size
-    var readSize = _roundUp(objSize, 512);
-
+    // We need to keep reading until we have decompressed enough bytes.
+    // Compressed data can have unpredictable ratios, so we may need
+    // to read more than objSize compressed bytes to get objSize decompressed bytes.
     var outputSink = _BufferSink();
     var inputSink = zlib.decoder.startChunkedConversion(outputSink);
-    inputSink.add(file.readSync(readSize));
+
+    var readChunk = 512;
+    var totalRead = 0;
+
+    // Keep reading until we have enough decompressed data
+    while (outputSink.builder.length < objSize) {
+      var bytes = file.readSync(readChunk);
+      if (bytes.isEmpty) break; // EOF reached
+      totalRead += bytes.length;
+      inputSink.add(bytes);
+    }
     inputSink.close();
 
-    assert(outputSink.builder.length >= objSize);
+    if (outputSink.builder.length < objSize) {
+      throw Exception('PackFile._decodeObject: Failed to decompress object. '
+          'Expected $objSize bytes, got ${outputSink.builder.length}. '
+          'Read $totalRead compressed bytes.');
+    }
     return outputSink.builder.takeBytes();
   }
 

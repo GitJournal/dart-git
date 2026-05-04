@@ -65,7 +65,6 @@ extension Index on GitRepository {
     if (ei != -1) {
       assert(data.length == stat.st_size);
 
-      var hash = index.entries[ei].hash;
       var path = index.entries[ei].path;
       var newEntry = GitIndexEntry.fromFS(path, stat, hash);
       index.entries[ei] = newEntry;
@@ -85,6 +84,12 @@ extension Index on GitRepository {
   }) {
     dirPath = normalizePath(dirPath);
 
+    var dirPathSpec = toPathSpec(dirPath);
+    if (dirPathSpec.isNotEmpty && !dirPathSpec.endsWith(p.separator)) {
+      dirPathSpec += p.separator;
+    }
+    var seenPathSpecs = <String>{};
+
     var dir = fs.directory(dirPath);
     for (var fsEntity
         in dir.listSync(recursive: recursive, followLinks: false)) {
@@ -96,8 +101,16 @@ extension Index on GitRepository {
         continue;
       }
 
+      seenPathSpecs.add(toPathSpec(normalizePath(fsEntity.path)));
       addFileToIndex(index, fsEntity.path);
     }
+
+    index.entries.removeWhere((entry) {
+      var path = entry.path;
+      var isUnderDir =
+          dirPathSpec.isEmpty ? true : path.startsWith(dirPathSpec);
+      return isUnderDir && !seenPathSpecs.contains(path);
+    });
 
     return;
   }

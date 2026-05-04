@@ -32,7 +32,6 @@ class ResetCommand extends Command<int> {
     }
 
     var headCommit = repo.headCommit();
-    assert(headCommit.parents.length == 1);
     var targetHash = arg == 'HEAD^' ? headCommit.parents[0] : GitHash(arg);
 
     var hard = argResults!['hard'] as bool;

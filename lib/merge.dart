@@ -1,8 +1,14 @@
+import 'package:path/path.dart' as p;
+import 'package:stdlibc/stdlibc.dart' as stdlibc;
+
 import 'package:dart_git/dart_git.dart';
+import 'package:dart_git/diff_commit.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
+import 'package:dart_git/utils/file_extensions.dart'
+    if (dart.library.html) 'package:dart_git/utils/file_extensions_na.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Merge on GitRepository {
@@ -49,10 +55,10 @@ extension Merge on GitRepository {
         var branchNameRef = headRef.target;
         assert(branchNameRef.isBranch());
 
+        _checkoutCommitChanges(headCommit, commitB);
+
         var newRef = HashReference(branchNameRef, commitB.hash);
         refStorage.saveRef(newRef);
-
-        checkout('.');
         return;
       }
     }
@@ -75,7 +81,11 @@ extension Merge on GitRepository {
       treeHash: _combineTrees(headTree, bTree, baseTree),
     );
     objStorage.writeObject(commit);
-    return resetHard(commit.hash);
+    _checkoutCommitChanges(headCommit, commit);
+
+    var branchNameRef = headRef.target;
+    assert(branchNameRef.isBranch());
+    refStorage.saveRef(HashReference(branchNameRef, commit.hash));
   }
 
   /// throws exceptions
@@ -97,20 +107,35 @@ extension Merge on GitRepository {
         // both don't contain it!
         continue;
       } else if (aContains && !bContains) {
-        // Entry deleted in 'b', but exists in 'a'
-        // Delete this entry in the merged result
-        continue;
+        var aEntry = a.entries[aIndex];
+        if (aEntry.hash == baseEntry.hash && aEntry.mode == baseEntry.mode) {
+          // Entry deleted in 'b' and unchanged in 'a'.
+          continue;
+        }
+
+        entries.add(aEntry);
       } else if (!aContains && bContains) {
-        // Entry deleted in 'a', but exists in 'b'
         var bEntry = b.entries[bIndex];
+        if (bEntry.hash == baseEntry.hash && bEntry.mode == baseEntry.mode) {
+          // Entry deleted in 'a' and unchanged in 'b'.
+          continue;
+        }
+
         entries.add(bEntry);
       } else {
         // both contain it!
         var aEntry = a.entries[aIndex];
         var bEntry = b.entries[bIndex];
 
-        var newEntry = _resolvConflicts(aEntry, bEntry, baseEntry);
-        entries.add(newEntry);
+        if (aEntry.hash == baseEntry.hash && aEntry.mode == baseEntry.mode) {
+          entries.add(bEntry);
+        } else if (bEntry.hash == baseEntry.hash &&
+            bEntry.mode == baseEntry.mode) {
+          entries.add(aEntry);
+        } else {
+          var newEntry = _resolvConflicts(aEntry, bEntry, baseEntry);
+          entries.add(newEntry);
+        }
       }
     }
 
@@ -197,5 +222,43 @@ extension Merge on GitRepository {
     );
 
     return;
+  }
+
+  void _checkoutCommitChanges(GitCommit fromCommit, GitCommit toCommit) {
+    var blobChanges = diffCommits(
+      fromCommit: fromCommit,
+      toCommit: toCommit,
+      objStore: objStorage,
+    );
+    var index = indexStorage.readIndex();
+
+    for (var change in blobChanges.merged()) {
+      if (change.add || change.modify) {
+        var to = change.to!;
+        var blobObj = objStorage.readBlob(to.hash);
+
+        fs
+            .directory(p.join(workTree, p.dirname(to.path)))
+            .createSync(recursive: true);
+
+        var filePath = p.join(workTree, to.path);
+        fs.file(filePath).writeAsBytesSync(blobObj.blobData);
+        fs.file(filePath).chmodSync(to.mode.val);
+
+        var stat = stdlibc.stat(filePath)!;
+        index.updatePath(to.path, to.hash, stat);
+      } else if (change.delete) {
+        var from = change.from!;
+
+        var file = fs.file(p.join(workTree, from.path));
+        if (file.existsSync()) {
+          file.deleteSync(recursive: true);
+        }
+        index.removePath(from.path);
+        deleteEmptyDirectories(fs, workTree, from.path);
+      }
+    }
+
+    indexStorage.writeIndex(index);
   }
 }

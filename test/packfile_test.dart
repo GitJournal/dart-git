@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:file/local.dart';
 import 'package:test/test.dart';
@@ -105,5 +107,43 @@ void main() {
         packfile.object(GitHash('6ecf0ef2c2dffb796033e5a02219af86ec6584e5'));
 
     expect(obj, isNotNull);
+  });
+
+  test('Packfile decodes compressed object larger than its inflated size',
+      () async {
+    var gitDir = (await Directory.systemTemp.createTemp('_git_')).path;
+    await runGitCommand('init', gitDir);
+
+    var random = Random(1);
+    var data = Uint8List.fromList(
+      List<int>.generate(1024, (_) => random.nextInt(256)),
+    );
+    File('$gitDir/blob.bin').writeAsBytesSync(data);
+
+    var hash = await runGitCommand('hash-object blob.bin', gitDir);
+    await runGitCommand('add blob.bin', gitDir);
+    await runGitCommand(
+      '-c user.name=Test -c user.email=test@example.com commit -m init',
+      gitDir,
+    );
+    await runGitCommand('gc', gitDir);
+
+    var packDir = Directory('$gitDir/.git/objects/pack');
+    var idxFile = packDir
+        .listSync()
+        .whereType<File>()
+        .singleWhere((file) => file.path.endsWith('.idx'));
+    var packFile = File(idxFile.path.replaceAll(RegExp(r'\.idx$'), '.pack'));
+
+    var idxFileBytes = idxFile.readAsBytesSync();
+    var idxFileData = IdxFile.decode(idxFileBytes);
+
+    var fs = LocalFileSystem();
+    var packfile = PackFile.fromFile(idxFileData, packFile.path, fs);
+
+    var obj = packfile.object(GitHash(hash));
+
+    expect(obj, isNotNull);
+    expect(obj!.serializeData(), data);
   });
 }

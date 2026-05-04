@@ -230,11 +230,6 @@ class PackObjectHeader {
       'PackObjectHeader{size: $size, type: $type, offset: $offset}';
 }
 
-int _roundUp(int numToRound, int multiple) {
-  assert(multiple != 0);
-  return ((numToRound + multiple - 1) ~/ multiple) * multiple;
-}
-
 // Copied from dart-sdk io
 class _BufferSink extends ByteConversionSink {
   final BytesBuilder builder = BytesBuilder(copy: false);

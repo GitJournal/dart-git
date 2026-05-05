@@ -5,13 +5,13 @@ import 'package:buffer/buffer.dart';
 import 'package:charcode/charcode.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:stdlibc/stdlibc.dart' as stdlibc;
 
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/utils/ascii_helper.dart';
 import 'package:dart_git/utils/bytes_data_reader.dart';
 import 'package:dart_git/utils/file_mode.dart';
+import 'package:dart_git/utils/git_file_stat.dart';
 import 'package:dart_git/utils/uint8list.dart';
 
 final _indexSignature = ascii.encode('DIRC');
@@ -207,7 +207,7 @@ class GitIndex {
 
   static final _listEq = const ListEquality().equals;
 
-  void updatePath(String path, GitHash hash, stdlibc.Stat stat) {
+  void updatePath(String path, GitHash hash, GitFileStat stat) {
     var ei = entries.indexWhere((e) => e.path == path);
     if (ei == -1) {
       var entry = GitIndexEntry.fromFS(path, stat, hash);
@@ -273,18 +273,18 @@ class GitIndexEntry {
     this.intentToAdd = false,
   });
 
-  static GitIndexEntry fromFS(String path, stdlibc.Stat stat, GitHash hash) {
+  static GitIndexEntry fromFS(String path, GitFileStat stat, GitHash hash) {
     assert(!path.startsWith('/'));
 
     return GitIndexEntry(
-      cTime: stat.st_ctim,
-      mTime: stat.st_mtim,
-      dev: stat.st_dev,
-      ino: stat.st_ino,
-      mode: GitFileMode(stat.st_mode),
-      uid: stat.st_uid,
-      gid: stat.st_gid,
-      fileSize: stat.st_size,
+      cTime: stat.cTime,
+      mTime: stat.mTime,
+      dev: stat.dev,
+      ino: stat.ino,
+      mode: GitFileMode(stat.mode),
+      uid: stat.uid,
+      gid: stat.gid,
+      fileSize: stat.fileSize,
       hash: hash,
       stage: GitFileStage(0),
       path: path,

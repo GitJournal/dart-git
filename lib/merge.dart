@@ -1,5 +1,4 @@
 import 'package:path/path.dart' as p;
-import 'package:stdlibc/stdlibc.dart' as stdlibc;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/diff_commit.dart';
@@ -9,6 +8,7 @@ import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/plumbing/reference.dart';
 import 'package:dart_git/utils/file_extensions.dart'
     if (dart.library.html) 'package:dart_git/utils/file_extensions_na.dart';
+import 'package:dart_git/utils/git_file_stat.dart';
 import 'package:dart_git/utils/file_mode.dart';
 
 extension Merge on GitRepository {
@@ -245,7 +245,7 @@ extension Merge on GitRepository {
         fs.file(filePath).writeAsBytesSync(blobObj.blobData);
         fs.file(filePath).chmodSync(to.mode.val);
 
-        var stat = stdlibc.stat(filePath)!;
+        var stat = GitFileStat.fromFileStat(fs.statSync(filePath));
         index.updatePath(to.path, to.hash, stat);
       } else if (change.delete) {
         var from = change.from!;

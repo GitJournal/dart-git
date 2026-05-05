@@ -81,6 +81,21 @@ void main() {
     expect(_blobContents(loadedRepo, 'folder/1.md'), 'one\n');
     loadedRepo.close();
   });
+
+  test('addFileToIndex reuses existing entry with portable metadata', () {
+    _writeFile(repoPath, 'note.md', 'stable\n');
+
+    var repo = GitRepository.load(repoPath);
+    var index = repo.indexStorage.readIndex();
+
+    var firstEntry = repo.addFileToIndex(index, p.join(repoPath, 'note.md'));
+    var secondEntry = repo.addFileToIndex(index, p.join(repoPath, 'note.md'));
+
+    expect(identical(firstEntry, secondEntry), true);
+    expect(index.entries, hasLength(1));
+
+    repo.close();
+  });
 }
 
 final _author = GitAuthor(

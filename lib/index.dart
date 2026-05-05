@@ -1,12 +1,12 @@
 import 'package:file/file.dart';
 import 'package:path/path.dart' as p;
-import 'package:stdlibc/stdlibc.dart' as stdlibc;
 
 import 'package:dart_git/dart_git.dart';
 import 'package:dart_git/exceptions.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/plumbing/objects/blob.dart';
+import 'package:dart_git/utils/git_file_stat.dart';
 
 extension Index on GitRepository {
   void add(String pathSpec) {
@@ -33,7 +33,7 @@ extension Index on GitRepository {
   ) {
     filePath = normalizePath(filePath);
 
-    var stat = stdlibc.stat(filePath);
+    var stat = _statForIndex(filePath);
     if (stat == null) {
       throw GitFileNotFound(filePath);
     }
@@ -47,11 +47,26 @@ extension Index on GitRepository {
     var ei = index.entries.indexWhere((e) => e.path == pathSpec);
     if (ei != -1) {
       var entry = index.entries[ei];
-      if (entry.cTime.isAtSameMomentAs(stat.st_ctim) &&
-          entry.mTime.isAtSameMomentAs(stat.st_mtim) &&
-          entry.ino == stat.st_ino &&
-          entry.dev == stat.st_dev &&
-          entry.fileSize == stat.st_size) {
+      var sameCTime = true;
+      if (_isComparableTime(entry.cTime, stat.cTime)) {
+        sameCTime = entry.cTime.isAtSameMomentAs(stat.cTime);
+      }
+
+      var sameINode = true;
+      if (_isComparableInt(entry.ino, stat.ino)) {
+        sameINode = entry.ino == stat.ino;
+      }
+
+      var sameDev = true;
+      if (_isComparableInt(entry.dev, stat.dev)) {
+        sameDev = entry.dev == stat.dev;
+      }
+
+      if (sameCTime &&
+          entry.mTime.isAtSameMomentAs(stat.mTime) &&
+          sameINode &&
+          sameDev &&
+          entry.fileSize == stat.fileSize) {
         // We assume it is the same file.
         return entry;
       }
@@ -63,7 +78,7 @@ extension Index on GitRepository {
 
     // Existing file
     if (ei != -1) {
-      assert(data.length == stat.st_size);
+      assert(data.length == stat.fileSize);
 
       var path = index.entries[ei].path;
       var newEntry = GitIndexEntry.fromFS(path, stat, hash);
@@ -174,5 +189,22 @@ extension Index on GitRepository {
     }
 
     return;
+  }
+
+  GitFileStat? _statForIndex(String filePath) {
+    var stat = fs.statSync(filePath);
+    if (stat.type == FileSystemEntityType.notFound) {
+      return null;
+    }
+    return GitFileStat.fromFileStat(stat);
+  }
+
+  bool _isComparableTime(DateTime storedValue, DateTime currentValue) {
+    return storedValue.millisecondsSinceEpoch != 0 &&
+        currentValue.millisecondsSinceEpoch != 0;
+  }
+
+  bool _isComparableInt(int storedValue, int currentValue) {
+    return storedValue != 0 && currentValue != 0;
   }
 }

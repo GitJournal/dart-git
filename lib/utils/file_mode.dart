@@ -24,6 +24,11 @@ class GitFileMode extends Equatable {
   static final Symlink = GitFileMode(int.parse('120000', radix: 8));
   static final Submodule = GitFileMode(int.parse('160000', radix: 8));
 
+  static GitFileMode fromFileStatMode(int mode) {
+    const executableBits = 0x49; // 0111 in octal: owner/group/other execute.
+    return mode & executableBits == 0 ? Regular : Executable;
+  }
+
   @override
   List<Object> get props => [val];
 

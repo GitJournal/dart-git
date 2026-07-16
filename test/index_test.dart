@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/index.dart';
 import 'package:dart_git/utils/file_mode.dart';
+import 'package:dart_git/utils/git_file_stat.dart';
 
 void main() {
   test('Decode', () async {
@@ -105,6 +106,24 @@ void main() {
 
     expect(rIndex.versionNo, index.versionNo);
     expect(rIndex.entries, index.entries);
+  });
+
+  test('normalizes filesystem file modes for git index entries', () {
+    var hash = GitHash('e25b29c8946e0e192fae2edc1dabf7be71e8ecf3');
+    var stat = GitFileStat(
+      cTime: DateTime.utc(2026, 1, 1),
+      mTime: DateTime.utc(2026, 1, 1),
+      dev: 0,
+      ino: 0,
+      mode: int.parse('100600', radix: 8),
+      uid: 0,
+      gid: 0,
+      fileSize: 42,
+    );
+
+    var entry = GitIndexEntry.fromFS('note.md', stat, hash);
+
+    expect(entry.mode, GitFileMode.Regular);
   });
 
   test('Decode Merge Conflict', () {

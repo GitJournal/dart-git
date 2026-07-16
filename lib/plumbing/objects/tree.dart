@@ -38,7 +38,8 @@ class GitTree extends GitObject {
   GitTree._(this.hash, this.entries);
 
   static GitTree create([Iterable<GitTreeEntry>? entries]) {
-    var t = GitTree._(GitHash.zero(), IList(entries));
+    var sortedEntries = [...?entries]..sort(compareTreeEntries);
+    var t = GitTree._(GitHash.zero(), IList(sortedEntries));
     var hash = GitHash.computeForObject(t);
     return GitTree._(hash, t.entries);
   }
@@ -97,4 +98,27 @@ class GitTree extends GitObject {
       print('${e.mode} ${e.name} ${e.hash}');
     }
   }
+}
+
+int compareTreeEntries(GitTreeEntry a, GitTreeEntry b) {
+  var aName = utf8.encode(a.name);
+  var bName = utf8.encode(b.name);
+  var commonLength = aName.length < bName.length ? aName.length : bName.length;
+
+  for (var i = 0; i < commonLength; i++) {
+    var diff = aName[i] - bName[i];
+    if (diff != 0) return diff;
+  }
+
+  var aTerminator = aName.length == commonLength
+      ? _treeSortTerminator(a)
+      : aName[commonLength];
+  var bTerminator = bName.length == commonLength
+      ? _treeSortTerminator(b)
+      : bName[commonLength];
+  return aTerminator - bTerminator;
+}
+
+int _treeSortTerminator(GitTreeEntry entry) {
+  return entry.mode == GitFileMode.Dir ? $slash : 0;
 }

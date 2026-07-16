@@ -8,6 +8,7 @@ import 'package:dart_git/plumbing/git_hash.dart';
 import 'package:dart_git/plumbing/objects/object.dart';
 import 'package:dart_git/plumbing/objects/tree.dart';
 import 'package:dart_git/storage/object_storage_fs.dart';
+import 'package:dart_git/utils/file_mode.dart';
 
 void main() {
   test('Reads the tree file correctly', () async {
@@ -44,5 +45,16 @@ void main() {
     expect(
         GitObject.envelope(data: tree.serializeData(), format: tree.format()),
         equals(fileBytesDefalted));
+  });
+
+  test('Sorts tree entries using git tree ordering', () {
+    var hash = GitHash('e25b29c8946e0e192fae2edc1dabf7be71e8ecf3');
+    var tree = GitTree.create([
+      GitTreeEntry(mode: GitFileMode.Regular, name: 'a0.md', hash: hash),
+      GitTreeEntry(mode: GitFileMode.Dir, name: 'a', hash: hash),
+      GitTreeEntry(mode: GitFileMode.Regular, name: 'a.md', hash: hash),
+    ]);
+
+    expect(tree.entries.map((entry) => entry.name), ['a.md', 'a', 'a0.md']);
   });
 }

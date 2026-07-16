@@ -281,7 +281,7 @@ class GitIndexEntry {
       mTime: stat.mTime,
       dev: stat.dev,
       ino: stat.ino,
-      mode: GitFileMode(stat.mode),
+      mode: GitFileMode.fromFileStatMode(stat.mode),
       uid: stat.uid,
       gid: stat.gid,
       fileSize: stat.fileSize,
